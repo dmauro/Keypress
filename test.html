@@ -11,6 +11,7 @@
 <body>
     <p>Keyboard shortucts:</p><br>
     <p class="wd">w + d</p><br>
+    <p class="shiftwd">shift + w + d</p><br>
     <p class="metas">meta + s</p><br>
     <p class="metashifts">meta + shift + s</p><br>
     <p class="metaaltshifts">meta + alt + shift + s</p><br>
@@ -27,6 +28,9 @@
         };
         keypress.combo(["w", "d"], function() {
             highlight($('.wd'));
+        });
+        keypress.combo(["shift", "w", "d"], function() {
+            highlight($('.shiftwd'));
         });
         keypress.combo(["meta", "s"], function() {
             highlight($('.metas'));

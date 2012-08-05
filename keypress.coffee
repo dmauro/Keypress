@@ -233,7 +233,6 @@ keypress.wire = ()->
     .bind "keydown.#{_event_classname}", (e) ->
         _receive_input e, true
         _bug_catcher e
-
     .bind "keyup.#{_event_classname}", (e) ->
         _receive_input e, false
     $(window).bind "blur.#{_event_classname}", ->

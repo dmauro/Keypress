@@ -16,6 +16,7 @@ _valid_combos = []
 _prevent_capture = false
 _prevented_previous_keypress = false
 _event_classname = "keypress_events"
+_metakey = "ctrl"
 _combo_defaults = {
     keys            : []
     count           : 0
@@ -193,10 +194,28 @@ _receive_input = (e, is_keydown) ->
         _key_up key
 
 _validate_combo = (combo) ->
-    return true
+    # Convert "meta" to either "ctrl" or "cmd"
+    for i in [0...combo.keys.length]
+        key = combo.keys[i]
+        if key is "meta"
+            combo.keys.splice i, 1, _metakey
+
     # TODO: Error check the combo
     # Check that if is_repeating, it has an on_down
     # Check that the keys in keys are all valid
+
+    # TODO: Check that meta or command keys
+    # don't have a length over 2
+
+    # TODO: Don't allow explicit command combos
+    # because they break on Windows
+    return true
+
+_decide_meta_key = ->
+    # If the useragent reports Mac OS X, assume cmd is metakey
+    if navigator.userAgent.indexOf("Mac OS X") != -1
+        _metakey = "cmd"
+    return
 
 
 # Public object and methods
@@ -204,9 +223,14 @@ _validate_combo = (combo) ->
 window.keypress = {}
 
 keypress.wire = ()->
+    _decide_meta_key()
     $('body')
     .bind "keydown.#{_event_classname}", (e) ->
         _receive_input e, true
+        # Spoof a keyup for keys when command is held because they don't fire
+        # Cannot use command key with more than 1 key
+        if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) != "cmd"
+            _receive_input e, false
     .bind "keyup.#{_event_classname}", (e) ->
         _receive_input e, false
     $(window).bind "blur.#{_event_classname}", ->

@@ -14,7 +14,17 @@ _registered_combos = []
 _keys_down = []
 _valid_combos = []
 _prevent_capture = false
+_prevented_previous_keypress = false
 _event_classname = "keypress_events"
+_combo_defaults = {
+    keys            : []
+    count           : 0
+    is_ordered      : false
+    is_repeating    : false
+    on_down         : null
+    on_release      : ->
+        return
+}
 
 _remove_val_from_array = (array, value) ->
     return false unless array and value?
@@ -57,12 +67,24 @@ _match_combos = (potential_match=_keys_down, source=_registered_combos, allow_pa
             return source_combo if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
     return false
 
-_key_down = (key) ->
+_prevent_default = (e) ->
+    """
+    This only happens if we have pressed a registered
+    key combo, or if we're working towards one.
+    """
+    _prevented_previous_keypress = true
+    e.preventDefault()
+
+_key_down = (key, e) ->
     # Prevent hold to repeat key errors
     should_make_new = true
     for key_down in _keys_down
         should_make_new = false if key_down is key
-    return unless should_make_new
+    unless should_make_new
+        _prevent_default(e) if _prevented_previous_keypress
+        return
+
+    _prevented_previous_keypress = false
 
     # Add key to keys down
     _keys_down.push key
@@ -85,9 +107,19 @@ _key_down = (key) ->
         if _match
             match = $.extend true, {}, _match
             _valid_combos.push match
+            _prevent_default e
+        else
+            # We need to check if we're working towards a combo
+            # so that we can prevent default if we are
+            for combo in _registered_combos
+                compare_keys = combo.keys.slice(0, _keys_down.length)
+                if _compare_arrays _keys_down, compare_keys
+                    _prevent_default e
+                    return
     else
         # Otherwise just reset it
         match.is_activated = false
+        _prevent_default e
 
     return unless match
 
@@ -153,13 +185,18 @@ _receive_input = (e, is_keydown) ->
     # Catch tabbing out of a non-capturing state
     if !is_keydown and !_keys_down.length
         return
-    e.preventDefault()
     key = _convert_key_to_readable e.keyCode
     return unless key
     if is_keydown
-        _key_down key
+        _key_down key, e
     else
         _key_up key
+
+_validate_combo = (combo) ->
+    return true
+    # TODO: Error check the combo
+    # Check that if is_repeating, it has an on_down
+    # Check that the keys in keys are all valid
 
 
 # Public object and methods
@@ -169,7 +206,6 @@ window.keypress = {}
 keypress.wire = ()->
     $('body')
     .bind "keydown.#{_event_classname}", (e) ->
-        # TODO: Setup pass through binds such as ctrl+R
         _receive_input e, true
     .bind "keyup.#{_event_classname}", (e) ->
         _receive_input e, false
@@ -196,21 +232,10 @@ keypress.register_many_combos = (combo_array) ->
     return true
 
 keypress.register_combo = (combo) ->
-    defaults = {
-        keys            : []
-        count           : 0
-        is_ordered      : false
-        is_repeating    : false
-        on_down         : null
-        on_release      : ->
-            return
-    }
-    $.extend true, {}, defaults, combo
-    # TODO: Error check the combo
-    # Check that if is_repeating, it has an on_down
-    # Check that the keys in keys are all valid
-    _registered_combos.push combo
-    return true
+    $.extend true, {}, _combo_defaults, combo
+    if _validate_combo combo
+        _registered_combos.push combo
+        return true
 
 keypress.listen = ->
     _prevent_capture = false
@@ -305,5 +330,11 @@ _convert_key_to_readable = (k) ->
             break
         when 90
             return "z"
+            break
+        when 91
+            return "cmd"
+            break
+        when 224
+            return "cmd"
             break
     return false

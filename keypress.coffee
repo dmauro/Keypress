@@ -132,9 +132,9 @@ _key_up = (key) ->
             break
 
     # Counter increment or just release and mark activated, if not already activated
-    if !matched_combo.is_activated
+    unless matched_combo.is_activated
         if matched_combo.is_repeating
-            matched_combo.on_release() if !keys_remain
+            matched_combo.on_release() unless keys_remain
         else
             matched_combo.on_release()
             matched_combo.is_activated = true

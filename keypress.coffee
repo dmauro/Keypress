@@ -39,7 +39,7 @@ _combine_arrays = ->
     return array
 
 _compare_arrays = (a1, a2) ->
-    """
+    ###
     This will ignore the ordering of the arrays
     and simply check if they have the same contents.
 
@@ -47,7 +47,7 @@ _compare_arrays = (a1, a2) ->
     arrays would evaluate as being the same:
     ["apple", "orange", "orange"], ["orange", "apple", "apple"]
     But it will serve for now.
-    """
+    ###
     return false unless a1.length is a2.length
     for item in a1
         continue if item in a2
@@ -68,10 +68,10 @@ _match_combos = (potential_match=_keys_down, source=_registered_combos, allow_pa
     return false
 
 _prevent_default = (e) ->
-    """
+    ###
     This only happens if we have pressed a registered
     key combo, or if we're working towards one.
-    """
+    ###
     _prevented_previous_keypress = true
     e.preventDefault()
 
@@ -215,18 +215,14 @@ keypress.wire = ()->
         _valid_combos = []
 
 keypress.combo = (keys_array, on_release) ->
-    """
-    Shortcut for simple combos.
-    """
+    # Shortcut for simple combos.
     keypress.register_combo(
         keys        : keys_array
         on_release  : on_release
     )
 
 keypress.register_many_combos = (combo_array) ->
-    """
-    Shortcut for assigning an array of combos.
-    """
+    # Shortcut for assigning an array of combos.
     for combo in combo_array
         keypress.register_combo combo
     return true

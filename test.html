@@ -1,0 +1,42 @@
+<!doctype html>
+<html>
+<head>
+    <title>Keypress test</title>
+    <style>
+        p {
+            display:inline-block;
+        }
+    </style>
+</head>
+<body>
+    <p>Keyboard shortucts:</p><br>
+    <p class="wd">w + d</p><br>
+    <p class="metas">meta + s</p><br>
+    <p class="metashifts">meta + shift + s</p><br>
+    <p class="metaaltshifts">meta + alt + shift + s</p><br>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="keypress.js"></script>
+    <script>
+        keypress.wire();
+        var highlight = function(target) {
+            target.css("background-color", "yellow");
+            setTimeout(function() {
+                target.css("background-color", "transparent");
+            }, 100);
+        };
+        keypress.combo(["w", "d"], function() {
+            highlight($('.wd'));
+        });
+        keypress.combo(["meta", "s"], function() {
+            highlight($('.metas'));
+        });
+        keypress.combo(["meta", "shift", "s"], function() {
+            highlight($('.metashifts'));
+        });
+        keypress.combo(["meta", "alt", "shift", "s"], function() {
+            highlight($('.metaaltshifts'));
+        });
+    </script>
+</body>
+</html>

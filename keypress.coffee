@@ -206,6 +206,7 @@ _validate_combo = (combo) ->
 
     # TODO: Check that meta or command keys
     # don't have a length over 2
+    # Unless modifier key
 
     # TODO: Don't allow explicit command combos
     # because they break on Windows
@@ -217,6 +218,10 @@ _decide_meta_key = ->
         _metakey = "cmd"
     return
 
+_bug_catcher = (e) ->
+    # Force a keyup for non-modifier keys when command is held because they don't fire
+    if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt"]
+        _receive_input e, false
 
 # Public object and methods
 
@@ -227,10 +232,8 @@ keypress.wire = ()->
     $('body')
     .bind "keydown.#{_event_classname}", (e) ->
         _receive_input e, true
-        # Spoof a keyup for keys when command is held because they don't fire
-        # Cannot use command key with more than 1 key
-        if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) != "cmd"
-            _receive_input e, false
+        _bug_catcher e
+
     .bind "keyup.#{_event_classname}", (e) ->
         _receive_input e, false
     $(window).bind "blur.#{_event_classname}", ->

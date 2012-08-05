@@ -1,4 +1,4 @@
-"""
+###
 License agreements:
 1) Feel free to modify the code.
 2) Feel free to credit the author.
@@ -8,7 +8,7 @@ Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
 Requires jQuery
 Author: David Mauro
-"""
+###
 
 _registered_combos = []
 _keys_down = []

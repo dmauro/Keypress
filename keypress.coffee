@@ -82,9 +82,6 @@ _prevent_default = (e) ->
     _prevented_previous_keypress = true
     e.preventDefault()
 
-_activate_combo = ->
-    return
-
 _key_down = (key, e) ->
     # Prevent hold to repeat key errors
     should_make_new = true

@@ -20,10 +20,11 @@ _metakey = "ctrl"
 _combo_defaults = {
     keys            : []
     count           : 0
+    fire_on_keyup   : false # TODO: Allow shortcuts to fire onkeydown by default
     is_ordered      : false
     is_repeating    : false
-    on_down         : null
-    on_release      : ->
+    on_repeat       : null
+    on_fire         : ->
         return
 }
 
@@ -59,6 +60,11 @@ _compare_arrays = (a1, a2) ->
     return true
 
 _match_combos = (potential_match=_keys_down, source=_registered_combos, allow_partial_match=false) ->
+    ###
+    This checks each of a set of combos to determine if the
+    potential_match array is either a perfect match to any of
+    them or if it is a partial match to the start of a combo.
+    ###
     for source_combo in source
         if source_combo.is_ordered
             return source_combo if potential_match.join("") is source_combo.keys.join("")
@@ -75,6 +81,9 @@ _prevent_default = (e) ->
     ###
     _prevented_previous_keypress = true
     e.preventDefault()
+
+_activate_combo = ->
+    return
 
 _key_down = (key, e) ->
     # Prevent hold to repeat key errors
@@ -127,15 +136,15 @@ _key_down = (key, e) ->
     # Make sure counting combos increment on keydown
     if match.is_repeating
         match.count += 1
-        match.on_down match.count
-    # And execute on_down behavior if any
+        match.on_repeat match.count
+    # And execute on_repeat behavior if any
     else
-        match.on_down() if typeof match.on_down is "function"
+        match.on_repeat() if typeof match.on_repeat is "function"
 
     # Check to see if we replaced any other inputs
     # TODO: We need a better check to find out if this input
     # replaces another. It could be replacing it if only some
-    # of the keys match.
+    # of the keys match due to our array comparison.
     return unless match.keys.length > 1
     prev_keys = _remove_val_from_array $.extend(true, [], match.keys), key
     replaced = _match_combos prev_keys, _valid_combos, true
@@ -167,9 +176,9 @@ _key_up = (key) ->
     # Counter increment or just release and mark activated, if not already activated
     unless matched_combo.is_activated
         if matched_combo.is_repeating
-            matched_combo.on_release() unless keys_remain
+            matched_combo.on_fire() unless keys_remain
         else
-            matched_combo.on_release()
+            matched_combo.on_fire()
             matched_combo.is_activated = true
 
     # Wipe the input if this was the last key of the combo
@@ -201,7 +210,7 @@ _validate_combo = (combo) ->
             combo.keys.splice i, 1, _metakey
 
     # TODO: Error check the combo
-    # Check that if is_repeating, it has an on_down
+    # Check that if is_repeating, it has an on_repeat
     # Check that the keys in keys are all valid
 
     # TODO: Check that meta or command keys
@@ -240,11 +249,11 @@ keypress.wire = ()->
         _keys_down = []
         _valid_combos = []
 
-keypress.combo = (keys_array, on_release) ->
+keypress.combo = (keys_array, on_fire) ->
     # Shortcut for simple combos.
     keypress.register_combo(
         keys        : keys_array
-        on_release  : on_release
+        on_fire  : on_fire
     )
 
 keypress.register_many_combos = (combo_array) ->

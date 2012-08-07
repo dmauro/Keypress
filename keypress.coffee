@@ -17,10 +17,11 @@ _prevent_capture = false
 _prevented_previous_keypress = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
+_dont_fire_on_keyup = false
 _combo_defaults = {
     keys            : []
     count           : 0
-    fire_on_keyup   : false # TODO: Allow shortcuts to fire onkeydown by default
+    fire_on_keyup   : false
     is_ordered      : false
     is_repeating    : false
     on_repeat       : null
@@ -91,10 +92,19 @@ _key_down = (key, e) ->
         _prevent_default(e) if _prevented_previous_keypress
         return
 
+    _dont_fire_on_keyup = false
     _prevented_previous_keypress = false
 
     # Add key to keys down
     _keys_down.push key
+
+    # First let's check if we should just fire this off now
+    perfect_match = _match_combos()
+    if perfect_match and !perfect_match.fire_on_keyup and !perfect_match.is_repeating
+        perfect_match.on_fire()
+        perfect_match.is_activated = true
+        # We fired on keyup so make sure we don't fire on keydown
+        _dont_fire_on_keyup = true
 
     # We check to find out if this key press maps to an input object
     # First we should check if this is an exact duplicate match
@@ -122,11 +132,12 @@ _key_down = (key, e) ->
                 compare_keys = combo.keys.slice(0, _keys_down.length)
                 if _compare_arrays _keys_down, compare_keys
                     _prevent_default e
-                    return
     else
         # Otherwise just reset it
         match.is_activated = false
         _prevent_default e
+
+    console.log "Valid combos", _valid_combos
 
     return unless match
 
@@ -156,6 +167,7 @@ _key_up = (key) ->
 
     # Was this key part of a combo
     for valid_combo in _valid_combos
+        console.log "valid combo keys", valid_combo.keys
         if key in valid_combo.keys
             matched_combo = valid_combo
             break
@@ -171,7 +183,9 @@ _key_up = (key) ->
             break
 
     # Counter increment or just release and mark activated, if not already activated
-    unless matched_combo.is_activated
+    console.log "about to check:" , matched_combo.is_activated,!matched_combo.fire_on_keyup, _dont_fire_on_keyup
+    unless matched_combo.is_activated or !matched_combo.fire_on_keyup or _dont_fire_on_keyup
+        console.log "gonna fire"
         if matched_combo.is_repeating
             matched_combo.on_fire() unless keys_remain
         else

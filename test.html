@@ -10,27 +10,64 @@
 </head>
 <body>
     <p>Keyboard shortucts:</p><br>
+    <p class="w">w</p><br>
     <p class="wd">w + d</p><br>
-    <p class="shiftwd">shift + w + d</p><br>
+    <p class="wa">w + a</p><br>
+    <p class="shiftwd">shift + w + d (on keydown)</p><br>
+    <p class="shiftwa">shift + w + a</p><br>
+    <p class="tabspace">tab + space (repeating)</p><br>
     <p class="metas">meta + s</p><br>
     <p class="metashifts">meta + shift + s</p><br>
     <p class="metaaltshifts">meta + alt + shift + s</p><br>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
-    <script src="keypress.js"></script>
+    <script src="keypress_new.js"></script>
     <script>
         keypress.wire();
-        var highlight = function(target) {
-            target.css("background-color", "yellow");
+        var highlight = function(target, color) {
+            target.css("background-color", color || "yellow");
             setTimeout(function() {
                 target.css("background-color", "transparent");
             }, 100);
         };
-        keypress.combo(["w", "d"], function() {
-            highlight($('.wd'));
+        keypress.register_combo({
+            keys            : ["w"],
+            fire_on_keyup   : true,
+            on_keyup        : function() {
+                highlight($('.w'));
+            },
         });
-        keypress.combo(["shift", "w", "d"], function() {
-            highlight($('.shiftwd'));
+        keypress.register_combo({
+            keys            : ["w", "d"],
+            fire_on_keyup   : true,
+            on_keyup        : function() {
+                highlight($('.wd'));
+            },
+        });
+        keypress.register_combo({
+            keys            : ["w", "a"],
+            fire_on_keyup   : true,
+            on_keyup        : function() {
+                highlight($('.wa'));
+            },
+        });
+        keypress.register_combo({
+            keys            : ["shift", "w", "d"],
+            on_keydown      : function() {
+                highlight($('.shiftwd'));
+            },
+        });
+        keypress.register_combo({
+            keys            : ["tab", "space"],
+            is_ordered      : true,
+            is_repeating    : true,
+            fire_on_keyup   : true,
+            on_keydown      : function() {
+                highlight($('.tabspace'), "blue");
+            },
+            on_release      : function() {
+                highlight($('.tabspace'));
+            },
         });
         keypress.combo(["meta", "s"], function() {
             highlight($('.metas'));

@@ -14,14 +14,14 @@ Author: David Mauro
 
 
 (function() {
-  var key, _, _active_combos, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _is_potentially_in_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   _registered_combos = [];
 
-  _keys_down = [];
+  window._keys_down = _keys_down = [];
 
-  _active_combos = [];
+  window._active_combos = _active_combos = [];
 
   _prevent_capture = false;
 
@@ -36,6 +36,7 @@ Author: David Mauro
   _combo_defaults = {
     keys: [],
     count: 0,
+    allow_default: false,
     fire_on_keyup: false,
     is_ordered: false,
     is_counting: false,
@@ -129,12 +130,21 @@ Author: David Mauro
     return false;
   };
 
+  _cmd_bug_check = function(combo_keys) {
+    if (__indexOf.call(_keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
+      return false;
+    }
+    return true;
+  };
+
   _get_active_combo = function(key) {
     var fuzzy_match, i, keys_down, keys_down_partial, perfect_match, potentials, _i, _ref;
-    keys_down = _keys_down.slice();
+    keys_down = _keys_down.filter(function(down_key) {
+      return down_key !== key;
+    });
     keys_down.push(key);
     perfect_match = _match_combo_arrays(keys_down, _registered_combos);
-    if (perfect_match) {
+    if (perfect_match && _cmd_bug_check(keys_down)) {
       return perfect_match;
     }
     potentials = [];
@@ -153,31 +163,39 @@ Author: David Mauro
         return b.keys.length - a.keys.length;
       });
     }
-    return potentials[0];
+    if (_cmd_bug_check(potentials[0].keys)) {
+      return potentials[0];
+    }
   };
 
-  _is_potentially_in_combo = function(key) {
+  _get_potential_combo = function(key) {
     var combo, _i, _len;
     for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
       combo = _registered_combos[_i];
-      if (__indexOf.call(combo.keys, key) >= 0) {
-        return true;
+      if (__indexOf.call(combo.keys, key) >= 0 && _cmd_bug_check(combo.keys)) {
+        return combo;
       }
     }
     return false;
   };
 
-  _add_to_active_combos = function(combo, key) {
-    var i, keys, replaced, _i, _ref;
+  _add_to_active_combos = function(combo) {
+    var active_key, active_keys, i, is_match, replaced, _i, _j, _len, _ref;
     replaced = false;
     if (__indexOf.call(_active_combos, combo) >= 0) {
       return false;
     } else if (_active_combos.length) {
       for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        console.log(i, _active_combos, combo);
-        keys = _active_combos[i].keys.slice();
-        keys.push(key);
-        if (_compare_arrays(keys, combo.keys)) {
+        active_keys = _active_combos[i].keys.slice();
+        for (_j = 0, _len = active_keys.length; _j < _len; _j++) {
+          active_key = active_keys[_j];
+          is_match = true;
+          if (__indexOf.call(combo.keys, active_key) < 0) {
+            is_match = false;
+            break;
+          }
+        }
+        if (is_match) {
           _active_combos.splice(i, 1, combo);
           replaced = true;
           break;
@@ -185,7 +203,6 @@ Author: David Mauro
       }
     }
     if (!replaced) {
-      console.log("adding to active combos", combo);
       _active_combos.push(combo);
     }
     return true;
@@ -203,9 +220,12 @@ Author: David Mauro
   };
 
   _key_down = function(key, e) {
-    var combo;
+    var combo, potential_combo;
     combo = _get_active_combo(key);
-    if (combo || _is_potentially_in_combo(key)) {
+    if (!combo) {
+      potential_combo = _get_potential_combo(key);
+    }
+    if ((combo && !combo.allow_default) || (potential_combo && !potential_combo.allow_default)) {
       _prevent_default(e);
     }
     if (__indexOf.call(_keys_down, key) >= 0) {
@@ -224,7 +244,8 @@ Author: David Mauro
   };
 
   _key_up = function(key) {
-    var active_combo, combo, i, keys_remaining, _i, _j, _len, _ref;
+    var active_combo, active_combos_length, combo, i, keys_remaining, _i, _j, _k, _len, _len1, _ref;
+    console.log("keyup", key);
     if (__indexOf.call(_keys_down, key) < 0) {
       return false;
     }
@@ -251,12 +272,24 @@ Author: David Mauro
         combo.count += 1;
       }
     }
+    active_combos_length = _active_combos.length;
     if (!keys_remaining) {
       if (combo.is_counting) {
         _fire("release", combo);
         combo.count = 0;
       }
       _remove_from_active_combos(combo);
+    }
+    if (active_combos_length > 1) {
+      for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
+        active_combo = _active_combos[_k];
+        if (combo === active_combo) {
+          continue;
+        }
+        if (!_keys_remain(active_combo)) {
+          _remove_from_active_combos(active_combo);
+        }
+      }
     }
   };
 

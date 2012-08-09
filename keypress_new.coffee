@@ -11,8 +11,8 @@ Author: David Mauro
 ###
 
 _registered_combos = []
-_keys_down = []
-_active_combos = []
+window._keys_down = _keys_down = []
+window._active_combos = _active_combos = []
 _prevent_capture = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
@@ -21,6 +21,7 @@ _valid_keys = []
 _combo_defaults = {
     keys            : []
     count           : 0
+    allow_default   : false
     fire_on_keyup   : false
     is_ordered      : false
     is_counting     : false
@@ -78,16 +79,26 @@ _match_combo_arrays = (potential_match, source_combo_array, allow_partial_match=
             return source_combo if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
     return false
 
+_cmd_bug_check = (combo_keys) ->
+    # We don't want to allow combos to activate if the cmd key
+    # is pressed, but cmd isn't in them. This is so they don't
+    # accidentally rapid fire due to our hack-around for the cmd
+    # key bug and having to fake keyups.
+    if "cmd" in _keys_down and "cmd" not in combo_keys
+        return false
+    return true
+
 _get_active_combo = (key) ->
     # Based on the keys_down and the key just pressed or released
     # (which should not be in keys_down), we determine if any
     # combo in registered_combos matches exactly.
 
     # First check that every key in keys_down maps to a combo
-    keys_down = _keys_down.slice()
+    keys_down = _keys_down.filter (down_key) ->
+        down_key isnt key
     keys_down.push key
     perfect_match = _match_combo_arrays keys_down, _registered_combos
-    return perfect_match if perfect_match
+    return perfect_match if perfect_match and _cmd_bug_check keys_down
 
     # Then work our way back through a combination with each other key down in order
     # This will match a combo even if some other key that is not part of the combo
@@ -103,17 +114,17 @@ _get_active_combo = (key) ->
     if potentials.length > 1
         potentials.sort (a, b) ->
             b.keys.length - a.keys.length
-    return potentials[0]
+    return potentials[0] if _cmd_bug_check potentials[0].keys
 
-_is_potentially_in_combo = (key) ->
+_get_potential_combo = (key) ->
     # Check if we are working towards pressing a combo.
     # Used for preventing default on keys that might match
     # to a combo in the future.
     for combo in _registered_combos
-        return true if key in combo.keys
+        return combo if key in combo.keys and _cmd_bug_check combo.keys
     return false
 
-_add_to_active_combos = (combo, key) ->
+_add_to_active_combos = (combo) ->
     replaced = false
     # An active combo is any combo which the user has already entered.
     # We use this to track when a user has released the last key of a
@@ -122,19 +133,20 @@ _add_to_active_combos = (combo, key) ->
         return false
     else if _active_combos.length
         # We have to check if we're replacing another active combo
-        # So compare the combo.keys to all active combos' keys with
-        # the current keydown added to it to see if we match.
+        # So compare the combo.keys to all active combos' keys.
         for i in [0..._active_combos.length]
-            console.log i, _active_combos, combo
-            keys = _active_combos[i].keys.slice()
-            keys.push key
-            if _compare_arrays keys, combo.keys
+            active_keys = _active_combos[i].keys.slice()
+            for active_key in active_keys
+                is_match = true
+                unless active_key in combo.keys
+                    is_match = false
+                    break
+            if is_match
                 # In this case we'll just replace it
                 _active_combos.splice i, 1, combo
                 replaced = true
                 break
     unless replaced
-        console.log "adding to active combos", combo
         _active_combos.push combo
     return true
 
@@ -148,7 +160,9 @@ _remove_from_active_combos = (combo) ->
 
 _key_down = (key, e) ->
     combo = _get_active_combo key
-    if combo or _is_potentially_in_combo key
+    if !combo
+        potential_combo = _get_potential_combo key
+    if (combo and !combo.allow_default) or (potential_combo and !potential_combo.allow_default)
         _prevent_default(e)
 
     # If we've already pressed this key, check that we want to fire
@@ -173,6 +187,7 @@ _key_down = (key, e) ->
     return
 
 _key_up = (key) ->
+    console.log "keyup", key
     # Remove from the list
     return false unless key in _keys_down
     for i in [0..._keys_down.length]
@@ -199,12 +214,23 @@ _key_up = (key) ->
         _fire "keyup", combo
         combo.count += 1 if combo.is_counting
 
+    # Store this for later cleanup
+    active_combos_length = _active_combos.length
+
     # If this was the last key released of the combo, clean up.
     unless keys_remaining
         if combo.is_counting
             _fire "release", combo
             combo.count = 0
         _remove_from_active_combos combo
+
+    # We also need to check other combos that might still be in active_combos
+    # and needs to be removed from it.
+    if active_combos_length > 1
+        for active_combo in _active_combos
+            continue if combo is active_combo
+            unless _keys_remain active_combo
+                _remove_from_active_combos active_combo
     return
 
 _receive_input = (e, is_keydown) ->

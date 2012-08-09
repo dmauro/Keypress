@@ -9,8 +9,10 @@
     </style>
 </head>
 <body>
+    <input>
     <p>Keyboard shortucts:</p><br>
     <p class="w">w</p><br>
+    <p class="a">a</p><br>
     <p class="wd">w + d</p><br>
     <p class="wa">w + a</p><br>
     <p class="shiftwd">shift + w + d (on keydown)</p><br>
@@ -20,7 +22,7 @@
     <p class="metashifts">meta + shift + s</p><br>
     <p class="metaaltshifts">meta + alt + shift + s</p><br>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script src="jquery-1.7.1.min.js"></script>
     <script src="keypress_new.js"></script>
     <script>
         keypress.wire();
@@ -35,6 +37,14 @@
             fire_on_keyup   : true,
             on_keyup        : function() {
                 highlight($('.w'));
+            },
+        });
+        keypress.register_combo({
+            keys            : ["a"],
+            fire_on_keyup   : true,
+            allow_default   : true,
+            on_keyup        : function() {
+                highlight($('.a'));
             },
         });
         keypress.register_combo({
@@ -58,9 +68,15 @@
             },
         });
         keypress.register_combo({
+            keys            : ["shift", "w", "a"],
+            on_keyup        : function() {
+                highlight($('.shiftwa'));
+            },
+        });
+        keypress.register_combo({
             keys            : ["tab", "space"],
             is_ordered      : true,
-            is_repeating    : true,
+            is_counting     : true,
             fire_on_keyup   : true,
             on_keydown      : function() {
                 highlight($('.tabspace'), "blue");

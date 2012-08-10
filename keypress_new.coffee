@@ -8,6 +8,17 @@ Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
 Requires jQuery
 Author: David Mauro
+
+Options available and defaults:
+    keys            : []        - An array of the keys pressed together to activate combo
+    count           : 0         - The number of times a counting combo has been pressed. Reset on release.
+    allow_default   : false     - Allow the default key event to happen in addition to the combo.
+    is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
+    is_counting     : false     - Makes this a counting combo (see documentation)
+    prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
+    on_keyup        : null      - A function that is called when the combo is released
+    on_keydown      : null      - A function that is called when the combo is pressed.
+    on_release      : null      - A function that is called for counting combos when all keys are released.
 ###
 
 _registered_combos = []
@@ -21,16 +32,10 @@ _valid_keys = []
 _combo_defaults = {
     keys            : []
     count           : 0
-    allow_default   : false
-    fire_on_keyup   : false
-    is_ordered      : false
-    is_counting     : false
-    prevent_repeat  : false
-    keyup_fired     : false
-    on_keyup        : null
-    on_keydown      : null
-    on_release      : null  # For counting combos
 }
+
+_log_error = (msg) ->
+    console.log msg
 
 _compare_arrays = (a1, a2) ->
     # This will ignore the ordering of the arrays
@@ -104,16 +109,26 @@ _get_active_combo = (key) ->
     # This will match a combo even if some other key that is not part of the combo
     # is being held down.
     potentials = []
-    for i in [1..keys_down.length]
-        keys_down_partial = keys_down.slice -i
-        fuzzy_match = _match_combo_arrays(keys_down_partial, _registered_combos)
-        potentials.push(fuzzy_match) if fuzzy_match
+    slice_up_array = (array) ->
+        for i in [0...array.length]
+            partial = array.slice()
+            partial.splice i, 1
+            continue unless partial.length
+            fuzzy_match = _match_combo_arrays partial, _registered_combos
+            potentials.push(fuzzy_match) if fuzzy_match and fuzzy_match not in potentials
+            slice_up_array partial
+        return
+    slice_up_array keys_down
 
     # Return the combo with the longest keys array
+    # But if two combos have the same length, dont' do anything and announce conflict.
     return false unless potentials.length
     if potentials.length > 1
         potentials.sort (a, b) ->
             b.keys.length - a.keys.length
+        if potentials[0].length is potentials[1].length
+            _log_error "Conflicting combos registered"
+            return false;
     return potentials[0] if _cmd_bug_check potentials[0].keys
 
 _get_potential_combo = (key) ->
@@ -187,7 +202,6 @@ _key_down = (key, e) ->
     return
 
 _key_up = (key) ->
-    console.log "keyup", key
     # Remove from the list
     return false unless key in _keys_down
     for i in [0..._keys_down.length]
@@ -260,12 +274,12 @@ _validate_combo = (combo) ->
         if key is "meta" or key is "cmd"
             combo.keys.splice i, 1, _metakey
             if key is "cmd"
-                console.log "Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility"
+                _log_error "Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility"
 
     # Check that all keys in the combo are valid
     for key in combo.keys
         unless key in _valid_keys
-            console.log "Do not recognize the key \"#{key}\""
+            _log_error "Do not recognize the key \"#{key}\""
             return false
 
     # We can only allow a single non-modifier key
@@ -277,7 +291,7 @@ _validate_combo = (combo) ->
             if (i = non_modifier_keys.indexOf(mod_key)) > -1
                 non_modifier_keys.splice(i, 1) 
         if non_modifier_keys.length > 1
-            console.log "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys
+            _log_error "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys
             return true
     return true
 

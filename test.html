@@ -16,6 +16,7 @@
     <p class="wd">w + d</p><br>
     <p class="wa">w + a</p><br>
     <p class="shiftwd">shift + w + d (on keydown)</p><br>
+    <p class="shiftwda">shift + w + d + a (on keydown)</p><br>
     <p class="shiftwa">shift + w + a</p><br>
     <p class="tabspace">tab + space (repeating)</p><br>
     <p class="metas">meta + s</p><br>
@@ -65,6 +66,12 @@
             keys            : ["shift", "w", "d"],
             on_keydown      : function() {
                 highlight($('.shiftwd'));
+            },
+        });
+        keypress.register_combo({
+            keys            : ["shift", "w", "d", "a"],
+            on_keydown      : function() {
+                highlight($('.shiftwda'));
             },
         });
         keypress.register_combo({

@@ -10,11 +10,22 @@ Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
 Requires jQuery
 Author: David Mauro
+
+Options available and defaults:
+    keys            : []        - An array of the keys pressed together to activate combo
+    count           : 0         - The number of times a counting combo has been pressed. Reset on release.
+    allow_default   : false     - Allow the default key event to happen in addition to the combo.
+    is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
+    is_counting     : false     - Makes this a counting combo (see documentation)
+    prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
+    on_keyup        : null      - A function that is called when the combo is released
+    on_keydown      : null      - A function that is called when the combo is pressed.
+    on_release      : null      - A function that is called for counting combos when all keys are released.
 */
 
 
 (function() {
-  var key, _, _active_combos, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   _registered_combos = [];
@@ -35,16 +46,11 @@ Author: David Mauro
 
   _combo_defaults = {
     keys: [],
-    count: 0,
-    allow_default: false,
-    fire_on_keyup: false,
-    is_ordered: false,
-    is_counting: false,
-    prevent_repeat: false,
-    keyup_fired: false,
-    on_keyup: null,
-    on_keydown: null,
-    on_release: null
+    count: 0
+  };
+
+  _log_error = function(msg) {
+    return console.log(msg);
   };
 
   _compare_arrays = function(a1, a2) {
@@ -138,7 +144,7 @@ Author: David Mauro
   };
 
   _get_active_combo = function(key) {
-    var fuzzy_match, i, keys_down, keys_down_partial, perfect_match, potentials, _i, _ref;
+    var keys_down, perfect_match, potentials, slice_up_array;
     keys_down = _keys_down.filter(function(down_key) {
       return down_key !== key;
     });
@@ -148,13 +154,22 @@ Author: David Mauro
       return perfect_match;
     }
     potentials = [];
-    for (i = _i = 1, _ref = keys_down.length; 1 <= _ref ? _i <= _ref : _i >= _ref; i = 1 <= _ref ? ++_i : --_i) {
-      keys_down_partial = keys_down.slice(-i);
-      fuzzy_match = _match_combo_arrays(keys_down_partial, _registered_combos);
-      if (fuzzy_match) {
-        potentials.push(fuzzy_match);
+    slice_up_array = function(array) {
+      var fuzzy_match, i, partial, _i, _ref;
+      for (i = _i = 0, _ref = array.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        partial = array.slice();
+        partial.splice(i, 1);
+        if (!partial.length) {
+          continue;
+        }
+        fuzzy_match = _match_combo_arrays(partial, _registered_combos);
+        if (fuzzy_match && __indexOf.call(potentials, fuzzy_match) < 0) {
+          potentials.push(fuzzy_match);
+        }
+        slice_up_array(partial);
       }
-    }
+    };
+    slice_up_array(keys_down);
     if (!potentials.length) {
       return false;
     }
@@ -162,6 +177,10 @@ Author: David Mauro
       potentials.sort(function(a, b) {
         return b.keys.length - a.keys.length;
       });
+      if (potentials[0].length === potentials[1].length) {
+        _log_error("Conflicting combos registered");
+        return false;
+      }
     }
     if (_cmd_bug_check(potentials[0].keys)) {
       return potentials[0];
@@ -245,7 +264,6 @@ Author: David Mauro
 
   _key_up = function(key) {
     var active_combo, active_combos_length, combo, i, keys_remaining, _i, _j, _k, _len, _len1, _ref;
-    console.log("keyup", key);
     if (__indexOf.call(_keys_down, key) < 0) {
       return false;
     }
@@ -322,7 +340,7 @@ Author: David Mauro
       if (key === "meta" || key === "cmd") {
         combo.keys.splice(i, 1, _metakey);
         if (key === "cmd") {
-          console.log("Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility");
+          _log_error("Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility");
         }
       }
     }
@@ -330,7 +348,7 @@ Author: David Mauro
     for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
       key = _ref1[_j];
       if (__indexOf.call(_valid_keys, key) < 0) {
-        console.log("Do not recognize the key \"" + key + "\"");
+        _log_error("Do not recognize the key \"" + key + "\"");
         return false;
       }
     }
@@ -343,7 +361,7 @@ Author: David Mauro
         }
       }
       if (non_modifier_keys.length > 1) {
-        console.log("META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys);
+        _log_error("META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys);
         return true;
       }
     }

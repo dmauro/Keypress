@@ -73,7 +73,11 @@ _keys_remain = (combo) ->
 
 _fire = (event, combo) ->
     # Only fire this event if the function is defined
-    combo["on_" + event]() if typeof combo["on_" + event] is "function"
+    if typeof combo["on_" + event] is "function"
+        if event is "release"
+            combo["on_" + event] combo.count
+        else
+            combo["on_" + event]() 
     # We need to mark that keyup has already happened
     if event is "keyup"
         combo.keyup_fired = true
@@ -168,7 +172,7 @@ _add_to_active_combos = (combo) ->
                 replaced = true
                 break
     unless replaced
-        _active_combos.push combo
+        _active_combos.unshift combo
     return true
 
 _remove_from_active_combos = (combo) ->
@@ -179,10 +183,12 @@ _remove_from_active_combos = (combo) ->
             break
     return
 
-_add_key_to_sequence = (key) ->
+_add_key_to_sequence = (key, e) ->
     _sequence.push key
     # Now check if they're working towards a sequence
     sequence_combo = _get_sequence true
+    if sequence_combo and !sequence_combo.allow_default
+        _prevent_default(e)
     if sequence_combo
         # If we're working towards it, give them more time to keep going
         clearTimeout(_sequence_timer) if _sequence_timer
@@ -210,7 +216,7 @@ _get_sequence = (allow_partial=false)->
 
 _key_down = (key, e) ->
     # Add the key to sequences
-    _add_key_to_sequence key
+    _add_key_to_sequence key, e
     sequence_combo = _get_sequence()
     _fire "keydown", sequence_combo if sequence_combo
 

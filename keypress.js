@@ -110,7 +110,11 @@ Options available and defaults:
 
   _fire = function(event, combo) {
     if (typeof combo["on_" + event] === "function") {
-      combo["on_" + event]();
+      if (event === "release") {
+        combo["on_" + event](combo.count);
+      } else {
+        combo["on_" + event]();
+      }
     }
     if (event === "keyup") {
       return combo.keyup_fired = true;
@@ -128,7 +132,6 @@ Options available and defaults:
         continue;
       }
       if (source_combo.is_ordered) {
-        console.log("potential_match", potential_match, potential_match.join, source_combo, source_combo.keys);
         if (potential_match.join("") === source_combo.keys.join("")) {
           return source_combo;
         }
@@ -236,7 +239,7 @@ Options available and defaults:
       }
     }
     if (!replaced) {
-      _active_combos.push(combo);
+      _active_combos.unshift(combo);
     }
     return true;
   };
@@ -252,10 +255,13 @@ Options available and defaults:
     }
   };
 
-  _add_key_to_sequence = function(key) {
+  _add_key_to_sequence = function(key, e) {
     var sequence_combo;
     _sequence.push(key);
     sequence_combo = _get_sequence(true);
+    if (sequence_combo && !sequence_combo.allow_default) {
+      _prevent_default(e);
+    }
     if (sequence_combo) {
       if (_sequence_timer) {
         clearTimeout(_sequence_timer);
@@ -297,7 +303,7 @@ Options available and defaults:
 
   _key_down = function(key, e) {
     var combo, potential_combo, sequence_combo;
-    _add_key_to_sequence(key);
+    _add_key_to_sequence(key, e);
     sequence_combo = _get_sequence();
     if (sequence_combo) {
       _fire("keydown", sequence_combo);
@@ -325,7 +331,7 @@ Options available and defaults:
   };
 
   _key_up = function(key) {
-    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, _i, _j, _k, _len, _len1, _ref;
+    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, thing, _i, _j, _k, _l, _len, _len1, _len2, _ref;
     sequence_combo = _get_sequence();
     if (sequence_combo) {
       _fire("keyup", sequence_combo);
@@ -349,6 +355,12 @@ Options available and defaults:
     if (!combo) {
       return;
     }
+    console.log("combo?", combo.keys);
+    for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
+      thing = _active_combos[_k];
+      console.log("all:", thing.keys);
+    }
+    console.log("And keys down", _keys_down, key);
     keys_remaining = _keys_remain(combo);
     if (!combo.keyup_fired && (!combo.is_counting || (combo.is_counting && keys_remaining))) {
       _fire("keyup", combo);
@@ -365,8 +377,8 @@ Options available and defaults:
       _remove_from_active_combos(combo);
     }
     if (active_combos_length > 1) {
-      for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
-        active_combo = _active_combos[_k];
+      for (_l = 0, _len2 = _active_combos.length; _l < _len2; _l++) {
+        active_combo = _active_combos[_l];
         if (combo === active_combo) {
           continue;
         }
@@ -496,12 +508,10 @@ Options available and defaults:
     for (property in _combo_defaults) {
       if (!__hasProp.call(_combo_defaults, property)) continue;
       value = _combo_defaults[property];
-      console.log("working on extending", property, " : ", combo[property], value);
       if (combo[property] == null) {
         combo[property] = value;
       }
     }
-    console.log("combo", combo);
     if (_validate_combo(combo)) {
       _registered_combos.push(combo);
       return true;

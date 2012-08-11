@@ -76,6 +76,7 @@ _fire = (event, combo) ->
     if typeof combo["on_" + event] is "function"
         if event is "release"
             combo["on_" + event] combo.count
+            combo.count = 0
         else
             combo["on_" + event]() 
     # We need to mark that keyup has already happened
@@ -286,7 +287,6 @@ _key_up = (key) ->
     unless keys_remaining
         if combo.is_counting
             _fire "release", combo
-            combo.count = 0
         _remove_from_active_combos combo
 
     # We also need to check other combos that might still be in active_combos

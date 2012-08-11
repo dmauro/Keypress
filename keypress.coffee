@@ -78,7 +78,7 @@ _fire = (event, combo) ->
             combo["on_" + event] combo.count
             combo.count = 0
         else
-            combo["on_" + event]() 
+            combo["on_" + event]()
     # We need to mark that keyup has already happened
     if event is "keyup"
         combo.keyup_fired = true
@@ -247,6 +247,9 @@ _key_down = (key, e) ->
 
     # Now we fire the keydown event
     _fire "keydown", combo
+    if combo.is_counting and typeof combo.on_keydown is "function"
+        combo.count += 1
+
     return
 
 _key_up = (key) ->
@@ -278,7 +281,9 @@ _key_up = (key) ->
     # We don't fire those because they will fire on_release on their last key release.
     if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
         _fire "keyup", combo
-        combo.count += 1 if combo.is_counting
+        # Dont' add to the count unless we only have a keyup callback
+        if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
+            combo.count += 1 
 
     # Store this for later cleanup
     active_combos_length = _active_combos.length

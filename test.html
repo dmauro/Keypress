@@ -84,11 +84,12 @@
             keys            : ["tab", "space"],
             is_ordered      : true,
             is_counting     : true,
-            on_keydown      : function() {
+            on_keyup        : function() {
                 highlight($('.tabspace'), "blue");
             },
-            on_release      : function() {
+            on_release      : function(count) {
                 highlight($('.tabspace'));
+                $('.tabspace').append(count);
             },
         });
         keypress.combo(["meta", "s"], function() {

@@ -112,6 +112,7 @@ Options available and defaults:
     if (typeof combo["on_" + event] === "function") {
       if (event === "release") {
         combo["on_" + event](combo.count);
+        combo.count = 0;
       } else {
         combo["on_" + event]();
       }
@@ -328,10 +329,13 @@ Options available and defaults:
     _add_to_active_combos(combo, key);
     combo.keyup_fired = false;
     _fire("keydown", combo);
+    if (combo.is_counting && typeof combo.on_keydown === "function") {
+      combo.count += 1;
+    }
   };
 
   _key_up = function(key) {
-    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, thing, _i, _j, _k, _l, _len, _len1, _len2, _ref;
+    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, _i, _j, _k, _len, _len1, _ref;
     sequence_combo = _get_sequence();
     if (sequence_combo) {
       _fire("keyup", sequence_combo);
@@ -355,16 +359,10 @@ Options available and defaults:
     if (!combo) {
       return;
     }
-    console.log("combo?", combo.keys);
-    for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
-      thing = _active_combos[_k];
-      console.log("all:", thing.keys);
-    }
-    console.log("And keys down", _keys_down, key);
     keys_remaining = _keys_remain(combo);
     if (!combo.keyup_fired && (!combo.is_counting || (combo.is_counting && keys_remaining))) {
       _fire("keyup", combo);
-      if (combo.is_counting) {
+      if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
         combo.count += 1;
       }
     }
@@ -372,13 +370,12 @@ Options available and defaults:
     if (!keys_remaining) {
       if (combo.is_counting) {
         _fire("release", combo);
-        combo.count = 0;
       }
       _remove_from_active_combos(combo);
     }
     if (active_combos_length > 1) {
-      for (_l = 0, _len2 = _active_combos.length; _l < _len2; _l++) {
-        active_combo = _active_combos[_l];
+      for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
+        active_combo = _active_combos[_k];
         if (combo === active_combo) {
           continue;
         }

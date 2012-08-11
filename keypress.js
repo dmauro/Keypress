@@ -159,7 +159,7 @@ Options available and defaults:
   };
 
   _get_active_combo = function(key) {
-    var keys_down, perfect_match, potentials, slice_up_array;
+    var better_pots, check_for_conflict, keys_down, perfect_match, potential, potentials, slice_up_array, _i, _len;
     keys_down = _keys_down.filter(function(down_key) {
       return down_key !== key;
     });
@@ -188,14 +188,36 @@ Options available and defaults:
     if (!potentials.length) {
       return false;
     }
+    check_for_conflict = function(array) {
+      if (array.length > 1 && array[0].keys.length === array[1].keys.length) {
+        _log_error("Conflicting combos registered");
+        return true;
+      }
+    };
     if (potentials.length > 1) {
       potentials.sort(function(a, b) {
         return b.keys.length - a.keys.length;
       });
-      if (potentials[0].length === potentials[1].length) {
-        _log_error("Conflicting combos registered");
-        return false;
+      better_pots = [];
+      for (_i = 0, _len = potentials.length; _i < _len; _i++) {
+        potential = potentials[_i];
+        if (__indexOf.call(potential.keys, key) >= 0) {
+          better_pots.push(potential);
+        }
       }
+      if (better_pots.length) {
+        if (check_for_conflict(better_pots)) {
+          return false;
+        }
+        potentials = better_pots;
+      } else {
+        if (check_for_conflict(potentials)) {
+          return false;
+        }
+      }
+    }
+    if (!potentials.length) {
+      return false;
     }
     if (_cmd_bug_check(potentials[0].keys)) {
       return potentials[0];

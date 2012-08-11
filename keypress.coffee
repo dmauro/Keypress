@@ -130,15 +130,32 @@ _get_active_combo = (key) ->
         return
     slice_up_array keys_down
 
-    # Return the combo with the longest keys array
-    # But if two combos have the same length, dont' do anything and announce conflict.
     return false unless potentials.length
+
+    # Return the combo that includes key in the keys array.
+    # If multiple include it, return the longest one, if they
+    # are the same length, announce a conflict.
+    check_for_conflict = (array) ->
+        if array.length > 1 and array[0].keys.length is array[1].keys.length
+            _log_error "Conflicting combos registered"
+            return true
+
     if potentials.length > 1
         potentials.sort (a, b) ->
             b.keys.length - a.keys.length
-        if potentials[0].length is potentials[1].length
-            _log_error "Conflicting combos registered"
-            return false;
+        better_pots = []
+        for potential in potentials
+            better_pots.push(potential) if key in potential.keys
+
+        # If at least one potential contains key
+        if better_pots.length
+            return false if check_for_conflict better_pots
+            potentials = better_pots
+        # If none of the potentials contain key
+        else
+            return false if check_for_conflict potentials
+
+    return false unless potentials.length
     return potentials[0] if _cmd_bug_check potentials[0].keys
 
 _get_potential_combo = (key) ->

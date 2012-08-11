@@ -8,49 +8,41 @@ Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
 Requires jQuery
 Author: David Mauro
+
+Options available and defaults:
+    keys            : []        - An array of the keys pressed together to activate combo
+    count           : 0         - The number of times a counting combo has been pressed. Reset on release.
+    allow_default   : false     - Allow the default key event to happen in addition to the combo.
+    is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
+    is_counting     : false     - Makes this a counting combo (see documentation)
+    is_sequence     : false     - Rather than a key combo, this is an ordered key sequence
+    prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
+    on_keyup        : null      - A function that is called when the combo is released
+    on_keydown      : null      - A function that is called when the combo is pressed.
+    on_release      : null      - A function that is called for counting combos when all keys are released.
 ###
 
 _registered_combos = []
+_sequence = []
+_sequence_timer = null
 _keys_down = []
-_valid_combos = []
+_active_combos = []
 _prevent_capture = false
-_prevented_previous_keypress = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
-_dont_fire_on_keyup = false
+_modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"]
+_valid_keys = []
 _combo_defaults = {
     keys            : []
     count           : 0
-    fire_on_keyup   : false
-    is_ordered      : false
-    is_repeating    : false
-    on_repeat       : null
-    on_fire         : ->
-        return
 }
 
-_remove_val_from_array = (array, value) ->
-    return false unless array and value?
-    array[t..t] = [] if (t = array.indexOf(value)) > -1
-    return array
-
-_combine_arrays = ->
-    array = []
-    for a in arguments
-        for value in a
-            array.push value
-    return array
+_log_error = (msg) ->
+    console.log msg
 
 _compare_arrays = (a1, a2) ->
-    ###
-    This will ignore the ordering of the arrays
-    and simply check if they have the same contents.
-
-    This isn't perfect as for example these two 
-    arrays would evaluate as being the same:
-    ["apple", "orange", "orange"], ["orange", "apple", "apple"]
-    But it will serve for now.
-    ###
+    # This will ignore the ordering of the arrays
+    # and simply check if they have the same contents.
     return false unless a1.length is a2.length
     for item in a1
         continue if item in a2
@@ -60,13 +52,34 @@ _compare_arrays = (a1, a2) ->
         return false
     return true
 
-_match_combos = (potential_match=_keys_down, source=_registered_combos, allow_partial_match=false) ->
-    ###
-    This checks each of a set of combos to determine if the
-    potential_match array is either a perfect match to any of
-    them or if it is a partial match to the start of a combo.
-    ###
-    for source_combo in source
+_prevent_default = (e) ->
+    # If we've pressed a combo, or if we are working towards
+    # one, we should prevent the default keydown event.
+    e.preventDefault()
+
+_allow_key_repeat = (combo) ->
+    return false if combo.prevent_repeat
+    # Combos with keydown functions should be able to rapid fire
+    # when holding down the key for an extended period
+    return true if typeof combo.on_keydown is "function"
+
+_keys_remain = (combo) ->
+    for key in combo.keys
+        if key in _keys_down
+            keys_remain = true
+            break
+    return keys_remain
+
+_fire = (event, combo) ->
+    # Only fire this event if the function is defined
+    combo["on_" + event]() if typeof combo["on_" + event] is "function"
+    # We need to mark that keyup has already happened
+    if event is "keyup"
+        combo.keyup_fired = true
+
+_match_combo_arrays = (potential_match, source_combo_array, allow_partial_match=false) ->
+    for source_combo in source_combo_array
+        continue if source_combo_array.is_sequence
         if source_combo.is_ordered
             return source_combo if potential_match.join("") is source_combo.keys.join("")
             return source_combo if allow_partial_match and potential_match.join("") is source_combo.keys.slice(0, potential_match.length).join("")
@@ -75,130 +88,212 @@ _match_combos = (potential_match=_keys_down, source=_registered_combos, allow_pa
             return source_combo if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
     return false
 
-_prevent_default = (e) ->
-    ###
-    This only happens if we have pressed a registered
-    key combo, or if we're working towards one.
-    ###
-    _prevented_previous_keypress = true
-    e.preventDefault()
+_cmd_bug_check = (combo_keys) ->
+    # We don't want to allow combos to activate if the cmd key
+    # is pressed, but cmd isn't in them. This is so they don't
+    # accidentally rapid fire due to our hack-around for the cmd
+    # key bug and having to fake keyups.
+    if "cmd" in _keys_down and "cmd" not in combo_keys
+        return false
+    return true
+
+_get_active_combo = (key) ->
+    # Based on the keys_down and the key just pressed or released
+    # (which should not be in keys_down), we determine if any
+    # combo in registered_combos matches exactly.
+
+    # First check that every key in keys_down maps to a combo
+    keys_down = _keys_down.filter (down_key) ->
+        down_key isnt key
+    keys_down.push key
+    perfect_match = _match_combo_arrays keys_down, _registered_combos
+    return perfect_match if perfect_match and _cmd_bug_check keys_down
+
+    # Then work our way back through a combination with each other key down in order
+    # This will match a combo even if some other key that is not part of the combo
+    # is being held down.
+    potentials = []
+    slice_up_array = (array) ->
+        for i in [0...array.length]
+            partial = array.slice()
+            partial.splice i, 1
+            continue unless partial.length
+            fuzzy_match = _match_combo_arrays partial, _registered_combos
+            potentials.push(fuzzy_match) if fuzzy_match and fuzzy_match not in potentials
+            slice_up_array partial
+        return
+    slice_up_array keys_down
+
+    # Return the combo with the longest keys array
+    # But if two combos have the same length, dont' do anything and announce conflict.
+    return false unless potentials.length
+    if potentials.length > 1
+        potentials.sort (a, b) ->
+            b.keys.length - a.keys.length
+        if potentials[0].length is potentials[1].length
+            _log_error "Conflicting combos registered"
+            return false;
+    return potentials[0] if _cmd_bug_check potentials[0].keys
+
+_get_potential_combo = (key) ->
+    # Check if we are working towards pressing a combo.
+    # Used for preventing default on keys that might match
+    # to a combo in the future.
+    for combo in _registered_combos
+        continue if combo.is_sequence
+        return combo if key in combo.keys and _cmd_bug_check combo.keys
+    return false
+
+_add_to_active_combos = (combo) ->
+    replaced = false
+    # An active combo is any combo which the user has already entered.
+    # We use this to track when a user has released the last key of a
+    # combo for on_release, and to keep combos from 'overlapping'.
+    if combo in _active_combos
+        return false
+    else if _active_combos.length
+        # We have to check if we're replacing another active combo
+        # So compare the combo.keys to all active combos' keys.
+        for i in [0..._active_combos.length]
+            active_keys = _active_combos[i].keys.slice()
+            for active_key in active_keys
+                is_match = true
+                unless active_key in combo.keys
+                    is_match = false
+                    break
+            if is_match
+                # In this case we'll just replace it
+                _active_combos.splice i, 1, combo
+                replaced = true
+                break
+    unless replaced
+        _active_combos.push combo
+    return true
+
+_remove_from_active_combos = (combo) ->
+    for i in [0..._active_combos.length]
+        active_combo = _active_combos[i]
+        if active_combo is combo
+            _active_combos.splice i, 1
+            break
+    return
+
+_add_key_to_sequence = (key) ->
+    _sequence.push key
+    # Now check if they're working towards a sequence
+    sequence_combo = _get_sequence true
+    if sequence_combo
+        # If we're working towards it, give them more time to keep going
+        clearTimeout(_sequence_timer) if _sequence_timer
+        _sequence_timer = setTimeout ->
+            _sequence = []
+        , sequence_combo.wait or 500
+    else
+        # If we're not working towards something, just clear it out
+        _sequence = []
+
+    return
+
+_get_sequence = (allow_partial=false)->
+    # Compare _sequence to all combos
+    for combo in _registered_combos
+        continue unless combo.is_sequence
+        continue unless combo.keys.length is _sequence.length or allow_partial
+        match = true
+        for i in [0..._sequence.length]
+            unless combo.keys[i] is _sequence[i]
+                match = false
+                break
+        return combo if match
+    return false
 
 _key_down = (key, e) ->
-    # Prevent hold to repeat key errors
-    should_make_new = true
-    for key_down in _keys_down
-        should_make_new = false if key_down is key
-    unless should_make_new
-        _prevent_default(e) if _prevented_previous_keypress
-        return
+    # Add the key to sequences
+    _add_key_to_sequence key
+    sequence_combo = _get_sequence()
+    _fire "keydown", sequence_combo if sequence_combo
 
-    _dont_fire_on_keyup = false
-    _prevented_previous_keypress = false
+    # Find which combo we have pressed or might be working towards, and prevent default
+    combo = _get_active_combo key
+    if !combo
+        potential_combo = _get_potential_combo key
+    if (combo and !combo.allow_default) or (potential_combo and !potential_combo.allow_default)
+        _prevent_default(e)
 
-    # Add key to keys down
-    _keys_down.push key
-
-    # First let's check if we should just fire this off now
-    perfect_match = _match_combos()
-    if perfect_match and !perfect_match.fire_on_keyup and !perfect_match.is_repeating
-        perfect_match.on_fire()
-        perfect_match.is_activated = true
-        # We fired on keyup so make sure we don't fire on keydown
-        _dont_fire_on_keyup = true
-
-    # We check to find out if this key press maps to an input object
-    # First we should check if this is an exact duplicate match
-    match = _match_combos _keys_down, _valid_combos
-    if !match
-        _match = null
-        # Work our way back through a combination with each other key down in order
-        for i in [1.._keys_down.length]
-            potential_match = _keys_down.slice -i
-            _match = _match_combos(potential_match) or _match
-        # Then check the list of valid inputs for a combo
-        for valid_combo in _valid_combos
-            continue if valid_combo.is_activated
-            potential_combo = _combine_arrays valid_combo.keys, [key]
-            _match = _match_combos(potential_combo) or _match
-        # We have to clone and add it if it's not a duplicate
-        if _match
-            match = $.extend true, {}, _match
-            _valid_combos.push match
-            _prevent_default e
-        else
-            # We need to check if we're working towards a combo
-            # so that we can prevent default if we are
-            for combo in _registered_combos
-                compare_keys = combo.keys.slice(0, _keys_down.length)
-                if _compare_arrays _keys_down, compare_keys
-                    _prevent_default e
+    # If we've already pressed this key, check that we want to fire
+    # again, otherwise just add it to the keys_down list.
+    if key in _keys_down
+        return false unless _allow_key_repeat combo
     else
-        # Otherwise just reset it
-        match.is_activated = false
-        _prevent_default e
+        _keys_down.push key
 
-    console.log "Valid combos", _valid_combos
+    # We're done now unless we have a match
+    return false unless combo
 
-    return unless match
+    # Now we add this combo or replace it in _active_combos
+    _add_to_active_combos combo, key
 
-    # Make sure counting combos increment on keydown
-    if match.is_repeating
-        match.count += 1
-        match.on_repeat match.count
-    # And execute on_repeat behavior if any
-    else
-        match.on_repeat() if typeof match.on_repeat is "function"
+    # We reset the keyup_fired property because you should be
+    # able to fire that again, if you've pressed the key down again
+    combo.keyup_fired = false
 
-    # Check to see if we replaced any other inputs
-    # TODO: We need a better check to find out if this input
-    # replaces another. It could be replacing it if only some
-    # of the keys match due to our array comparison.
-    return unless match.keys.length > 1
-    prev_keys = _remove_val_from_array $.extend(true, [], match.keys), key
-    replaced = _match_combos prev_keys, _valid_combos, true
-    return if replaced is match
-    return unless replaced
-    _remove_val_from_array _valid_combos, replaced
+    # Now we fire the keydown event
+    _fire "keydown", combo
     return
 
 _key_up = (key) ->
-    return unless key in _keys_down
-    _keys_down = _remove_val_from_array _keys_down, key
+    # Check if we have a keyup firing
+    sequence_combo = _get_sequence()
+    _fire "keyup", sequence_combo if sequence_combo
 
-    # Was this key part of a combo
-    for valid_combo in _valid_combos
-        console.log "valid combo keys", valid_combo.keys
-        if key in valid_combo.keys
-            matched_combo = valid_combo
+    # Remove from the list
+    return false unless key in _keys_down
+    for i in [0..._keys_down.length]
+        if key is _keys_down[i]
+            _keys_down.splice i, 1
             break
 
-    # We're done if this key isn't in a valid combo
-    return if !matched_combo
-
-    # Check if this is the last key of the combo being released
-    keys_remain = false
-    for key in matched_combo.keys
-        if key in _keys_down
-            keys_remain = true
+    # When releasing we should only check if we
+    # match from _active_combos so that we don't
+    # accidentally fire for a combo that was a
+    # smaller part of the one we actually wanted.
+    for active_combo in _active_combos
+        if key in active_combo.keys
+            combo = active_combo
             break
+    return unless combo
 
-    # Counter increment or just release and mark activated, if not already activated
-    console.log "about to check:" , matched_combo.is_activated,!matched_combo.fire_on_keyup, _dont_fire_on_keyup
-    unless matched_combo.is_activated or !matched_combo.fire_on_keyup or _dont_fire_on_keyup
-        console.log "gonna fire"
-        if matched_combo.is_repeating
-            matched_combo.on_fire() unless keys_remain
-        else
-            matched_combo.on_fire()
-            matched_combo.is_activated = true
+    # Check if any keys from this combo are still being held.
+    keys_remaining = _keys_remain combo
 
-    # Wipe the input if this was the last key of the combo
-    unless keys_remain
-        _valid_combos = _remove_val_from_array _valid_combos, matched_combo
+    # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
+    # We don't fire those because they will fire on_release on their last key release.
+    if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
+        _fire "keyup", combo
+        combo.count += 1 if combo.is_counting
+
+    # Store this for later cleanup
+    active_combos_length = _active_combos.length
+
+    # If this was the last key released of the combo, clean up.
+    unless keys_remaining
+        if combo.is_counting
+            _fire "release", combo
+            combo.count = 0
+        _remove_from_active_combos combo
+
+    # We also need to check other combos that might still be in active_combos
+    # and needs to be removed from it.
+    if active_combos_length > 1
+        for active_combo in _active_combos
+            continue if combo is active_combo
+            unless _keys_remain active_combo
+                _remove_from_active_combos active_combo
     return
 
 _receive_input = (e, is_keydown) ->
-    # Check that we're capturing input
+    # If we're not capturing input, we should
+    # clear out _keys_down for good measure
     if _prevent_capture
         if _keys_down.length
             _keys_down = []
@@ -214,22 +309,36 @@ _receive_input = (e, is_keydown) ->
         _key_up key
 
 _validate_combo = (combo) ->
+    # TODO: MAKE SURE THE COMBO ISN'T ALREADY IN THERE
+
     # Convert "meta" to either "ctrl" or "cmd"
+    # Don't explicity use the command key, it breaks
+    # because it is the windows key in Windows, and
+    # cannot be hijacked.
     for i in [0...combo.keys.length]
         key = combo.keys[i]
-        if key is "meta"
+        if key is "meta" or key is "cmd"
             combo.keys.splice i, 1, _metakey
+            if key is "cmd"
+                _log_error "Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility"
 
-    # TODO: Error check the combo
-    # Check that if is_repeating, it has an on_repeat
-    # Check that the keys in keys are all valid
+    # Check that all keys in the combo are valid
+    for key in combo.keys
+        unless key in _valid_keys
+            _log_error "Do not recognize the key \"#{key}\""
+            return false
 
-    # TODO: Check that meta or command keys
-    # don't have a length over 2
-    # Unless modifier key
-
-    # TODO: Don't allow explicit command combos
-    # because they break on Windows
+    # We can only allow a single non-modifier key
+    # in combos that include the command key (this
+    # includes 'meta') because of the keyup bug.
+    if "meta" in combo.keys or "cmd" in combo.keys
+        non_modifier_keys = combo.keys.slice()
+        for mod_key in _modifier_keys
+            if (i = non_modifier_keys.indexOf(mod_key)) > -1
+                non_modifier_keys.splice(i, 1) 
+        if non_modifier_keys.length > 1
+            _log_error "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys
+            return true
     return true
 
 _decide_meta_key = ->
@@ -243,8 +352,9 @@ _bug_catcher = (e) ->
     if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt"]
         _receive_input e, false
 
+###########################
 # Public object and methods
-
+###########################
 window.keypress = {}
 
 keypress.wire = ()->
@@ -260,11 +370,19 @@ keypress.wire = ()->
         _keys_down = []
         _valid_combos = []
 
-keypress.combo = (keys_array, on_fire) ->
+keypress.sequence = (string, callback) ->
+    keys = string.split " "
+    keypress.register_combo(
+        keys        : keys
+        on_keydown  : callback
+        is_sequence : true
+    )
+
+keypress.combo = (keys_array, callback) ->
     # Shortcut for simple combos.
     keypress.register_combo(
         keys        : keys_array
-        on_fire  : on_fire
+        on_keydown  : callback
     )
 
 keypress.register_many_combos = (combo_array) ->
@@ -274,7 +392,7 @@ keypress.register_many_combos = (combo_array) ->
     return true
 
 keypress.register_combo = (combo) ->
-    $.extend true, {}, _combo_defaults, combo
+    combo = $.extend true, {}, _combo_defaults, combo
     if _validate_combo combo
         _registered_combos.push combo
         return true
@@ -285,98 +403,79 @@ keypress.listen = ->
 keypress.stop_listening = ->
     _prevent_capture = true
 
-# Putting this down here because it's so damn long
-
 _convert_key_to_readable = (k) ->
-    switch k
-        when 9
-            return "tab"
-            break
-        when 13
-            return "enter"
-            break
-        when 16
-            return "shift"
-            break
-        when 17
-            return "ctrl"
-            break
-        when 18
-            return "alt"
-            break
-        when 27
-            return "escape"
-            break
-        when 32
-            return "space"
-            break
-        when 37
-            return "left"
-            break
-        when 38
-            return "up"
-            break
-        when 39
-            return "right"
-            break
-        when 40
-            return "down"
-            break
-        when 49
-            return "1"
-            break
-        when 50
-            return "2"
-            break
-        when 51
-            return "3"
-            break
-        when 52
-            return "4"
-            break
-        when 53
-            return "5"
-            break
-        when 65
-            return "a"
-            break
-        when 67
-            return "c"
-            break
-        when 68
-            return "d"
-            break
-        when 69
-            return "e"
-            break
-        when 70
-            return "f"
-            break
-        when 81
-            return "q"
-            break
-        when 82
-            return "r"
-            break
-        when 83
-            return "s"
-            break
-        when 84
-            return "t"
-            break
-        when 87
-            return "w"
-            break
-        when 88
-            return "x"
-            break
-        when 90
-            return "z"
-            break
-        when 91
-            return "cmd"
-            break
-        when 224
-            return "cmd"
-            break
-    return false
+    return _keycode_dictionary[k]
+
+_keycode_dictionary = 
+    8   : "backspace"
+    9   : "tab"
+    13  : "enter"
+    16  : "shift"
+    17  : "ctrl"
+    18  : "alt"
+    19  : "pause"
+    20  : "caps"
+    27  : "escape"
+    32  : "space"
+    33  : "pageup"
+    34  : "pagedown"
+    35  : "end"
+    36  : "home"
+    37  : "left"
+    38  : "up"
+    39  : "right"
+    40  : "down"
+    45  : "insert"
+    46  : "delete"
+    49  : "1"
+    50  : "2"
+    51  : "3"
+    52  : "4"
+    53  : "5"
+    54  : "6"
+    55  : "7"
+    56  : "8"
+    57  : "9"
+    65  : "a"
+    66  : "b"
+    67  : "c"
+    68  : "d"
+    69  : "e"
+    70  : "f"
+    71  : "g"
+    72  : "h"
+    73  : "i"
+    74  : "j"
+    75  : "k"
+    76  : "l"
+    77  : "m"
+    78  : "n"
+    79  : "o"
+    80  : "p"
+    81  : "q"
+    82  : "r"
+    83  : "s"
+    84  : "t"
+    85  : "u"
+    86  : "v"
+    87  : "w"
+    88  : "x"
+    89  : "y"
+    90  : "z"
+    91  : "cmd"
+    92  : "cmd"
+    186 : ";"
+    187 : "="
+    188 : ","
+    189 : "-"
+    190 : "."
+    191 : "/"
+    192 : "`"
+    219 : "["
+    220 : "\\"
+    221 : "]"
+    222 : "\'"
+    224 : "cmd"
+
+for _, key of _keycode_dictionary
+    _valid_keys.push key

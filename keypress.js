@@ -27,17 +27,18 @@ Options available and defaults:
 
 (function() {
   var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _valid_keys, _validate_combo,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    __hasProp = {}.hasOwnProperty;
 
   _registered_combos = [];
 
-  _sequence = window.sequence = [];
+  _sequence = [];
 
   _sequence_timer = null;
 
-  window._keys_down = _keys_down = [];
+  _keys_down = [];
 
-  window._active_combos = _active_combos = [];
+  _active_combos = [];
 
   _prevent_capture = false;
 
@@ -51,7 +52,8 @@ Options available and defaults:
 
   _combo_defaults = {
     keys: [],
-    count: 0
+    count: 0,
+    test: "hello"
   };
 
   _log_error = function(msg) {
@@ -126,6 +128,7 @@ Options available and defaults:
         continue;
       }
       if (source_combo.is_ordered) {
+        console.log("potential_match", potential_match, potential_match.join, source_combo, source_combo.keys);
         if (potential_match.join("") === source_combo.keys.join("")) {
           return source_combo;
         }
@@ -258,7 +261,6 @@ Options available and defaults:
         clearTimeout(_sequence_timer);
       }
       _sequence_timer = setTimeout(function() {
-        console.log("TOO SLOW");
         return _sequence = [];
       }, sequence_combo.wait || 500);
     } else {
@@ -449,17 +451,18 @@ Options available and defaults:
 
   keypress.wire = function() {
     _decide_meta_key();
-    $('body').bind("keydown." + _event_classname, function(e) {
+    document.body.onkeydown = function(e) {
       _receive_input(e, true);
       return _bug_catcher(e);
-    }).bind("keyup." + _event_classname, function(e) {
+    };
+    document.body.onkeyup = function(e) {
       return _receive_input(e, false);
-    });
-    return $(window).bind("blur." + _event_classname, function() {
+    };
+    return window.onblur = function() {
       var _valid_combos;
       _keys_down = [];
       return _valid_combos = [];
-    });
+    };
   };
 
   keypress.sequence = function(string, callback) {
@@ -489,7 +492,16 @@ Options available and defaults:
   };
 
   keypress.register_combo = function(combo) {
-    combo = $.extend(true, {}, _combo_defaults, combo);
+    var property, value;
+    for (property in _combo_defaults) {
+      if (!__hasProp.call(_combo_defaults, property)) continue;
+      value = _combo_defaults[property];
+      console.log("working on extending", property, " : ", combo[property], value);
+      if (combo[property] == null) {
+        combo[property] = value;
+      }
+    }
+    console.log("combo", combo);
     if (_validate_combo(combo)) {
       _registered_combos.push(combo);
       return true;

@@ -35,6 +35,7 @@ _valid_keys = []
 _combo_defaults = {
     keys            : []
     count           : 0
+    test            : "hello"
 }
 
 _log_error = (msg) ->
@@ -359,13 +360,12 @@ window.keypress = {}
 
 keypress.wire = ()->
     _decide_meta_key()
-    $('body')
-    .bind "keydown.#{_event_classname}", (e) ->
+    document.body.onkeydown = (e) ->
         _receive_input e, true
         _bug_catcher e
-    .bind "keyup.#{_event_classname}", (e) ->
+    document.body.onkeyup = (e) ->
         _receive_input e, false
-    $(window).bind "blur.#{_event_classname}", ->
+    window.onblur = ->
         # This prevents alt+tab conflicts
         _keys_down = []
         _valid_combos = []
@@ -392,7 +392,8 @@ keypress.register_many_combos = (combo_array) ->
     return true
 
 keypress.register_combo = (combo) ->
-    combo = $.extend true, {}, _combo_defaults, combo
+    for own property, value of _combo_defaults
+        combo[property] = value unless combo[property]?
     if _validate_combo combo
         _registered_combos.push combo
         return true

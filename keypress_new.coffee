@@ -15,6 +15,7 @@ Options available and defaults:
     allow_default   : false     - Allow the default key event to happen in addition to the combo.
     is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false     - Makes this a counting combo (see documentation)
+    is_sequence     : false     - Rather than a key combo, this is an ordered key sequence
     prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
     on_keyup        : null      - A function that is called when the combo is released
     on_keydown      : null      - A function that is called when the combo is pressed.
@@ -22,6 +23,7 @@ Options available and defaults:
 ###
 
 _registered_combos = []
+_sequence = window.sequence = []
 window._keys_down = _keys_down = []
 window._active_combos = _active_combos = []
 _prevent_capture = false
@@ -76,6 +78,7 @@ _fire = (event, combo) ->
 
 _match_combo_arrays = (potential_match, source_combo_array, allow_partial_match=false) ->
     for source_combo in source_combo_array
+        continue if source_combo_array.is_sequence
         if source_combo.is_ordered
             return source_combo if potential_match.join("") is source_combo.keys.join("")
             return source_combo if allow_partial_match and potential_match.join("") is source_combo.keys.slice(0, potential_match.length).join("")
@@ -136,6 +139,7 @@ _get_potential_combo = (key) ->
     # Used for preventing default on keys that might match
     # to a combo in the future.
     for combo in _registered_combos
+        continue if combo.is_sequence
         return combo if key in combo.keys and _cmd_bug_check combo.keys
     return false
 
@@ -173,7 +177,32 @@ _remove_from_active_combos = (combo) ->
             break
     return
 
+_add_key_to_sequence = (key) ->
+    _sequence.push key
+    setTimeout ->
+        _sequence.shift()
+    , 300
+    return
+
+_check_for_sequence = (event) ->
+    # Compare _sequence to all combos
+    for combo in _registered_combos
+        continue unless combo.is_sequence
+        continue unless combo.keys.length is _sequence.length
+        match = true
+        for i in [0...combo.keys.length]
+            unless combo.keys[i] is _sequence[i]
+                match = false
+                break
+        return _fire event, combo if match
+    return false
+
 _key_down = (key, e) ->
+    # Add the key to sequences
+    _add_key_to_sequence key
+    _check_for_sequence "keydown"
+
+    # Find which combo we have pressed or might be working towards, and prevent default
     combo = _get_active_combo key
     if !combo
         potential_combo = _get_potential_combo key
@@ -202,6 +231,9 @@ _key_down = (key, e) ->
     return
 
 _key_up = (key) ->
+    # Check if we have a keyup firing
+    _check_for_sequence "keyup"
+
     # Remove from the list
     return false unless key in _keys_down
     for i in [0..._keys_down.length]
@@ -265,6 +297,8 @@ _receive_input = (e, is_keydown) ->
         _key_up key
 
 _validate_combo = (combo) ->
+    # TODO: MAKE SURE THE COMBO ISN'T ALREADY IN THERE
+
     # Convert "meta" to either "ctrl" or "cmd"
     # Don't explicity use the command key, it breaks
     # because it is the windows key in Windows, and

@@ -11,6 +11,7 @@
 <body>
     <input>
     <p>Keyboard shortucts:</p><br>
+    <p class="wad">w -> a -> d</p><br>
     <p class="w">w</p><br>
     <p class="a">a</p><br>
     <p class="wd">w + d</p><br>
@@ -34,15 +35,20 @@
             }, 100);
         };
         keypress.register_combo({
+            keys            : ["w", "a", "d"],
+            is_sequence     : true,
+            on_keydown      : function() {
+                highlight($('.wad'));
+            },
+        });
+        keypress.register_combo({
             keys            : ["w"],
-            fire_on_keyup   : true,
             on_keyup        : function() {
                 highlight($('.w'));
             },
         });
         keypress.register_combo({
             keys            : ["a"],
-            fire_on_keyup   : true,
             allow_default   : true,
             on_keyup        : function() {
                 highlight($('.a'));
@@ -50,14 +56,12 @@
         });
         keypress.register_combo({
             keys            : ["w", "d"],
-            fire_on_keyup   : true,
             on_keyup        : function() {
                 highlight($('.wd'));
             },
         });
         keypress.register_combo({
             keys            : ["w", "a"],
-            fire_on_keyup   : true,
             on_keyup        : function() {
                 highlight($('.wa'));
             },
@@ -84,7 +88,6 @@
             keys            : ["tab", "space"],
             is_ordered      : true,
             is_counting     : true,
-            fire_on_keyup   : true,
             on_keydown      : function() {
                 highlight($('.tabspace'), "blue");
             },

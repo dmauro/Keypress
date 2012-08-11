@@ -17,6 +17,7 @@ Options available and defaults:
     allow_default   : false     - Allow the default key event to happen in addition to the combo.
     is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false     - Makes this a counting combo (see documentation)
+    is_sequence     : false     - Rather than a key combo, this is an ordered key sequence
     prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
     on_keyup        : null      - A function that is called when the combo is released
     on_keydown      : null      - A function that is called when the combo is pressed.
@@ -25,10 +26,12 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _check_for_sequence, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combo, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   _registered_combos = [];
+
+  _sequence = window.sequence = [];
 
   window._keys_down = _keys_down = [];
 
@@ -117,6 +120,9 @@ Options available and defaults:
     }
     for (_i = 0, _len = source_combo_array.length; _i < _len; _i++) {
       source_combo = source_combo_array[_i];
+      if (source_combo_array.is_sequence) {
+        continue;
+      }
       if (source_combo.is_ordered) {
         if (potential_match.join("") === source_combo.keys.join("")) {
           return source_combo;
@@ -191,6 +197,9 @@ Options available and defaults:
     var combo, _i, _len;
     for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
       combo = _registered_combos[_i];
+      if (combo.is_sequence) {
+        continue;
+      }
       if (__indexOf.call(combo.keys, key) >= 0 && _cmd_bug_check(combo.keys)) {
         return combo;
       }
@@ -238,8 +247,41 @@ Options available and defaults:
     }
   };
 
+  _add_key_to_sequence = function(key) {
+    _sequence.push(key);
+    setTimeout(function() {
+      return _sequence.shift();
+    }, 300);
+  };
+
+  _check_for_sequence = function(event) {
+    var combo, i, match, _i, _j, _len, _ref;
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      combo = _registered_combos[_i];
+      if (!combo.is_sequence) {
+        continue;
+      }
+      if (combo.keys.length !== _sequence.length) {
+        continue;
+      }
+      match = true;
+      for (i = _j = 0, _ref = combo.keys.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
+        if (combo.keys[i] !== _sequence[i]) {
+          match = false;
+          break;
+        }
+      }
+      if (match) {
+        return _fire(event, combo);
+      }
+    }
+    return false;
+  };
+
   _key_down = function(key, e) {
     var combo, potential_combo;
+    _add_key_to_sequence(key);
+    _check_for_sequence("keydown");
     combo = _get_active_combo(key);
     if (!combo) {
       potential_combo = _get_potential_combo(key);
@@ -264,6 +306,7 @@ Options available and defaults:
 
   _key_up = function(key) {
     var active_combo, active_combos_length, combo, i, keys_remaining, _i, _j, _k, _len, _len1, _ref;
+    _check_for_sequence("keyup");
     if (__indexOf.call(_keys_down, key) < 0) {
       return false;
     }

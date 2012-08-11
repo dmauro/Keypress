@@ -34,12 +34,8 @@
                 target.css("background-color", "transparent");
             }, 100);
         };
-        keypress.register_combo({
-            keys            : ["w", "a", "d"],
-            is_sequence     : true,
-            on_keydown      : function() {
-                highlight($('.wad'));
-            },
+        keypress.sequence("up up down down left right left right", function() {
+            highlight($('.wad'));
         });
         keypress.register_combo({
             keys            : ["w"],

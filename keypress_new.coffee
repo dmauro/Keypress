@@ -23,9 +23,10 @@ Options available and defaults:
 ###
 
 _registered_combos = []
-_sequence = window.sequence = []
-window._keys_down = _keys_down = []
-window._active_combos = _active_combos = []
+_sequence = []
+_sequence_timer = null
+_keys_down = []
+_active_combos = []
 _prevent_capture = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
@@ -179,28 +180,38 @@ _remove_from_active_combos = (combo) ->
 
 _add_key_to_sequence = (key) ->
     _sequence.push key
-    setTimeout ->
-        _sequence.shift()
-    , 300
+    # Now check if they're working towards a sequence
+    sequence_combo = _get_sequence true
+    if sequence_combo
+        # If we're working towards it, give them more time to keep going
+        clearTimeout(_sequence_timer) if _sequence_timer
+        _sequence_timer = setTimeout ->
+            _sequence = []
+        , sequence_combo.wait or 500
+    else
+        # If we're not working towards something, just clear it out
+        _sequence = []
+
     return
 
-_check_for_sequence = (event) ->
+_get_sequence = (allow_partial=false)->
     # Compare _sequence to all combos
     for combo in _registered_combos
         continue unless combo.is_sequence
-        continue unless combo.keys.length is _sequence.length
+        continue unless combo.keys.length is _sequence.length or allow_partial
         match = true
-        for i in [0...combo.keys.length]
+        for i in [0..._sequence.length]
             unless combo.keys[i] is _sequence[i]
                 match = false
                 break
-        return _fire event, combo if match
+        return combo if match
     return false
 
 _key_down = (key, e) ->
     # Add the key to sequences
     _add_key_to_sequence key
-    _check_for_sequence "keydown"
+    sequence_combo = _get_sequence()
+    _fire "keydown", sequence_combo if sequence_combo
 
     # Find which combo we have pressed or might be working towards, and prevent default
     combo = _get_active_combo key
@@ -232,7 +243,8 @@ _key_down = (key, e) ->
 
 _key_up = (key) ->
     # Check if we have a keyup firing
-    _check_for_sequence "keyup"
+    sequence_combo = _get_sequence()
+    _fire "keyup", sequence_combo if sequence_combo
 
     # Remove from the list
     return false unless key in _keys_down
@@ -358,6 +370,14 @@ keypress.wire = ()->
         _keys_down = []
         _valid_combos = []
 
+keypress.sequence = (string, callback) ->
+    keys = string.split " "
+    keypress.register_combo(
+        keys        : keys
+        on_keydown  : callback
+        is_sequence : true
+    )
+
 keypress.combo = (keys_array, callback) ->
     # Shortcut for simple combos.
     keypress.register_combo(
@@ -372,7 +392,7 @@ keypress.register_many_combos = (combo_array) ->
     return true
 
 keypress.register_combo = (combo) ->
-    $.extend true, {}, _combo_defaults, combo
+    combo = $.extend true, {}, _combo_defaults, combo
     if _validate_combo combo
         _registered_combos.push combo
         return true

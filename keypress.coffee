@@ -6,7 +6,6 @@ License agreements:
 
 Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
-Requires jQuery
 Author: David Mauro
 
 Options available and defaults:
@@ -65,6 +64,7 @@ _allow_key_repeat = (combo) ->
     return true if typeof combo.on_keydown is "function"
 
 _keys_remain = (combo) ->
+    if combo is undefined
     for key in combo.keys
         if key in _keys_down
             keys_remain = true
@@ -319,7 +319,7 @@ _key_up = (key) ->
     # and needs to be removed from it.
     if active_combos_length > 1
         for active_combo in _active_combos
-            continue if combo is active_combo
+            continue if combo is active_combo or combo is undefined
             unless _keys_remain active_combo
                 _remove_from_active_combos active_combo
     return
@@ -406,28 +406,38 @@ keypress.wire = ()->
         _keys_down = []
         _valid_combos = []
 
-keypress.combo = (keys_array, callback) ->
+keypress.combo = (keys, callback, allow_default=false) ->
     # Shortcut for simple combos.
     keypress.register_combo(
-        keys        : keys_array
-        on_keydown  : callback
+        keys            : keys
+        on_keydown      : callback
+        allow_default   : allow_default
     )
 
-keypress.counting_combo = (keys_array, count_callback, release_callback) ->
+keypress.keyup_combo = (keys, callback, allow_default=false) ->
+    keypress.register_combo(
+        keys            : keys
+        on_keyup        : callback
+        allow_default   : allow_default
+    )
+
+keypress.counting_combo = (keys, count_callback, release_callback, allow_default=false) ->
     # Shortcut for counting combos
     keypress.register_combo(
-        keys        : keys_array
-        is_counting : true
-        is_ordered  : true
-        on_keydown  : count_callback
-        on_release  : release_callback
+        keys            : keys
+        is_counting     : true
+        is_ordered      : true
+        on_keydown      : count_callback
+        on_release      : release_callback
+        allow_default   : allow_default
     )
 
-keypress.sequence = (keys_array, callback) ->
+keypress.sequence = (keys, callback, allow_default=false) ->
     keypress.register_combo(
-        keys        : keys_array
-        on_keydown  : callback
-        is_sequence : true
+        keys            : keys
+        on_keydown      : callback
+        is_sequence     : true
+        allow_default   : allow_default
     )
 
 keypress.register_combo = (combo) ->

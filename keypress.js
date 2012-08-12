@@ -8,7 +8,6 @@ License agreements:
 
 Keypress
 A keyboard input capturing utility in which any key can be a modifier key.
-Requires jQuery
 Author: David Mauro
 
 Options available and defaults:
@@ -97,6 +96,9 @@ Options available and defaults:
 
   _keys_remain = function(combo) {
     var key, keys_remain, _i, _len, _ref;
+    if (combo === void 0) {
+      console.log("ERROR:", combo);
+    }
     _ref = combo.keys;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       key = _ref[_i];
@@ -510,28 +512,51 @@ Options available and defaults:
     };
   };
 
-  keypress.combo = function(keys_array, callback) {
+  keypress.combo = function(keys, callback, allow_default) {
+    if (allow_default == null) {
+      allow_default = false;
+    }
     return keypress.register_combo({
-      keys: keys_array,
-      on_keydown: callback
+      keys: keys,
+      on_keydown: callback,
+      allow_default: allow_default
     });
   };
 
-  keypress.counting_combo = function(keys_array, count_callback, release_callback) {
+  keypress.keyup_combo = function(keys, callback, allow_default) {
+    if (allow_default == null) {
+      allow_default = false;
+    }
     return keypress.register_combo({
-      keys: keys_array,
+      keys: keys,
+      on_keyup: callback,
+      allow_default: allow_default
+    });
+  };
+
+  keypress.counting_combo = function(keys, count_callback, release_callback, allow_default) {
+    if (allow_default == null) {
+      allow_default = false;
+    }
+    return keypress.register_combo({
+      keys: keys,
       is_counting: true,
       is_ordered: true,
       on_keydown: count_callback,
-      on_release: release_callback
+      on_release: release_callback,
+      allow_default: allow_default
     });
   };
 
-  keypress.sequence = function(keys_array, callback) {
+  keypress.sequence = function(keys, callback, allow_default) {
+    if (allow_default == null) {
+      allow_default = false;
+    }
     return keypress.register_combo({
-      keys: keys_array,
+      keys: keys,
       on_keydown: callback,
-      is_sequence: true
+      is_sequence: true,
+      allow_default: allow_default
     });
   };
 

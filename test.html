@@ -15,6 +15,7 @@
     <p class="wad">w -> a -> d</p><br>
     <p class="w">w</p><br>
     <p class="a">a</p><br>
+    <p class="f">f</p><br>
     <p class="wd">w + d</p><br>
     <p class="wa">w + a</p><br>
     <p class="shiftwd">shift + w + d (on keydown)</p><br>
@@ -35,53 +36,36 @@
                 target.css("background-color", "transparent");
             }, 100);
         };
+        
         keypress.sequence("up up down down left right left right", function() {
             highlight($('.wad'));
         });
-        keypress.register_combo({
-            keys            : "w",
-            on_keyup        : function() {
-                highlight($('.w'));
-            },
+        keypress.keyup_combo("w", function() {
+            highlight($('.w'));
         });
-        keypress.register_combo({
-            keys            : "a",
-            allow_default   : true,
-            on_keyup        : function() {
-                highlight($('.a'));
-            },
+        keypress.keyup_combo("a", function() {
+            highlight($('.a'));
+        }, true);
+        keypress.keyup_combo("f", function() {
+            highlight($('.f'));
+        }, true);
+        keypress.keyup_combo("w d", function() {
+            highlight($('.wd'));
         });
-        keypress.register_combo({
-            keys            : "w d",
-            on_keyup        : function() {
-                highlight($('.wd'));
-            },
+        keypress.keyup_combo("w a", function() {
+            highlight($('.wa'));
         });
-        keypress.register_combo({
-            keys            : "w a",
-            on_keyup        : function() {
-                highlight($('.wa'));
-            },
+        keypress.combo("shift w d", function() {
+            highlight($('.shiftwd'));
         });
-        keypress.register_combo({
-            keys            : "shift w d",
-            on_keydown      : function() {
-                highlight($('.shiftwd'));
-            },
+        keypress.combo("shift w d a", function() {
+            highlight($('.shiftwda'));
         });
-        keypress.register_combo({
-            keys            : "shift w d a",
-            on_keydown      : function() {
-                highlight($('.shiftwda'));
-            },
+        keypress.keyup_combo("shift w a", function() {
+            highlight($('.shiftwa'));
         });
-        keypress.register_combo({
-            keys            : "shift w a",
-            on_keyup        : function() {
-                highlight($('.shiftwa'));
-            },
-        });
-        keypress.counting_combo("tab space", function() {
+        keypress.counting_combo("tab space",
+            function() {
                 highlight($('.tabspace'), "blue");
             },
             function(count) {

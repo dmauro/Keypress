@@ -29,7 +29,7 @@
     <script src="jquery-1.7.1.min.js"></script>
     <script src="keypress.js"></script>
     <script>
-        keypress.wire();
+        keypress.init();
         var highlight = function(target, color) {
             target.css("background-color", color || "yellow");
             setTimeout(function() {
@@ -68,20 +68,21 @@
             function() {
                 highlight($('.tabspace'), "blue");
             },
-            function(count) {
+            function(e, count) {
                 highlight($('.tabspace'));
                 $('.tabspace').append(count);
             }
         );
         keypress.combo("meta s", function() {
             highlight($('.metas'));
-        });
+            return false
+        }, true);
         keypress.combo("meta shift s", function() {
             highlight($('.metashifts'));
-        });
+        }, true);
         keypress.combo("meta alt shift s", function() {
             highlight($('.metaaltshifts'));
-        });
+        }, true);
 
         keypress.combo("d w", function() {
             highlight($('.wd'), "blue");

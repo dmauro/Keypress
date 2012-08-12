@@ -22,6 +22,7 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
+_ready = false
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
@@ -71,14 +72,16 @@ _keys_remain = (combo) ->
             break
     return keys_remain
 
-_fire = (event, combo) ->
+_fire = (event, combo, key_event) ->
     # Only fire this event if the function is defined
     if typeof combo["on_" + event] is "function"
         if event is "release"
-            combo["on_" + event].call combo.this, combo.count
+            if combo["on_" + event].call(combo.this, key_event, combo.count) is false
+                _prevent_default key_event
             combo.count = 0
         else
-            combo["on_" + event].call combo.this
+            if combo["on_" + event].call(combo.this, key_event) is false
+                _prevent_default key_event
     # We need to mark that keyup has already happened
     if event is "keyup"
         combo.keyup_fired = true
@@ -237,7 +240,7 @@ _key_down = (key, e) ->
     # Add the key to sequences
     _add_key_to_sequence key, e
     sequence_combo = _get_sequence()
-    _fire "keydown", sequence_combo if sequence_combo
+    _fire("keydown", sequence_combo, e) if sequence_combo
 
     # We might have modifier keys down when coming back to
     # this window and they might now be in _keys_down, so
@@ -277,16 +280,16 @@ _key_down = (key, e) ->
     combo.keyup_fired = false
 
     # Now we fire the keydown event
-    _fire "keydown", combo
+    _fire "keydown", combo, e
     if combo.is_counting and typeof combo.on_keydown is "function"
         combo.count += 1
 
     return
 
-_key_up = (key) ->
+_key_up = (key, e) ->
     # Check if we have a keyup firing
     sequence_combo = _get_sequence()
-    _fire "keyup", sequence_combo if sequence_combo
+    _fire("keyup", sequence_combo, e) if sequence_combo
 
     # Remove from the list
     return false unless key in _keys_down
@@ -311,7 +314,7 @@ _key_up = (key) ->
     # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
     # We don't fire those because they will fire on_release on their last key release.
     if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
-        _fire "keyup", combo
+        _fire "keyup", combo, e
         # Dont' add to the count unless we only have a keyup callback
         if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
             combo.count += 1 
@@ -322,7 +325,7 @@ _key_up = (key) ->
     # If this was the last key released of the combo, clean up.
     unless keys_remaining
         if combo.is_counting
-            _fire "release", combo
+            _fire "release", combo, e
         _remove_from_active_combos combo
 
     # We also need to check other combos that might still be in active_combos
@@ -349,7 +352,7 @@ _receive_input = (e, is_keydown) ->
     if is_keydown
         _key_down key, e
     else
-        _key_up key
+        _key_up key, e
 
 _unregister_combo = (combo) ->
     for i in [0..._registered_combos.length]
@@ -411,7 +414,12 @@ _bug_catcher = (e) ->
 ###########################
 window.keypress = {}
 
-keypress.wire = ()->
+keypress.init = ()->
+    # Let us reset by calling init again
+    if _ready
+        _registered_combos = []
+        return
+    
     _decide_meta_key()
     document.body.onkeydown = (e) ->
         _receive_input e, true
@@ -422,6 +430,7 @@ keypress.wire = ()->
         # This prevents alt+tab conflicts
         _keys_down = []
         _valid_combos = []
+    _ready = true
 
 keypress.combo = (keys, callback, allow_default=false) ->
     # Shortcut for simple combos.

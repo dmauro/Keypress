@@ -26,9 +26,11 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
+
+  _ready = false;
 
   _registered_combos = [];
 
@@ -108,13 +110,17 @@ Options available and defaults:
     return keys_remain;
   };
 
-  _fire = function(event, combo) {
+  _fire = function(event, combo, key_event) {
     if (typeof combo["on_" + event] === "function") {
       if (event === "release") {
-        combo["on_" + event].call(combo["this"], combo.count);
+        if (combo["on_" + event].call(combo["this"], key_event, combo.count) === false) {
+          _prevent_default(key_event);
+        }
         combo.count = 0;
       } else {
-        combo["on_" + event].call(combo["this"]);
+        if (combo["on_" + event].call(combo["this"], key_event) === false) {
+          _prevent_default(key_event);
+        }
       }
     }
     if (event === "keyup") {
@@ -330,7 +336,7 @@ Options available and defaults:
     _add_key_to_sequence(key, e);
     sequence_combo = _get_sequence();
     if (sequence_combo) {
-      _fire("keydown", sequence_combo);
+      _fire("keydown", sequence_combo, e);
     }
     for (mod in _modifier_event_mapping) {
       event_mod = _modifier_event_mapping[mod];
@@ -370,17 +376,17 @@ Options available and defaults:
     }
     _add_to_active_combos(combo, key);
     combo.keyup_fired = false;
-    _fire("keydown", combo);
+    _fire("keydown", combo, e);
     if (combo.is_counting && typeof combo.on_keydown === "function") {
       combo.count += 1;
     }
   };
 
-  _key_up = function(key) {
+  _key_up = function(key, e) {
     var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, _i, _j, _k, _len, _len1, _ref;
     sequence_combo = _get_sequence();
     if (sequence_combo) {
-      _fire("keyup", sequence_combo);
+      _fire("keyup", sequence_combo, e);
     }
     if (__indexOf.call(_keys_down, key) < 0) {
       return false;
@@ -403,7 +409,7 @@ Options available and defaults:
     }
     keys_remaining = _keys_remain(combo);
     if (!combo.keyup_fired && (!combo.is_counting || (combo.is_counting && keys_remaining))) {
-      _fire("keyup", combo);
+      _fire("keyup", combo, e);
       if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
         combo.count += 1;
       }
@@ -411,7 +417,7 @@ Options available and defaults:
     active_combos_length = _active_combos.length;
     if (!keys_remaining) {
       if (combo.is_counting) {
-        _fire("release", combo);
+        _fire("release", combo, e);
       }
       _remove_from_active_combos(combo);
     }
@@ -446,7 +452,7 @@ Options available and defaults:
     if (is_keydown) {
       return _key_down(key, e);
     } else {
-      return _key_up(key);
+      return _key_up(key, e);
     }
   };
 
@@ -522,7 +528,11 @@ Options available and defaults:
 
   window.keypress = {};
 
-  keypress.wire = function() {
+  keypress.init = function() {
+    if (_ready) {
+      _registered_combos = [];
+      return;
+    }
     _decide_meta_key();
     document.body.onkeydown = function(e) {
       _receive_input(e, true);
@@ -531,11 +541,12 @@ Options available and defaults:
     document.body.onkeyup = function(e) {
       return _receive_input(e, false);
     };
-    return window.onblur = function() {
+    window.onblur = function() {
       var _valid_combos;
       _keys_down = [];
       return _valid_combos = [];
     };
+    return _ready = true;
   };
 
   keypress.combo = function(keys, callback, allow_default) {

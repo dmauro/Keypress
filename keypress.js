@@ -26,7 +26,7 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
 
@@ -326,11 +326,24 @@ Options available and defaults:
   };
 
   _key_down = function(key, e) {
-    var combo, potential, potential_combos, sequence_combo, _i, _len;
+    var combo, event_mod, mod, potential, potential_combos, sequence_combo, _i, _len;
     _add_key_to_sequence(key, e);
     sequence_combo = _get_sequence();
     if (sequence_combo) {
       _fire("keydown", sequence_combo);
+    }
+    for (mod in _modifier_event_mapping) {
+      event_mod = _modifier_event_mapping[mod];
+      if (!e[event_mod]) {
+        continue;
+      }
+      if (mod === "meta") {
+        mod = _metakey;
+      }
+      if (mod === key || __indexOf.call(_keys_down, mod) >= 0) {
+        continue;
+      }
+      _keys_down.push(mod);
     }
     combo = _get_active_combo(key);
     if (combo && !combo.allow_default) {
@@ -586,6 +599,13 @@ Options available and defaults:
 
   _convert_key_to_readable = function(k) {
     return _keycode_dictionary[k];
+  };
+
+  _modifier_event_mapping = {
+    "meta": "metaKey",
+    "ctrl": "ctrlKey",
+    "shift": "shiftKey",
+    "alt": "altKey"
   };
 
   _keycode_dictionary = {

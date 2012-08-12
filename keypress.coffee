@@ -239,6 +239,16 @@ _key_down = (key, e) ->
     sequence_combo = _get_sequence()
     _fire "keydown", sequence_combo if sequence_combo
 
+    # We might have modifier keys down when coming back to
+    # this window and they might now be in _keys_down, so
+    # we're doing a check to make sure we put it back in.
+    # This only works for explicit modifier keys.
+    for mod, event_mod of _modifier_event_mapping
+        continue unless e[event_mod]
+        mod = _metakey if mod is "meta"
+        continue if mod is key or mod in _keys_down
+        _keys_down.push mod
+
     # Find which combo we have pressed or might be working towards, and prevent default
     combo = _get_active_combo key
     if combo and !combo.allow_default
@@ -457,6 +467,12 @@ keypress.stop_listening = ->
 
 _convert_key_to_readable = (k) ->
     return _keycode_dictionary[k]
+
+_modifier_event_mapping =
+    "meta"  : "metaKey"
+    "ctrl"  : "ctrlKey"
+    "shift" : "shiftKey"
+    "alt"   : "altKey"
 
 _keycode_dictionary = 
     8   : "backspace"

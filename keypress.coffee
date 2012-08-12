@@ -158,14 +158,15 @@ _get_active_combo = (key) ->
     return false unless potentials.length
     return potentials[0] if _cmd_bug_check potentials[0].keys
 
-_get_potential_combo = (key) ->
+_get_potential_combos = (key) ->
     # Check if we are working towards pressing a combo.
     # Used for preventing default on keys that might match
     # to a combo in the future.
+    potentials = []
     for combo in _registered_combos
         continue if combo.is_sequence
-        return combo if key in combo.keys and _cmd_bug_check combo.keys
-    return false
+        potentials.push(combo) if key in combo.keys and _cmd_bug_check combo.keys
+    return potentials
 
 _add_to_active_combos = (combo) ->
     replaced = false
@@ -240,10 +241,13 @@ _key_down = (key, e) ->
 
     # Find which combo we have pressed or might be working towards, and prevent default
     combo = _get_active_combo key
-    if !combo
-        potential_combo = _get_potential_combo key
-    if (combo and !combo.allow_default) or (potential_combo and !potential_combo.allow_default)
-        _prevent_default(e)
+    if combo and !combo.allow_default
+        _prevent_default e
+    potential_combos = _get_potential_combos key
+    if potential_combos.length
+        for potential in potential_combos
+            if !potential.allow_default
+                _prevent_default e
 
     # If we've already pressed this key, check that we want to fire
     # again, otherwise just add it to the keys_down list.
@@ -338,7 +342,11 @@ _receive_input = (e, is_keydown) ->
         _key_up key
 
 _validate_combo = (combo) ->
-    # TODO: MAKE SURE THE COMBO ISN'T ALREADY IN THERE
+    # Make sure the combo isn't already registered
+    for registered_combo in _registered_combos
+        if _compare_arrays combo.keys, registered_combo.keys
+            _log_error "This combo has already been registered."
+            return false
 
     # Convert "meta" to either "ctrl" or "cmd"
     # Don't explicity use the command key, it breaks
@@ -398,14 +406,6 @@ keypress.wire = ()->
         _keys_down = []
         _valid_combos = []
 
-keypress.sequence = (string, callback) ->
-    keys = string.split " "
-    keypress.register_combo(
-        keys        : keys
-        on_keydown  : callback
-        is_sequence : true
-    )
-
 keypress.combo = (keys_array, callback) ->
     # Shortcut for simple combos.
     keypress.register_combo(
@@ -413,13 +413,26 @@ keypress.combo = (keys_array, callback) ->
         on_keydown  : callback
     )
 
-keypress.register_many_combos = (combo_array) ->
-    # Shortcut for assigning an array of combos.
-    for combo in combo_array
-        keypress.register_combo combo
-    return true
+keypress.counting_combo = (keys_array, count_callback, release_callback) ->
+    # Shortcut for counting combos
+    keypress.register_combo(
+        keys        : keys_array
+        is_counting : true
+        is_ordered  : true
+        on_keydown  : count_callback
+        on_release  : release_callback
+    )
+
+keypress.sequence = (keys_array, callback) ->
+    keypress.register_combo(
+        keys        : keys_array
+        on_keydown  : callback
+        is_sequence : true
+    )
 
 keypress.register_combo = (combo) ->
+    if typeof combo.keys is "string"
+        combo.keys = combo.keys.split " "
     for own property, value of _combo_defaults
         combo[property] = value unless combo[property]?
     if _validate_combo combo

@@ -39,67 +39,63 @@
             highlight($('.wad'));
         });
         keypress.register_combo({
-            keys            : ["w"],
+            keys            : "w",
             on_keyup        : function() {
                 highlight($('.w'));
             },
         });
         keypress.register_combo({
-            keys            : ["a"],
+            keys            : "a",
             allow_default   : true,
             on_keyup        : function() {
                 highlight($('.a'));
             },
         });
         keypress.register_combo({
-            keys            : ["w", "d"],
+            keys            : "w d",
             on_keyup        : function() {
                 highlight($('.wd'));
             },
         });
         keypress.register_combo({
-            keys            : ["w", "a"],
+            keys            : "w a",
             on_keyup        : function() {
                 highlight($('.wa'));
             },
         });
         keypress.register_combo({
-            keys            : ["shift", "w", "d"],
+            keys            : "shift w d",
             on_keydown      : function() {
                 highlight($('.shiftwd'));
             },
         });
         keypress.register_combo({
-            keys            : ["shift", "w", "d", "a"],
+            keys            : "shift w d a",
             on_keydown      : function() {
                 highlight($('.shiftwda'));
             },
         });
         keypress.register_combo({
-            keys            : ["shift", "w", "a"],
+            keys            : "shift w a",
             on_keyup        : function() {
                 highlight($('.shiftwa'));
             },
         });
-        keypress.register_combo({
-            keys            : ["tab", "space"],
-            is_ordered      : true,
-            is_counting     : true,
-            on_keyup        : function() {
+        keypress.counting_combo("tab space", function() {
                 highlight($('.tabspace'), "blue");
             },
-            on_release      : function(count) {
+            function(count) {
                 highlight($('.tabspace'));
                 $('.tabspace').append(count);
-            },
-        });
-        keypress.combo(["meta", "s"], function() {
+            }
+        );
+        keypress.combo("meta s", function() {
             highlight($('.metas'));
         });
-        keypress.combo(["meta", "shift", "s"], function() {
+        keypress.combo("meta shift s", function() {
             highlight($('.metashifts'));
         });
-        keypress.combo(["meta", "alt", "shift", "s"], function() {
+        keypress.combo("meta alt shift s", function() {
             highlight($('.metaaltshifts'));
         });
     </script>

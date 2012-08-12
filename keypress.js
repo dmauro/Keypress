@@ -404,7 +404,7 @@ Options available and defaults:
     if (active_combos_length > 1) {
       for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
         active_combo = _active_combos[_k];
-        if (combo === active_combo || combo === void 0) {
+        if (combo === active_combo || active_combo === void 0) {
           continue;
         }
         if (!_keys_remain(active_combo)) {

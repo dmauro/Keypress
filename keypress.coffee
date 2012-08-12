@@ -318,7 +318,7 @@ _key_up = (key) ->
     # and needs to be removed from it.
     if active_combos_length > 1
         for active_combo in _active_combos
-            continue if combo is active_combo or combo is undefined
+            continue if combo is active_combo or active_combo is undefined
             unless _keys_remain active_combo
                 _remove_from_active_combos active_combo
     return

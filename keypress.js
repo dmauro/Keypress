@@ -11,16 +11,17 @@ A keyboard input capturing utility in which any key can be a modifier key.
 Author: David Mauro
 
 Options available and defaults:
-    keys            : []        - An array of the keys pressed together to activate combo
-    count           : 0         - The number of times a counting combo has been pressed. Reset on release.
-    allow_default   : false     - Allow the default key event to happen in addition to the combo.
-    is_ordered      : false     - Unless this is set to true, the keys can be pressed down in any order
-    is_counting     : false     - Makes this a counting combo (see documentation)
-    is_sequence     : false     - Rather than a key combo, this is an ordered key sequence
-    prevent_repeat  : false     - Prevent the combo from repeating when keydown is held.
-    on_keyup        : null      - A function that is called when the combo is released
-    on_keydown      : null      - A function that is called when the combo is pressed.
-    on_release      : null      - A function that is called for counting combos when all keys are released.
+    keys            : []            - An array of the keys pressed together to activate combo
+    count           : 0             - The number of times a counting combo has been pressed. Reset on release.
+    allow_default   : false         - Allow the default key event to happen in addition to the combo.
+    is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
+    is_counting     : false         - Makes this a counting combo (see documentation)
+    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
+    prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
+    on_keyup        : null          - A function that is called when the combo is released
+    on_keydown      : null          - A function that is called when the combo is pressed.
+    on_release      : null          - A function that is called for counting combos when all keys are released.
+    this            : undefined     - The scope for this of your callback functions
 */
 
 
@@ -110,10 +111,10 @@ Options available and defaults:
   _fire = function(event, combo) {
     if (typeof combo["on_" + event] === "function") {
       if (event === "release") {
-        combo["on_" + event](combo.count);
+        combo["on_" + event].call(combo["this"], combo.count);
         combo.count = 0;
       } else {
-        combo["on_" + event]();
+        combo["on_" + event].call(combo["this"]);
       }
     }
     if (event === "keyup") {

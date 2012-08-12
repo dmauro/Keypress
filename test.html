@@ -28,6 +28,7 @@
     <p class="tildatplus">~ + t + +</p><br>
     <p class="astarx">a -> * -> x</p><br>
     <p class="shiftshiftshifta">shift -> shift -> shift -> a</p><br>
+    <p class="slashquote">\ + "</p><br>
 
     <script src="jquery-1.7.1.min.js"></script>
     <script src="keypress.js"></script>
@@ -94,6 +95,9 @@
         });
         keypress.sequence("shift shift shift a", function() {
             highlight($('.shiftshiftshifta'));
+        });
+        keypress.combo("\\ \"", function() {
+            highlight($('.slashquote'));
         });
 
         keypress.combo("d w", function() {

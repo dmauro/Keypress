@@ -26,8 +26,8 @@ _ready = false
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
-_keys_down = []
-_active_combos = []
+window.keys_down = _keys_down = []
+window.active_combos = _active_combos = []
 _prevent_capture = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
@@ -208,38 +208,82 @@ _remove_from_active_combos = (combo) ->
 _add_key_to_sequence = (key, e) ->
     _sequence.push key
     # Now check if they're working towards a sequence
-    sequence_combo = _get_sequence true
-    if sequence_combo and !sequence_combo.allow_default
-        _prevent_default(e)
-    if sequence_combo
-        # If we're working towards it, give them more time to keep going
+    sequence_combos = _get_possible_sequences()
+    if sequence_combos.length
+        for combo in sequence_combos
+            _prevent_default(e) unless combo.allow_default
+        # If we're working towards one, give them more time to keep going
         clearTimeout(_sequence_timer) if _sequence_timer
         _sequence_timer = setTimeout ->
             _sequence = []
-        , sequence_combo.wait or 500
+        , 800
     else
         # If we're not working towards something, just clear it out
         _sequence = []
-
     return
 
-_get_sequence = (allow_partial=false)->
+_get_possible_sequences = ->
+    # Determine what if any sequences we're working towards.
+    # We will consider any which any part of the end of the sequence
+    # matches and return all of them.
+    matches = []
+    for combo in _registered_combos
+        for j in [1.._sequence.length]
+            sequence = _sequence.slice -j
+            continue unless combo.is_sequence
+            unless "shift" in combo.keys
+                sequence = sequence.filter (key) ->
+                    return key isnt "shift"
+                continue unless sequence.length
+            for i in [0...sequence.length]
+                if combo.keys[i] is sequence[i]
+                    match = true
+                else
+                    match = false
+                    break
+            matches.push(combo) if match
+    return matches
+
+_get_sequence = (key) ->
     # Compare _sequence to all combos
     for combo in _registered_combos
         continue unless combo.is_sequence
-        continue unless combo.keys.length is _sequence.length or allow_partial
-        match = true
-        for i in [0..._sequence.length]
-            unless combo.keys[i] is _sequence[i]
-                match = false
-                break
+        for j in [1.._sequence.length]
+            # As we are traversing backwards through the sequence keys,
+            # Take out any shift keys, unless shift is in the combo.
+            sequence = _sequence.filter((seq_key) ->
+                return true if "shift" in combo.keys
+                return seq_key isnt "shift"
+            ).slice -j
+            continue unless combo.keys.length is sequence.length
+            for i in [0...sequence.length]
+                seq_key = sequence[i]
+                # Special case for shift. Ignore shift keys, unless the sequence explicitly uses them
+                continue if seq_key is "shift" unless "shift" in combo.keys
+                # Don't select this combo if we're pressing shift and shift isn't in it
+                continue if key is "shift" and "shift" not in combo.keys
+                if combo.keys[i] is seq_key
+                    match = true
+                else
+                    match = false
+                    break
         return combo if match
     return false
 
+_convert_to_shifted_key = (key, e) ->
+    return false unless e.shiftKey
+    k = _keycode_shifted_keys[key]
+    return k if k?
+    return false
+
 _key_down = (key, e) ->
+    # Check if we're holding shift
+    shifted_key = _convert_to_shifted_key key, e
+    key = shifted_key if shifted_key
+
     # Add the key to sequences
     _add_key_to_sequence key, e
-    sequence_combo = _get_sequence()
+    sequence_combo = _get_sequence key
     _fire("keydown", sequence_combo, e) if sequence_combo
 
     # We might have modifier keys down when coming back to
@@ -287,14 +331,20 @@ _key_down = (key, e) ->
     return
 
 _key_up = (key, e) ->
+    # Check if we're holding shift
+    unshifted_key = key
+    shifted_key = _convert_to_shifted_key key, e
+    key = shifted_key if shifted_key
+    shifted_key = _keycode_shifted_keys[unshifted_key]
+
     # Check if we have a keyup firing
-    sequence_combo = _get_sequence()
+    sequence_combo = _get_sequence key
     _fire("keyup", sequence_combo, e) if sequence_combo
 
-    # Remove from the list
-    return false unless key in _keys_down
+    # Remove from the list, careful of shift conflicts
+    return false unless key in _keys_down or unshifted_key in _keys_down or shifted_key in _keys_down
     for i in [0..._keys_down.length]
-        if key is _keys_down[i]
+        if _keys_down[i] in [key, shifted_key, unshifted_key]
             _keys_down.splice i, 1
             break
 
@@ -495,6 +545,29 @@ _modifier_event_mapping =
     "shift" : "shiftKey"
     "alt"   : "altKey"
 
+_keycode_shifted_keys =
+    "/"     : "?"
+    "."     : ">"
+    ","     : "<"
+    "\'"    : "\""
+    ";"     : ":"
+    "["     : "{"
+    "]"     : "}"
+    "\\"    : "|"
+    "`"     : "~"
+    "="     : "+"
+    "-"     : "_"
+    "1"     : "!"
+    "2"     : "@"
+    "3"     : "#"
+    "4"     : "$"
+    "5"     : "%"
+    "6"     : "^"
+    "7"     : "&"
+    "8"     : "*"
+    "9"     : "("
+    "0"     : ")"
+
 _keycode_dictionary = 
     8   : "backspace"
     9   : "tab"
@@ -516,6 +589,7 @@ _keycode_dictionary =
     40  : "down"
     45  : "insert"
     46  : "delete"
+    48  : "0"
     49  : "1"
     50  : "2"
     51  : "3"
@@ -567,4 +641,6 @@ _keycode_dictionary =
     224 : "cmd"
 
 for _, key of _keycode_dictionary
+    _valid_keys.push key
+for _, key of _keycode_shifted_keys
     _valid_keys.push key

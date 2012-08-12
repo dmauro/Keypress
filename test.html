@@ -25,6 +25,9 @@
     <p class="metas">meta + s</p><br>
     <p class="metashifts">meta + shift + s</p><br>
     <p class="metaaltshifts">meta + alt + shift + s</p><br>
+    <p class="tildatplus">~ + t + +</p><br>
+    <p class="astarx">a -> * -> x</p><br>
+    <p class="shiftshiftshifta">shift -> shift -> shift -> a</p><br>
 
     <script src="jquery-1.7.1.min.js"></script>
     <script src="keypress.js"></script>
@@ -83,6 +86,15 @@
         keypress.combo("meta alt shift s", function() {
             highlight($('.metaaltshifts'));
         }, true);
+        keypress.combo("~ t +", function() {
+            highlight($('.tildatplus'));
+        });
+        keypress.sequence("a * x", function() {
+            highlight($('.astarx'));
+        });
+        keypress.sequence("shift shift shift a", function() {
+            highlight($('.shiftshiftshifta'));
+        });
 
         keypress.combo("d w", function() {
             highlight($('.wd'), "blue");

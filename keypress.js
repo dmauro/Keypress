@@ -26,7 +26,7 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_possible_sequences, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
 
@@ -38,9 +38,9 @@ Options available and defaults:
 
   _sequence_timer = null;
 
-  _keys_down = [];
+  window.keys_down = _keys_down = [];
 
-  _active_combos = [];
+  window.active_combos = _active_combos = [];
 
   _prevent_capture = false;
 
@@ -286,42 +286,92 @@ Options available and defaults:
   };
 
   _add_key_to_sequence = function(key, e) {
-    var sequence_combo;
+    var combo, sequence_combos, _i, _len;
     _sequence.push(key);
-    sequence_combo = _get_sequence(true);
-    if (sequence_combo && !sequence_combo.allow_default) {
-      _prevent_default(e);
-    }
-    if (sequence_combo) {
+    sequence_combos = _get_possible_sequences();
+    if (sequence_combos.length) {
+      for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
+        combo = sequence_combos[_i];
+        if (!combo.allow_default) {
+          _prevent_default(e);
+        }
+      }
       if (_sequence_timer) {
         clearTimeout(_sequence_timer);
       }
       _sequence_timer = setTimeout(function() {
         return _sequence = [];
-      }, sequence_combo.wait || 500);
+      }, 800);
     } else {
       _sequence = [];
     }
   };
 
-  _get_sequence = function(allow_partial) {
-    var combo, i, match, _i, _j, _len, _ref;
-    if (allow_partial == null) {
-      allow_partial = false;
+  _get_possible_sequences = function() {
+    var combo, i, j, match, matches, sequence, _i, _j, _k, _len, _ref, _ref1;
+    matches = [];
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      combo = _registered_combos[_i];
+      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
+        sequence = _sequence.slice(-j);
+        if (!combo.is_sequence) {
+          continue;
+        }
+        if (__indexOf.call(combo.keys, "shift") < 0) {
+          sequence = sequence.filter(function(key) {
+            return key !== "shift";
+          });
+          if (!sequence.length) {
+            continue;
+          }
+        }
+        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+          if (combo.keys[i] === sequence[i]) {
+            match = true;
+          } else {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          matches.push(combo);
+        }
+      }
     }
+    return matches;
+  };
+
+  _get_sequence = function(key) {
+    var combo, i, j, match, seq_key, sequence, _i, _j, _k, _len, _ref, _ref1;
     for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
       combo = _registered_combos[_i];
       if (!combo.is_sequence) {
         continue;
       }
-      if (!(combo.keys.length === _sequence.length || allow_partial)) {
-        continue;
-      }
-      match = true;
-      for (i = _j = 0, _ref = _sequence.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
-        if (combo.keys[i] !== _sequence[i]) {
-          match = false;
-          break;
+      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
+        sequence = _sequence.filter(function(seq_key) {
+          if (__indexOf.call(combo.keys, "shift") >= 0) {
+            return true;
+          }
+          return seq_key !== "shift";
+        }).slice(-j);
+        if (combo.keys.length !== sequence.length) {
+          continue;
+        }
+        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+          seq_key = sequence[i];
+          if (__indexOf.call(combo.keys, "shift") < 0 ? seq_key === "shift" : void 0) {
+            continue;
+          }
+          if (key === "shift" && __indexOf.call(combo.keys, "shift") < 0) {
+            continue;
+          }
+          if (combo.keys[i] === seq_key) {
+            match = true;
+          } else {
+            match = false;
+            break;
+          }
         }
       }
       if (match) {
@@ -331,10 +381,26 @@ Options available and defaults:
     return false;
   };
 
+  _convert_to_shifted_key = function(key, e) {
+    var k;
+    if (!e.shiftKey) {
+      return false;
+    }
+    k = _keycode_shifted_keys[key];
+    if (k != null) {
+      return k;
+    }
+    return false;
+  };
+
   _key_down = function(key, e) {
-    var combo, event_mod, mod, potential, potential_combos, sequence_combo, _i, _len;
+    var combo, event_mod, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _len;
+    shifted_key = _convert_to_shifted_key(key, e);
+    if (shifted_key) {
+      key = shifted_key;
+    }
     _add_key_to_sequence(key, e);
-    sequence_combo = _get_sequence();
+    sequence_combo = _get_sequence(key);
     if (sequence_combo) {
       _fire("keydown", sequence_combo, e);
     }
@@ -383,16 +449,22 @@ Options available and defaults:
   };
 
   _key_up = function(key, e) {
-    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, _i, _j, _k, _len, _len1, _ref;
-    sequence_combo = _get_sequence();
+    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _len, _len1, _ref, _ref1;
+    unshifted_key = key;
+    shifted_key = _convert_to_shifted_key(key, e);
+    if (shifted_key) {
+      key = shifted_key;
+    }
+    shifted_key = _keycode_shifted_keys[unshifted_key];
+    sequence_combo = _get_sequence(key);
     if (sequence_combo) {
       _fire("keyup", sequence_combo, e);
     }
-    if (__indexOf.call(_keys_down, key) < 0) {
+    if (!(__indexOf.call(_keys_down, key) >= 0 || __indexOf.call(_keys_down, unshifted_key) >= 0 || __indexOf.call(_keys_down, shifted_key) >= 0)) {
       return false;
     }
     for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-      if (key === _keys_down[i]) {
+      if ((_ref1 = _keys_down[i]) === key || _ref1 === shifted_key || _ref1 === unshifted_key) {
         _keys_down.splice(i, 1);
         break;
       }
@@ -648,6 +720,30 @@ Options available and defaults:
     "alt": "altKey"
   };
 
+  _keycode_shifted_keys = {
+    "/": "?",
+    ".": ">",
+    ",": "<",
+    "\'": "\"",
+    ";": ":",
+    "[": "{",
+    "]": "}",
+    "\\": "|",
+    "`": "~",
+    "=": "+",
+    "-": "_",
+    "1": "!",
+    "2": "@",
+    "3": "#",
+    "4": "$",
+    "5": "%",
+    "6": "^",
+    "7": "&",
+    "8": "*",
+    "9": "(",
+    "0": ")"
+  };
+
   _keycode_dictionary = {
     8: "backspace",
     9: "tab",
@@ -669,6 +765,7 @@ Options available and defaults:
     40: "down",
     45: "insert",
     46: "delete",
+    48: "0",
     49: "1",
     50: "2",
     51: "3",
@@ -722,6 +819,11 @@ Options available and defaults:
 
   for (_ in _keycode_dictionary) {
     key = _keycode_dictionary[_];
+    _valid_keys.push(key);
+  }
+
+  for (_ in _keycode_shifted_keys) {
+    key = _keycode_shifted_keys[_];
     _valid_keys.push(key);
   }
 

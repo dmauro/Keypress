@@ -64,7 +64,6 @@ _allow_key_repeat = (combo) ->
     return true if typeof combo.on_keydown is "function"
 
 _keys_remain = (combo) ->
-    if combo is undefined
     for key in combo.keys
         if key in _keys_down
             keys_remain = true

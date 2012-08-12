@@ -96,9 +96,6 @@ Options available and defaults:
 
   _keys_remain = function(combo) {
     var key, keys_remain, _i, _len, _ref;
-    if (combo === void 0) {
-      console.log("ERROR:", combo);
-    }
     _ref = combo.keys;
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       key = _ref[_i];
@@ -407,7 +404,7 @@ Options available and defaults:
     if (active_combos_length > 1) {
       for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
         active_combo = _active_combos[_k];
-        if (combo === active_combo) {
+        if (combo === active_combo || combo === void 0) {
           continue;
         }
         if (!_keys_remain(active_combo)) {

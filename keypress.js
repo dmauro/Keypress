@@ -755,6 +755,7 @@ Options available and defaults:
   };
 
   _keycode_dictionary = {
+    0: "\\",
     8: "backspace",
     9: "tab",
     13: "enter",

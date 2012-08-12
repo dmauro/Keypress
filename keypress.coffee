@@ -577,6 +577,7 @@ _keycode_shifted_keys =
     "0"     : ")"
 
 _keycode_dictionary = 
+    0   : "\\"          # Firefox reports this keyCode when shift is held
     8   : "backspace"
     9   : "tab"
     13  : "enter"

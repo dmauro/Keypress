@@ -417,6 +417,9 @@ _validate_combo = (combo) ->
     # cannot be hijacked.
     for i in [0...combo.keys.length]
         key = combo.keys[i]
+        # Check the name and replace if needed
+        alt_name = _keycode_alternate_names[key]
+        key = combo.keys[i] = alt_name if alt_name
         if key is "meta" or key is "cmd"
             combo.keys.splice i, 1, _metakey
             if key is "cmd"
@@ -544,6 +547,11 @@ _modifier_event_mapping =
     "ctrl"  : "ctrlKey"
     "shift" : "shiftKey"
     "alt"   : "altKey"
+
+_keycode_alternate_names =
+    "control"   : "ctrl"
+    "command"   : "cmd"
+    "break"     : "pause"
 
 _keycode_shifted_keys =
     "/"     : "?"

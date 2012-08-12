@@ -351,13 +351,13 @@ _receive_input = (e, is_keydown) ->
     else
         _key_up key
 
-_validate_combo = (combo) ->
-    # Make sure the combo isn't already registered
-    for registered_combo in _registered_combos
-        if _compare_arrays combo.keys, registered_combo.keys
-            _log_error "This combo has already been registered."
-            return false
+_unregister_combo = (combo) ->
+    for i in [0..._registered_combos.length]
+        if combo is _registered_combos[i]
+            _registered_combos.splice i, 1
+            break
 
+_validate_combo = (combo) ->
     # Convert "meta" to either "ctrl" or "cmd"
     # Don't explicity use the command key, it breaks
     # because it is the windows key in Windows, and
@@ -374,6 +374,13 @@ _validate_combo = (combo) ->
         unless key in _valid_keys
             _log_error "Do not recognize the key \"#{key}\""
             return false
+
+    # Make sure the combo isn't already registered
+    for registered_combo in _registered_combos
+        if _compare_arrays combo.keys, registered_combo.keys
+            _log_error "Warning: we're overwriting another combo"
+            _unregister_combo registered_combo
+            break
 
     # We can only allow a single non-modifier key
     # in combos that include the command key (this
@@ -458,6 +465,11 @@ keypress.register_combo = (combo) ->
     if _validate_combo combo
         _registered_combos.push combo
         return true
+
+keypress.unregister_combo = (keys) ->
+    for combo in _registered_combos
+        if _compare_arrays keys, combo.keys
+            _unregister_combo combo
 
 keypress.listen = ->
     _prevent_capture = false

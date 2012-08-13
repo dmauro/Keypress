@@ -462,6 +462,14 @@ _bug_catcher = (e) ->
     if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt"]
         _receive_input e, false
 
+_change_keycodes_by_browser = ->
+    if navigator.userAgent.indexOf("Opera") != -1
+        # Opera does weird stuff with command and control keys, let's fix that.
+        # Note: Opera cannot override meta + s browser default of save page.
+        _keycode_dictionary["17"] = "cmd"
+        _keycode_dictionary["57392"] = "ctrl"
+    return
+
 ###########################
 # Public object and methods
 ###########################
@@ -474,7 +482,9 @@ keypress.init = ()->
         return
     
     _decide_meta_key()
+    _change_keycodes_by_browser()
     document.body.onkeydown = (e) ->
+        console.log "keycode", e.keyCode
         _receive_input e, true
         _bug_catcher e
     document.body.onkeyup = (e) ->

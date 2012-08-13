@@ -26,7 +26,7 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_possible_sequences, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_possible_sequences, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
 
@@ -602,6 +602,13 @@ Options available and defaults:
     }
   };
 
+  _change_keycodes_by_browser = function() {
+    if (navigator.userAgent.indexOf("Opera") !== -1) {
+      _keycode_dictionary["17"] = "cmd";
+      _keycode_dictionary["57392"] = "ctrl";
+    }
+  };
+
   window.keypress = {};
 
   keypress.init = function() {
@@ -610,7 +617,9 @@ Options available and defaults:
       return;
     }
     _decide_meta_key();
+    _change_keycodes_by_browser();
     document.body.onkeydown = function(e) {
+      console.log("keycode", e.keyCode);
       _receive_input(e, true);
       return _bug_catcher(e);
     };

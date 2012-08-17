@@ -748,7 +748,8 @@ Options available and defaults:
     "control": "ctrl",
     "command": "cmd",
     "break": "pause",
-    "windows": "cmd"
+    "windows": "cmd",
+    "option": "alt"
   };
 
   _keycode_shifted_keys = {

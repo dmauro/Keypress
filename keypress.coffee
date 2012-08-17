@@ -575,6 +575,7 @@ _keycode_alternate_names =
     "command"   : "cmd"
     "break"     : "pause"
     "windows"   : "cmd"
+    "option"    : "alt"
 
 _keycode_shifted_keys =
     "/"     : "?"

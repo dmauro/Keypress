@@ -1,13 +1,25 @@
 ###
-License agreements:
-1) Feel free to modify the code.
-2) Feel free to credit the author.
-3) Keep being awesome.
+Copyright 2012 David Mauro
 
-Keypress
-A keyboard input capturing utility in which any key can be a modifier key.
-Author: David Mauro
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
 
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Keypress is a robust keyboard input capturing Javascript utility
+focused on input for games.
+
+version 1.0.0
+###
+
+###
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
@@ -466,8 +478,9 @@ _change_keycodes_by_browser = ->
     if navigator.userAgent.indexOf("Opera") != -1
         # Opera does weird stuff with command and control keys, let's fix that.
         # Note: Opera cannot override meta + s browser default of save page.
+        # Note: Opera does some really strange stuff when cmd+alt+shift
+        # are held and a non-modifier key is pressed.
         _keycode_dictionary["17"] = "cmd"
-        _keycode_dictionary["57392"] = "ctrl"
     return
 
 ###########################
@@ -484,7 +497,6 @@ keypress.init = ()->
     _decide_meta_key()
     _change_keycodes_by_browser()
     document.body.onkeydown = (e) ->
-        console.log "keycode", e.keyCode
         _receive_input e, true
         _bug_catcher e
     document.body.onkeyup = (e) ->
@@ -562,6 +574,7 @@ _keycode_alternate_names =
     "control"   : "ctrl"
     "command"   : "cmd"
     "break"     : "pause"
+    "windows"   : "cmd"
 
 _keycode_shifted_keys =
     "/"     : "?"
@@ -646,6 +659,13 @@ _keycode_dictionary =
     90  : "z"
     91  : "cmd"
     92  : "cmd"
+    93  : "cmd"
+    106 : "num_multiply"
+    107 : "num_add"
+    108 : "num_enter"
+    109 : "num_subtract"
+    110 : "num_decimal"
+    111 : "num_divide"
     186 : ";"
     187 : "="
     188 : ","
@@ -658,6 +678,7 @@ _keycode_dictionary =
     221 : "]"
     222 : "\'"
     224 : "cmd"
+    57392   : "ctrl"    # Opera weirdness
 
 for _, key of _keycode_dictionary
     _valid_keys.push key

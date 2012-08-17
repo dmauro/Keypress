@@ -1,8 +1,7 @@
 Keypress
 ========
+Keypress is a robust keyboard input capturing Javascript utility
+focused on input for games.
 
-A keyboard input capturing utility in which any key can be a modifier key.
-
-TODO:
-* Flesh out this README
-* Work on keycode discrepancies between browsers
+Copyright 2012 David Mauro
+released under the Apache License, version 2.0

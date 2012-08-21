@@ -107,6 +107,10 @@ body > header hgroup {
         @include box-shadow(1px 1px 1px 0 rgba(#000, 0.2));
         @include bg-linear-gradient((-90deg, #fff 0%, #e3e3e3 100%));
 
+        &.pressed {
+            outline:3px solid #29abe2;
+        }
+
         &.wide_1 { width:61px; }
         &.wide_2 { width:64px; }
         &.wide_3 { width:76px; }

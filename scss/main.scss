@@ -117,6 +117,26 @@ body > header hgroup {
             strong {
                 color:$pressed_color;
             }
+
+            .triangle {
+                $triangle_color:$pressed_color;
+                
+                &.up {
+                    border-color:transparent transparent $triangle_color transparent;
+                }
+
+                &.down {
+                    border-color:$triangle_color transparent transparent transparent;
+                }
+
+                &.right {
+                    border-color: transparent transparent transparent $triangle_color;
+                }
+
+                &.left {
+                    border-color: transparent $triangle_color transparent transparent;
+                }
+            }
         }
 
         &.shift_pressed {

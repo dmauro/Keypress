@@ -41,7 +41,7 @@ body {
         h2 {
             float:left;
             position:relative;
-            width:20em;
+            width:15em;
             top:1em;
             font-size:2em;
             font-weight:normal;
@@ -107,8 +107,26 @@ body > header hgroup {
         @include box-shadow(1px 1px 1px 0 rgba(#000, 0.2));
         @include bg-linear-gradient((-90deg, #fff 0%, #e3e3e3 100%));
 
-        &.pressed {
-            outline:3px solid #29abe2;
+        $pressed_color:#3BF;
+
+        &.pressed,
+        &.shift_pressed {
+            @include box-shadow(inset 1px 1px 1px 0 rgba(#000, 0.2));
+            @include bg-linear-gradient((90deg, #f3f3f3 0%, #ddd 100%));
+
+            strong {
+                color:$pressed_color;
+            }
+        }
+
+        &.shift_pressed {
+            strong {
+                color:#333;
+            }
+
+            em {
+                color:$pressed_color;
+            }
         }
 
         &.wide_1 { width:61px; }
@@ -125,6 +143,14 @@ body > header hgroup {
         &.single {
             font-size:1.8em;
             padding-top:0.35em;
+        }
+
+        em {
+            font-style:normal;
+        }
+
+        strong {
+            font-weight:normal;
         }
 
         .triangle {

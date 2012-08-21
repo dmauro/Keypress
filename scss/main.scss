@@ -58,6 +58,8 @@ body > header hgroup {
 }
 
 .keyboard {
+    margin-bottom:2em;
+    
     .row {
         margin-bottom:5px;
 
@@ -112,6 +114,25 @@ body > header hgroup {
             &.left {
                 text-align:left;
             }
+        }
+    }
+}
+
+.documentation {
+    code {
+        position:relative;
+        width:600px;
+        font-size:1.4em;
+        padding:0.5em 1em;
+        @include border-radius(10px);
+        @include box-shadow((inset 2px 2px 5px 0 rgba(#000, 0.5), 1px 1px 1px 1px #fff));
+
+        &:after {
+            content:"\00a0";
+            @include fullsize();
+            pointer-events:none;
+            @include border-radius(10px);
+            @include bg-linear-gradient((90deg, rgba(#fff, 0.05) 0%, rgba(#fff, 0) 100%));
         }
     }
 }

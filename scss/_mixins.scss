@@ -1,0 +1,188 @@
+/* Site-wide SASS mixins go in here */
+
+@mixin clearfix {
+    zoom: 1;
+    &:before,
+    &:after {
+        content: "";
+        display: table;
+    }
+    &:after {
+        clear: both;
+    }
+}
+
+@mixin fullsize {
+    position:absolute;
+    width:100%;
+    height:100%;
+    left:0;
+    top:0;
+}
+
+@mixin box-shadow($shadows) {
+    -webkit-box-shadow: $shadows;
+    -moz-box-shadow: $shadows;
+    box-shadow: $shadows;
+}
+
+@mixin box-sizing($type) {
+    box-sizing: $type;
+    -webkit-box-sizing: $type;
+    -moz-box-sizing: $type;
+    -ms-box-sizing: $type;
+    -o-box-sizing: $type;
+}
+
+@mixin border-radius($radius) {
+    @if length($radius) == 1 {
+        $radius: if(unitless($radius) and $radius != 0, #{$radius}px, $radius);
+        -webkit-border-radius: $radius;
+        -moz-border-radius: $radius;
+        border-radius: $radius;
+    } @else {
+        $tl: nth($radius, 1);
+        $tr: nth($radius, 2);
+        $br: nth($radius, 3);
+        $bl: nth($radius, 4);
+        $tl: if(unitless($tl) and $tl != 0, #{$tl}px, $tl);
+        $tr: if(unitless($tr) and $tr != 0, #{$tr}px, $tr);
+        $bl: if(unitless($bl) and $bl != 0, #{$bl}px, $bl);
+        $br: if(unitless($br) and $br != 0, #{$br}px, $br);
+        -moz-border-radius-topleft: $tl;
+        -moz-border-radius-topright: $tr;
+        -moz-border-radius-bottomright: $br;
+        -moz-border-radius-bottomleft: $bl;
+        -webkit-border-radius: $tl $tr $br $bl;
+        border-radius: $tl $tr $br $bl;
+    }
+}
+
+@mixin bg-linear-gradient($gradients, $ie: false) {
+    background:#{nth(nth($gradients, 2), 1)};
+    background-image: -moz-linear-gradient($gradients);
+    background-image: -webkit-linear-gradient($gradients);
+    background-image: -o-linear-gradient($gradients);
+    background-image: -ms-linear-gradient($gradients);
+    background-image: linear-gradient($gradients);
+    @if $ie {
+        $grad_type: 0;
+        /* Do our best to approximate veritcal and horizontal */
+        $angle: nth($gradients, 1);
+        @if ($angle >= -45 and $angle <= 45) or ($angle >= -180 and $angle <= -135) or ($angle >= 135 and $angle <= 180) {
+            $grad_type: 1;
+        }
+        filter: progid:DXImageTransform.Microsoft.gradient( startColorstr=#{nth(nth($gradients, 2), 1)}, endColorstr=#{nth(nth($gradients, length($gradients)), 1)},GradientType=#{$grad_type} );
+    }
+}
+
+@mixin arrow($dir, $size:20px, $border_size: 0, $border_color: #aaa, $bgcolor: #fff) {
+    @if $dir == none {
+        &:before,
+        &:after {
+            content:"";
+            border:0;
+        }
+    } @else {
+        position:relative;
+        @if $border_size > 0 {
+            &:before,
+            &:after {
+                content:"\00a0";
+                position:absolute;
+                width:0;
+                height:0;
+                pointer-events:none;
+                @if $dir == left {
+                    right:100%;
+                    top:50%;
+                    left:auto;
+                    bottom:auto;
+                    border:solid transparent
+                } @else if $dir == right {
+                    left:100%;
+                    top:50%;
+                    right:auto;
+                    bottom:auto;
+                    border:solid transparent
+                } @else if $dir == top {
+                    bottom:100%;
+                    left:50%;
+                    right:auto;
+                    top:auto;
+                    border:transparent solid;
+                } @else if $dir == bottom {
+                    top:100%;
+                    left:50%;
+                    right:auto;
+                    bottom:auto;
+                    border:transparent solid;
+                }
+            }
+            &:after {
+                border-width:$size;
+                @if $dir == left {
+                    margin-top:-$size;
+                    border-right-color:$bgcolor;
+                } @else if $dir == right {
+                    margin-top:-$size;
+                    border-left-color:$bgcolor;
+                } @else if $dir == top {
+                    margin-left:-$size;
+                    border-bottom-color:$bgcolor;
+                } @else if $dir == bottom {
+                    margin-left:-$size;
+                    border-top-color:$bgcolor;
+                }
+            }
+            &:before {
+                $border_offset:$size + $border_size * 1.41421356;
+                border-width:$border_offset;
+                @if $dir == left {
+                    margin-top:-$border_offset;
+                    border-right-color:$border_color;
+                } @else if $dir == right {
+                    margin-top:-$border_offset;
+                    border-left-color:$border_color;
+                } @else if $dir == top {
+                    margin-left:-$border_offset;
+                    border-bottom-color:$border_color;
+                } @else if $dir == bottom {
+                    margin-left:-$border_offset;
+                    border-top-color:$border_color;
+                }
+            }
+        } @else {
+            &:after {
+                content:"\00a0";
+                position:absolute;
+                width:0;
+                height:0;
+                pointer-events:none;
+                border:solid transparent;
+                border-width:$size;
+                @if $dir == left {
+                    right:100%;
+                    top:50%;
+                    margin-top:-$size;
+                    border-right-color:$bgcolor;
+                } @else if $dir == right {
+                    left:100%;
+                    top:50%;
+                    margin-top:-$size;
+                    border-left-color:$bgcolor;
+                } @else if $dir == top {
+                    left:50%;
+                    bottom:100%;
+                    margin-left:-$size;
+                    border-bottom-color:$bgcolor;
+                } @else if $dir == bottom {
+                    left:50%;
+                    top:100%;
+                    margin-left:-$size;
+                    border-top-color:$bgcolor;
+                }
+            }
+        }
+    }
+}

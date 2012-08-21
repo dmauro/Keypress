@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd ~/Projects/Keypress
+sass --watch scss:css --style compressed &
+coffee -o ./js/ -cw ./coffee/

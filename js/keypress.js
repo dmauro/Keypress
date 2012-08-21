@@ -67,8 +67,7 @@ Options available and defaults:
 
   _combo_defaults = {
     keys: [],
-    count: 0,
-    test: "hello"
+    count: 0
   };
 
   _log_error = function() {

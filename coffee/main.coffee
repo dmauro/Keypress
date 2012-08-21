@@ -1,8 +1,6 @@
-fake_keyboard_combos = []
-key_nodes = {}
-
-bind_fake_keyboard = ->
+bind_keyboard = ->
     keys = $('.keyboard .key')
+    key_nodes = {}
     $.each keys, (_, node) ->
         node = $(node)
         id = node.attr "id"
@@ -27,7 +25,7 @@ bind_fake_keyboard = ->
         on_up key_nodes.left_alt
         on_up key_nodes.right_alt
 
-   fake_keyboard_combos = [
+    combos = [
             keys : "`"
             on_keydown : ->
                 on_down key_nodes.accent
@@ -522,11 +520,10 @@ bind_fake_keyboard = ->
             on_keyup : ->
                 on_up key_nodes.right
     ]
-    
-    keypress.register_many fake_keyboard_combos
+    keypress.register_many combos
 
 
 $(->
     keypress.init()
-    bind_fake_keyboard()
+    bind_keyboard()
 )

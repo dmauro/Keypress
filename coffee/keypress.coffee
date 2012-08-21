@@ -48,7 +48,6 @@ _valid_keys = []
 _combo_defaults = {
     keys            : []
     count           : 0
-    test            : "hello"
 }
 
 _log_error = () ->

@@ -52,15 +52,26 @@ body {
 
 body > .fixed_width_wrapper,
 body > header hgroup {
-    width:1000px;
+    width:1080px;
     margin:0 auto;
     padding:0 20px;
 }
 
 .keyboard {
     margin-bottom:2em;
+    @include clearfix();
+
+    section {
+        float:left;
+        margin-right:15px;
+
+        &:last-of-type {
+            margin-right:0;
+        }
+    }
     
     .row {
+        height:40px;
         margin-bottom:5px;
 
         &:last-of-type {
@@ -68,12 +79,24 @@ body > header hgroup {
         }
     }
 
-    .key {
+    .key,
+    .key_filler {
         display:inline-block;
         position:relative;
         margin-right:5px;
         width:40px;
         height:40px;
+
+        &:last-of-type {
+            margin-right:0;
+        }
+    }
+
+    .key_filler {
+        pointer-events:none;
+    }
+
+    .key {
         border:1px solid #aaa;
         padding-top:0.25em;
         vertical-align:top;
@@ -89,14 +112,28 @@ body > header hgroup {
         &.wide_3 { width:76px; }
         &.wide_4 { width:100px; }
         &.wide_5 { width:274px; }
-
-        &:last-of-type {
-            margin-right:0;
+        &.wide_6 { width:85px; }
+        &.tall {
+            height:85px;
+            line-height:85px;
         }
 
         &.single {
             font-size:1.8em;
             padding-top:0.35em;
+        }
+
+        .triangle {
+            margin:8px auto;
+
+            &.up { top:2px; }
+            &.down { top:5px; }
+            &.left { left:-2px; }
+            &.right { left:2px; }
+        }
+
+        br + .triangle {
+            margin:0 auto;
         }
 
         span {
@@ -106,6 +143,7 @@ body > header hgroup {
             padding:0.2em 0.5em;
             bottom:0;
             font-size:0.8em;
+            text-align:center;
 
             &.right {
                 text-align:right;
@@ -114,6 +152,37 @@ body > header hgroup {
             &.left {
                 text-align:left;
             }
+        }
+    }
+
+    $triangle_color:#555;
+    $triangle_width:16px;
+    $triangle_height:10px;
+
+    .triangle {
+        position:relative;
+        width:0px;
+        height:0px;
+        border-style:solid;
+
+        &.up {
+            border-width:0 $triangle_width/2 $triangle_height $triangle_width/2;
+            border-color:transparent transparent $triangle_color transparent;
+        }
+
+        &.down {
+            border-width:$triangle_height $triangle_width/2 0 $triangle_width/2;
+            border-color:$triangle_color transparent transparent transparent;
+        }
+
+        &.right {
+            border-width: $triangle_width/2 0 $triangle_width/2 $triangle_height;
+            border-color: transparent transparent transparent $triangle_color;
+        }
+
+        &.left {
+            border-width: $triangle_width/2 $triangle_width/2 $triangle_height 0;
+            border-color: transparent $triangle_color transparent transparent;
         }
     }
 }

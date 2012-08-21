@@ -51,8 +51,8 @@ _combo_defaults = {
     test            : "hello"
 }
 
-_log_error = (msg) ->
-    console.log msg
+_log_error = () ->
+    console.log arguments...
 
 _compare_arrays = (a1, a2) ->
     # This will ignore the ordering of the arrays
@@ -348,13 +348,18 @@ _key_up = (key, e) ->
     shifted_key = _convert_to_shifted_key key, e
     key = shifted_key if shifted_key
     shifted_key = _keycode_shifted_keys[unshifted_key]
+    # We have to make sure the key matches to what we had in _keys_down
+    if e.shiftKey
+        key = unshifted_key unless shifted_key and shifted_key in _keys_down
+    else
+        key = shifted_key unless unshifted_key and unshifted_key in _keys_down
 
     # Check if we have a keyup firing
     sequence_combo = _get_sequence key
     _fire("keyup", sequence_combo, e) if sequence_combo
 
-    # Remove from the list, careful of shift conflicts
-    return false unless key in _keys_down or unshifted_key in _keys_down or shifted_key in _keys_down
+    # Remove from the list
+    return false unless key in _keys_down
     for i in [0..._keys_down.length]
         if _keys_down[i] in [key, shifted_key, unshifted_key]
             _keys_down.splice i, 1
@@ -446,7 +451,7 @@ _validate_combo = (combo) ->
     # Make sure the combo isn't already registered
     for registered_combo in _registered_combos
         if _compare_arrays combo.keys, registered_combo.keys
-            _log_error "Warning: we're overwriting another combo"
+            _log_error "Warning: we're overwriting another combo", combo.keys
             _unregister_combo registered_combo
             break
 
@@ -550,10 +555,16 @@ keypress.register_combo = (combo) ->
         _registered_combos.push combo
         return true
 
+keypress.register_many = (combo_array) ->
+    keypress.register_combo(combo) for combo in combo_array
+
 keypress.unregister_combo = (keys) ->
     for combo in _registered_combos
         if _compare_arrays keys, combo.keys
             _unregister_combo combo
+
+keypress.unregister_many = (combo_array) ->
+    keypress.unregister_combo(combo.keys) for combo in combo_array
 
 keypress.listen = ->
     _prevent_capture = false
@@ -571,11 +582,16 @@ _modifier_event_mapping =
     "alt"   : "altKey"
 
 _keycode_alternate_names =
-    "control"   : "ctrl"
-    "command"   : "cmd"
-    "break"     : "pause"
-    "windows"   : "cmd"
-    "option"    : "alt"
+    "control"       : "ctrl"
+    "command"       : "cmd"
+    "break"         : "pause"
+    "windows"       : "cmd"
+    "option"        : "alt"
+    "caps_lock"     : "caps"
+    "apostrophe"    : "\'"
+    "semicolon"     : ";"
+    "tilde"         : "~"
+    "accent"        : "`"
 
 _keycode_shifted_keys =
     "/"     : "?"

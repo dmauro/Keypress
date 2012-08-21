@@ -71,8 +71,8 @@ Options available and defaults:
     test: "hello"
   };
 
-  _log_error = function(msg) {
-    return console.log(msg);
+  _log_error = function() {
+    return console.log.apply(console, arguments);
   };
 
   _compare_arrays = function(a1, a2) {
@@ -469,11 +469,20 @@ Options available and defaults:
       key = shifted_key;
     }
     shifted_key = _keycode_shifted_keys[unshifted_key];
+    if (e.shiftKey) {
+      if (!(shifted_key && __indexOf.call(_keys_down, shifted_key) >= 0)) {
+        key = unshifted_key;
+      }
+    } else {
+      if (!(unshifted_key && __indexOf.call(_keys_down, unshifted_key) >= 0)) {
+        key = shifted_key;
+      }
+    }
     sequence_combo = _get_sequence(key);
     if (sequence_combo) {
       _fire("keyup", sequence_combo, e);
     }
-    if (!(__indexOf.call(_keys_down, key) >= 0 || __indexOf.call(_keys_down, unshifted_key) >= 0 || __indexOf.call(_keys_down, shifted_key) >= 0)) {
+    if (__indexOf.call(_keys_down, key) < 0) {
       return false;
     }
     for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
@@ -581,7 +590,7 @@ Options available and defaults:
     for (_k = 0, _len1 = _registered_combos.length; _k < _len1; _k++) {
       registered_combo = _registered_combos[_k];
       if (_compare_arrays(combo.keys, registered_combo.keys)) {
-        _log_error("Warning: we're overwriting another combo");
+        _log_error("Warning: we're overwriting another combo", combo.keys);
         _unregister_combo(registered_combo);
         break;
       }
@@ -711,6 +720,16 @@ Options available and defaults:
     }
   };
 
+  keypress.register_many = function(combo_array) {
+    var combo, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+      combo = combo_array[_i];
+      _results.push(keypress.register_combo(combo));
+    }
+    return _results;
+  };
+
   keypress.unregister_combo = function(keys) {
     var combo, _i, _len, _results;
     _results = [];
@@ -721,6 +740,16 @@ Options available and defaults:
       } else {
         _results.push(void 0);
       }
+    }
+    return _results;
+  };
+
+  keypress.unregister_many = function(combo_array) {
+    var combo, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+      combo = combo_array[_i];
+      _results.push(keypress.unregister_combo(combo.keys));
     }
     return _results;
   };
@@ -749,7 +778,12 @@ Options available and defaults:
     "command": "cmd",
     "break": "pause",
     "windows": "cmd",
-    "option": "alt"
+    "option": "alt",
+    "caps_lock": "caps",
+    "apostrophe": "\'",
+    "semicolon": ";",
+    "tilde": "~",
+    "accent": "`"
   };
 
   _keycode_shifted_keys = {

@@ -5,11 +5,16 @@
     @include box-sizing(border-box);
 }
 
+.clearfix {
+    @include clearfix();
+}
+
 html {
     font-size:62.5%;
 }
 
 h1 {
+    float:left;
     font-family:"MuseoSlab";
     font-size:1.8em;
     font-weight:normal;
@@ -237,7 +242,73 @@ body > header hgroup {
     }
 }
 
+.examples,
+.overview,
 .documentation {
+    > h1 {
+        margin-bottom:0.5em;
+        font-size:2.6em;
+        line-height:1em;
+
+        &.pink { border-bottom:3px solid #FF0089; }
+        &.lime { border-bottom:3px solid #aade00; }
+        &.orange { border-bottom:3px solid #ff7914; }
+    }
+
+    p {
+        font-size:1.6em;
+        clear:both;
+    }
+}
+
+.examples {
+    float:right;
+    width:500px;
+
+    .example_window {
+        clear:both;
+        height:300px;
+        background:rgba(#000, 0.2);
+        @include border-radius(10px);
+        @include box-shadow(inset 1px 1px 2px rgba(#000, 0.3));
+    }
+}
+
+.overview {
+    float:left;
+    width:500px;
+
+    ul {
+        padding-left:0;
+        margin-bottom:3em;
+
+        li {
+            font-size:1.8em;
+
+            &:before {
+                content:"+";
+                display:inline-block;
+                position:relative;
+                top:0.2em;
+                margin-right:1em;
+                background:#ff0089;
+                width:1em;
+                height:1em;
+                line-height:0.9em;
+                vertical-align:top;
+                color:#fff;
+                font-weight:bold;
+                text-align:center;
+                @include border-radius(1em);
+            }
+        }
+    }
+}
+
+.documentation {
+    width:700px;
+    margin:3em auto;
+
     code {
         position:relative;
         width:600px;
@@ -254,4 +325,9 @@ body > header hgroup {
             @include bg-linear-gradient((90deg, rgba(#fff, 0.05) 0%, rgba(#fff, 0) 100%));
         }
     }
+}
+
+#key_insert,
+#key_print {
+    @include opacity(0.5);
 }

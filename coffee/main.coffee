@@ -519,6 +519,166 @@ bind_keyboard = ->
                 on_down key_nodes.right
             on_keyup : ->
                 on_up key_nodes.right
+        ,
+        #Next section
+            # The print key doesn't actually work
+            key : "print"
+            on_keydown : ->
+                on_down key_nodes.print
+            on_keyup : ->
+                on_up key_nodes.print
+        ,
+            keys : "scroll"
+            on_keydown : ->
+                on_down key_nodes.scroll_lock
+            on_keyup : ->
+                on_up key_nodes.scroll_lock
+        ,
+            keys : "pause"
+            on_keydown : ->
+                on_down key_nodes.pause
+            on_keyup : ->
+                on_up key_nodes.pause
+        ,
+            keys : "insert"
+            on_keydown : ->
+                on_down key_nodes.insert
+            on_keyup : ->
+                on_up key_nodes.insert
+        ,
+            keys : "home"
+            on_keydown : ->
+                on_down key_nodes.home
+            on_keyup : ->
+                on_up key_nodes.home
+        ,
+            keys : "pageup"
+            on_keydown : ->
+                on_down key_nodes.page_up
+            on_keyup : ->
+                on_up key_nodes.page_up
+        ,
+            keys : "delete"
+            on_keydown : ->
+                on_down key_nodes.delete
+            on_keyup : ->
+                on_up key_nodes.delete
+        ,
+            keys : "end"
+            on_keydown : ->
+                on_down key_nodes.end
+            on_keyup : ->
+                on_up key_nodes.end
+        ,
+            keys : "pagedown"
+            on_keydown : ->
+                on_down key_nodes.page_down
+            on_keyup : ->
+                on_up key_nodes.page_down
+        ,
+            keys : "num"
+            on_keydown : ->
+                on_down key_nodes.num_lock
+            on_keyup : ->
+                on_up key_nodes.num_lock
+        ,
+            keys : "num_divide"
+            on_keydown : ->
+                on_down key_nodes.divide
+            on_keyup : ->
+                on_up key_nodes.divide
+        ,
+            keys : "num_multiply"
+            on_keydown : ->
+                on_down key_nodes.multiply
+            on_keyup : ->
+                on_up key_nodes.multiply
+        ,
+            keys : "num_subtract"
+            on_keydown : ->
+                on_down key_nodes.subtract
+            on_keyup : ->
+                on_up key_nodes.subtract
+        ,
+            keys : "num_add"
+            on_keydown : ->
+                on_down key_nodes.add
+            on_keyup : ->
+                on_up key_nodes.add
+        ,
+            keys : "num_enter"
+            on_keydown : ->
+                on_down key_nodes.numpad_enter
+            on_keyup : ->
+                on_up key_nodes.numpad_enter
+        ,
+            keys : "num_decimal"
+            on_keydown : ->
+                on_down key_nodes.numpad_decimal
+            on_keyup : ->
+                on_up key_nodes.numpad_decimal
+        ,
+            keys : "num_0"
+            on_keydown : ->
+                on_down key_nodes.num_0
+            on_keyup : ->
+                on_up key_nodes.num_0
+        ,
+            keys : "num_1"
+            on_keydown : ->
+                on_down key_nodes.num_1
+            on_keyup : ->
+                on_up key_nodes.num_1
+        ,
+            keys : "num_2"
+            on_keydown : ->
+                on_down key_nodes.num_2
+            on_keyup : ->
+                on_up key_nodes.num_2
+        ,
+            keys : "num_3"
+            on_keydown : ->
+                on_down key_nodes.num_3
+            on_keyup : ->
+                on_up key_nodes.num_3
+        ,
+            keys : "num_4"
+            on_keydown : ->
+                on_down key_nodes.num_4
+            on_keyup : ->
+                on_up key_nodes.num_4
+        ,
+            keys : "num_5"
+            on_keydown : ->
+                on_down key_nodes.num_5
+            on_keyup : ->
+                on_up key_nodes.num_5
+        ,
+            keys : "num_6"
+            on_keydown : ->
+                on_down key_nodes.num_6
+            on_keyup : ->
+                on_up key_nodes.num_6
+        ,
+            keys : "num_7"
+            on_keydown : ->
+                on_down key_nodes.num_7
+            on_keyup : ->
+                on_up key_nodes.num_7
+        ,
+            keys : "num_8"
+            on_keydown : ->
+                on_down key_nodes.num_8
+            on_keyup : ->
+                on_up key_nodes.num_8
+        ,
+            keys : "num_9"
+            on_keydown : ->
+                on_down key_nodes.num_9
+            on_keyup : ->
+                on_up key_nodes.num_9
+
+
     ]
     keypress.register_many combos
 

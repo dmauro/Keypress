@@ -88,19 +88,19 @@
             </section>
             <section>
                 <div class="row">
-                    <div id="key_print" class="key"><span>print</span></div>
-                    <div id="key_scroll_lock" class="key"><span>scroll lock</span></div>
-                    <div id="key_pause_break" class="key"><span>pause break</span></div>
+                    <div id="key_print" class="key"><span><strong>print</strong></span></div>
+                    <div id="key_scroll_lock" class="key"><span><strong>scroll lock</strong></span></div>
+                    <div id="key_pause_break" class="key"><span><strong>pause break</strong></span></div>
                 </div>
                 <div class="row">
-                    <div id="key_insert" class="key"><span>insert</span></div>
-                    <div id="key_home" class="key"><span>home</span></div>
-                    <div id="key_page_up" class="key"><span>page up</span></div>
+                    <div id="key_insert" class="key"><span><strong>insert</strong></span></div>
+                    <div id="key_home" class="key"><span><strong>home</strong></span></div>
+                    <div id="key_page_up" class="key"><span><strong>page up</strong></span></div>
                 </div>
                 <div class="row">
-                    <div id="key_delete" class="key"><span>delete</span></div>
-                    <div id="key_end" class="key"><span>end</span></div>
-                    <div id="key_page_down" class="key"><span>page down</span></div>
+                    <div id="key_delete" class="key"><span><strong>delete</strong></span></div>
+                    <div id="key_end" class="key"><span><strong>end</strong></span></div>
+                    <div id="key_page_down" class="key"><span><strong>page down</strong></span></div>
                 </div>
                 <div class="row">
                     <div class="key_filler"></div>
@@ -109,46 +109,69 @@
                 </div>
                 <div class="row">
                     <div id="key_left" class="key"><div class="triangle left"></div></div>
-                    <div id="key_down" class="key"><div class="triangle down"></div></div>
+                    <div id="key_down"z class="key"><div class="triangle down"></div></div>
                     <div id="key_right" class="key"><div class="triangle right"></div></div>
                 </div>
             </section>
             <section>
                 <div class="row">
-                    <div id="key_num_lock" class="key"><span>num lock</span></div>
-                    <div id="key_divide" class="key single">/</div>
-                    <div id="key_multiply" class="key single">*</div>
-                    <div id="key_subtract" class="key single">-</div>
+                    <div id="key_num_lock" class="key"><span><strong>num lock</strong></span></div>
+                    <div id="key_divide" class="key single"><strong>/</strong></div>
+                    <div id="key_multiply" class="key single"><strong>*</strong></div>
+                    <div id="key_subtract" class="key single"><strong>-</strong></div>
                 </div>
                 <div class="row">
-                    <div id="key_numpad_7" class="key">7<span>home</span></div>
-                    <div id="key_numpad_8" class="key">8<br><div class="triangle up"></div></div>
-                    <div id="key_numpad_9" class="key">9<span>pgup</span></div>
-                    <div id="key_add" class="key tall">+</div>
+                    <div id="key_num_7" class="key"><strong>7</strong><span>home</span></div>
+                    <div id="key_num_8" class="key"><strong>8</strong><br><div class="triangle up"></div></div>
+                    <div id="key_num_9" class="key"><strong>9</strong><span>pgup</span></div>
+                    <div id="key_add" class="key tall"><strong>+</strong></div>
                 </div>
                 <div class="row">
-                    <div id="key_numpad_4" class="key">4<br><div class="triangle left"></div></div>
-                    <div id="key_numpad_5" class="key">5</div>
-                    <div id="key_numpad_6" class="key">6<br><div class="triangle right"></div></div>
+                    <div id="key_num_4" class="key"><strong>4</strong><br><div class="triangle left"></div></div>
+                    <div id="key_num_5" class="key"><strong>5</strong></div>
+                    <div id="key_num_6" class="key"><strong>6</strong><br><div class="triangle right"></div></div>
                 </div>
                 <div class="row">
-                    <div id="key_numpad_1" class="key">1<span>end</span></div>
-                    <div id="key_numpad_2" class="key">2<br><div class="triangle down"></div></div>
-                    <div id="key_numpad_3" class="key">3<span>pgdn</span></div>
-                    <div id="key_numpad_enter" class="key tall"><span>enter</span></div>
+                    <div id="key_num_1" class="key"><strong>1</strong><span>end</span></div>
+                    <div id="key_num_2" class="key"><strong>2</strong><br><div class="triangle down"></div></div>
+                    <div id="key_num_3" class="key"><strong>3</strong><span>pgdn</span></div>
+                    <div id="key_num_enter" class="key tall"><span><strong>enter</strong></span></div>
                 </div>
                 <div class="row">
-                    <div id="key_numpad_0" class="key wide_6">0<span class="right">insert</span></div>
-                    <div id="key_numpad_period" class="key">.<br>del</div>
+                    <div id="key_num_0" class="key wide_6"><strong>0</strong><span class="right">insert</span></div>
+                    <div id="key_num_decimal" class="key"><strong>.<11/strong><br>del</div>
                 </div>
             </section>
         </div>
+        <div class="clearfix">
+            <div class="examples">
+                <h1 class="orange">Demos:</h1>
+                <div class="example_window">
 
-        <div class="examples">
+                </div>
+            </div>
+            <div class="overview">
+                <h1 class="pink">Why this input library?</h1>
+                <p>
+                    Keypress is a very robust library with some very special features,
+                    it is easy to pick up and use, and it has a small footprint (~5kb minified).
+                    Here's some of what Keypress offers:
+                </p>
+                <ul>
+                    <li>Any key can serve as a modifier</li>
+                    <li>Fire on keyup and/or keydown</li>
+                    <li>Special "counting" combos</li>
+                    <li>Sequential combos</li>
+                </ul>
 
-        </div>
-        <div class="overview">
-
+                <h1 class="lime">Why NOT use Keypress?</h1>
+                <p>
+                    I'm still working on this, and I haven't done extensive cross-browser testing,
+                    so I don't recommend it for a production environment just yet. And I have not
+                    incorporated support for keyboard + mouse combos, which is something I will
+                    be adding in the future.
+                </p>
+            </div>
         </div>
         <div class="documentation">
 <pre><code>function() {

@@ -639,6 +639,7 @@ Options available and defaults:
     _decide_meta_key();
     _change_keycodes_by_browser();
     document.body.onkeydown = function(e) {
+      console.log(e.keyCode);
       _receive_input(e, true);
       return _bug_catcher(e);
     };
@@ -782,7 +783,9 @@ Options available and defaults:
     "apostrophe": "\'",
     "semicolon": ";",
     "tilde": "~",
-    "accent": "`"
+    "accent": "`",
+    "scroll_lock": "scroll",
+    "num_lock": "num"
   };
 
   _keycode_shifted_keys = {
@@ -813,6 +816,7 @@ Options available and defaults:
     0: "\\",
     8: "backspace",
     9: "tab",
+    12: "num",
     13: "enter",
     16: "shift",
     17: "ctrl",
@@ -829,6 +833,7 @@ Options available and defaults:
     38: "up",
     39: "right",
     40: "down",
+    44: "print",
     45: "insert",
     46: "delete",
     48: "0",
@@ -870,12 +875,17 @@ Options available and defaults:
     91: "cmd",
     92: "cmd",
     93: "cmd",
+    96: "num",
+    97: "num",
+    98: "num",
+    99: "num",
     106: "num_multiply",
     107: "num_add",
     108: "num_enter",
     109: "num_subtract",
     110: "num_decimal",
     111: "num_divide",
+    145: "scroll",
     186: ";",
     187: "=",
     188: ",",

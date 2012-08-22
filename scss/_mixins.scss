@@ -1,5 +1,10 @@
 /* Site-wide SASS mixins go in here */
 
+@mixin opacity($alpha) {
+    opacity: $alpha;
+    filter: alpha(opacity=#{($alpha * 100)});
+}
+
 @mixin clearfix {
     zoom: 1;
     &:before,

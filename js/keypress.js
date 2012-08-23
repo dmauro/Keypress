@@ -29,6 +29,7 @@ Options available and defaults:
     allow_default   : false         - Allow the default key event to happen in addition to the combo.
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
+    is_exclusive    : false         - This combo will replace other exclusive combos when true
     is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
     on_keyup        : null          - A function that is called when the combo is released
@@ -39,7 +40,7 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combo, _get_possible_sequences, _get_potential_combos, _get_sequence, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combos, _get_possible_sequences, _get_potential_combos, _get_sequence, _handle_combo_down, _handle_combo_up, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
 
@@ -141,10 +142,11 @@ Options available and defaults:
   };
 
   _match_combo_arrays = function(potential_match, source_combo_array, allow_partial_match) {
-    var source_combo, _i, _len;
+    var matches, source_combo, _i, _len;
     if (allow_partial_match == null) {
       allow_partial_match = false;
     }
+    matches = [];
     for (_i = 0, _len = source_combo_array.length; _i < _len; _i++) {
       source_combo = source_combo_array[_i];
       if (source_combo_array.is_sequence) {
@@ -152,21 +154,21 @@ Options available and defaults:
       }
       if (source_combo.is_ordered) {
         if (potential_match.join("") === source_combo.keys.join("")) {
-          return source_combo;
+          matches.push(source_combo);
         }
         if (allow_partial_match && potential_match.join("") === source_combo.keys.slice(0, potential_match.length).join("")) {
-          return source_combo;
+          matches.push(source_combo);
         }
       } else {
         if (_compare_arrays(potential_match, source_combo.keys)) {
-          return source_combo;
+          matches.push(source_combo);
         }
         if (allow_partial_match && _compare_arrays(potential_match, source_combo.keys.slice(0, potential_match.length))) {
-          return source_combo;
+          matches.push(source_combo);
         }
       }
     }
-    return false;
+    return matches;
   };
 
   _cmd_bug_check = function(combo_keys) {
@@ -176,70 +178,73 @@ Options available and defaults:
     return true;
   };
 
-  _get_active_combo = function(key) {
-    var better_pots, check_for_conflict, keys_down, perfect_match, potential, potentials, slice_up_array, _i, _len;
+  _get_active_combos = function(key) {
+    var is_exclusive, keys_down, perfect_matches, potential, potentials, slice_up_array, _i, _len;
+    potentials = [];
     keys_down = _keys_down.filter(function(down_key) {
       return down_key !== key;
     });
     keys_down.push(key);
-    perfect_match = _match_combo_arrays(keys_down, _registered_combos);
-    if (perfect_match && _cmd_bug_check(keys_down)) {
-      return perfect_match;
+    perfect_matches = _match_combo_arrays(keys_down, _registered_combos);
+    if (perfect_matches.length && _cmd_bug_check(keys_down)) {
+      potentials = perfect_matches;
     }
-    potentials = [];
+    is_exclusive = false;
+    for (_i = 0, _len = potentials.length; _i < _len; _i++) {
+      potential = potentials[_i];
+      if (potential.is_exclusive) {
+        is_exclusive = true;
+      }
+    }
     slice_up_array = function(array) {
-      var fuzzy_match, i, partial, _i, _ref;
-      for (i = _i = 0, _ref = array.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      var fuzzy_match, fuzzy_matches, i, partial, _j, _k, _len1, _ref;
+      for (i = _j = 0, _ref = array.length; 0 <= _ref ? _j < _ref : _j > _ref; i = 0 <= _ref ? ++_j : --_j) {
         partial = array.slice();
         partial.splice(i, 1);
         if (!partial.length) {
           continue;
         }
-        fuzzy_match = _match_combo_arrays(partial, _registered_combos);
-        if (fuzzy_match && __indexOf.call(potentials, fuzzy_match) < 0) {
-          potentials.push(fuzzy_match);
+        fuzzy_matches = _match_combo_arrays(partial, _registered_combos);
+        for (_k = 0, _len1 = fuzzy_matches.length; _k < _len1; _k++) {
+          fuzzy_match = fuzzy_matches[_k];
+          if (!(is_exclusive && fuzzy_match.is_exclusive)) {
+            potentials.push(fuzzy_match);
+          }
         }
         slice_up_array(partial);
       }
     };
     slice_up_array(keys_down);
-    if (!potentials.length) {
-      return false;
-    }
-    check_for_conflict = function(array) {
-      if (array.length > 1 && array[0].keys.length === array[1].keys.length) {
-        _log_error("Conflicting combos registered");
-        return true;
-      }
-    };
-    if (potentials.length > 1) {
-      potentials.sort(function(a, b) {
-        return b.keys.length - a.keys.length;
-      });
-      better_pots = [];
-      for (_i = 0, _len = potentials.length; _i < _len; _i++) {
-        potential = potentials[_i];
-        if (__indexOf.call(potential.keys, key) >= 0) {
-          better_pots.push(potential);
-        }
-      }
-      if (better_pots.length) {
-        if (check_for_conflict(better_pots)) {
-          return false;
-        }
-        potentials = better_pots;
-      } else {
-        if (check_for_conflict(potentials)) {
-          return false;
-        }
-      }
-    }
-    if (!potentials.length) {
-      return false;
-    }
-    if (_cmd_bug_check(potentials[0].keys)) {
-      return potentials[0];
-    }
+    return potentials;
+    /*
+    
+        # Return the combo that includes key in the keys array.
+        # If multiple include it, return the longest one, if they
+        # are the same length, announce a conflict.
+        check_for_conflict = (array) ->
+            if array.length > 1 and array[0].keys.length is array[1].keys.length
+                _log_error "Conflicting combos registered"
+                return true
+    
+        if potentials.length > 1
+            potentials.sort (a, b) ->
+                b.keys.length - a.keys.length
+            better_pots = []
+            for potential in potentials
+                better_pots.push(potential) if key in potential.keys
+    
+            # If at least one potential contains key
+            if better_pots.length
+                return false if check_for_conflict better_pots
+                potentials = better_pots
+            # If none of the potentials contain key
+            else
+                return false if check_for_conflict potentials
+    
+        return false unless potentials.length
+        return potentials[0] if _cmd_bug_check potentials[0].keys
+    */
+
   };
 
   _get_potential_combos = function(key) {
@@ -258,13 +263,17 @@ Options available and defaults:
   };
 
   _add_to_active_combos = function(combo) {
-    var active_key, active_keys, i, is_match, replaced, _i, _j, _len, _ref;
+    var active_combo, active_key, active_keys, i, is_match, replaced, _i, _j, _len, _ref;
     replaced = false;
     if (__indexOf.call(_active_combos, combo) >= 0) {
       return false;
     } else if (_active_combos.length) {
       for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        active_keys = _active_combos[i].keys.slice();
+        active_combo = _active_combos[i];
+        if (!(active_combo.is_exclusive && combo.is_exclusive)) {
+          continue;
+        }
+        active_keys = active_combo.keys.slice();
         for (_j = 0, _len = active_keys.length; _j < _len; _j++) {
           active_key = active_keys[_j];
           is_match = true;
@@ -405,9 +414,25 @@ Options available and defaults:
     return false;
   };
 
+  _handle_combo_down = function(combo, key, e) {
+    if (combo && !combo.allow_default) {
+      _prevent_default(e);
+    }
+    if (__indexOf.call(_keys_down, key) >= 0) {
+      if (!_allow_key_repeat(combo)) {
+        return false;
+      }
+    }
+    _add_to_active_combos(combo, key);
+    combo.keyup_fired = false;
+    _fire("keydown", combo, e);
+    if (combo.is_counting && typeof combo.on_keydown === "function") {
+      return combo.count += 1;
+    }
+  };
+
   _key_down = function(key, e) {
-    var combo, event_mod, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _len;
-    console.log("key down is", key, "keycode is", e.keyCode, "meta is", _metakey);
+    var combo, combos, event_mod, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _len, _len1;
     shifted_key = _convert_to_shifted_key(key, e);
     if (shifted_key) {
       key = shifted_key;
@@ -429,41 +454,45 @@ Options available and defaults:
         continue;
       }
       _keys_down.push(mod);
-      console.log("Did some mod stuff", _keys_down);
     }
-    combo = _get_active_combo(key);
-    if (combo && !combo.allow_default) {
-      _prevent_default(e);
+    combos = _get_active_combos(key);
+    for (_i = 0, _len = combos.length; _i < _len; _i++) {
+      combo = combos[_i];
+      _handle_combo_down(combo, key, e);
     }
     potential_combos = _get_potential_combos(key);
     if (potential_combos.length) {
-      for (_i = 0, _len = potential_combos.length; _i < _len; _i++) {
-        potential = potential_combos[_i];
+      for (_j = 0, _len1 = potential_combos.length; _j < _len1; _j++) {
+        potential = potential_combos[_j];
         if (!potential.allow_default) {
           _prevent_default(e);
         }
       }
     }
-    if (__indexOf.call(_keys_down, key) >= 0) {
-      if (!_allow_key_repeat(combo)) {
-        return false;
-      }
-    } else {
+    if (__indexOf.call(_keys_down, key) < 0) {
       _keys_down.push(key);
     }
-    if (!combo) {
-      return false;
+  };
+
+  _handle_combo_up = function(combo, e) {
+    var keys_remaining;
+    keys_remaining = _keys_remain(combo);
+    if (!combo.keyup_fired && (!combo.is_counting || (combo.is_counting && keys_remaining))) {
+      _fire("keyup", combo, e);
+      if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
+        combo.count += 1;
+      }
     }
-    _add_to_active_combos(combo, key);
-    combo.keyup_fired = false;
-    _fire("keydown", combo, e);
-    if (combo.is_counting && typeof combo.on_keydown === "function") {
-      combo.count += 1;
+    if (!keys_remaining) {
+      if (combo.is_counting) {
+        _fire("release", combo, e);
+      }
+      _remove_from_active_combos(combo);
     }
   };
 
   _key_up = function(key, e) {
-    var active_combo, active_combos_length, combo, i, keys_remaining, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _len, _len1, _ref, _ref1;
+    var active_combo, active_combos_length, combo, combos, i, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1;
     unshifted_key = key;
     shifted_key = _convert_to_shifted_key(key, e);
     if (shifted_key) {
@@ -492,34 +521,22 @@ Options available and defaults:
         break;
       }
     }
+    active_combos_length = _active_combos.length;
+    combos = [];
     for (_j = 0, _len = _active_combos.length; _j < _len; _j++) {
       active_combo = _active_combos[_j];
       if (__indexOf.call(active_combo.keys, key) >= 0) {
-        combo = active_combo;
-        break;
+        combos.push(active_combo);
       }
     }
-    if (!combo) {
-      return;
-    }
-    keys_remaining = _keys_remain(combo);
-    if (!combo.keyup_fired && (!combo.is_counting || (combo.is_counting && keys_remaining))) {
-      _fire("keyup", combo, e);
-      if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
-        combo.count += 1;
-      }
-    }
-    active_combos_length = _active_combos.length;
-    if (!keys_remaining) {
-      if (combo.is_counting) {
-        _fire("release", combo, e);
-      }
-      _remove_from_active_combos(combo);
+    for (_k = 0, _len1 = combos.length; _k < _len1; _k++) {
+      combo = combos[_k];
+      _handle_combo_up(combo, e);
     }
     if (active_combos_length > 1) {
-      for (_k = 0, _len1 = _active_combos.length; _k < _len1; _k++) {
-        active_combo = _active_combos[_k];
-        if (combo === active_combo || active_combo === void 0) {
+      for (_l = 0, _len2 = _active_combos.length; _l < _len2; _l++) {
+        active_combo = _active_combos[_l];
+        if (active_combo === void 0 || __indexOf.call(combos, active_combo) >= 0) {
           continue;
         }
         if (!_keys_remain(active_combo)) {
@@ -566,7 +583,7 @@ Options available and defaults:
   };
 
   _validate_combo = function(combo) {
-    var alt_name, i, key, mod_key, non_modifier_keys, registered_combo, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1;
+    var alt_name, i, key, mod_key, non_modifier_keys, _i, _j, _k, _len, _len1, _ref, _ref1;
     for (i = _i = 0, _ref = combo.keys.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       key = combo.keys[i];
       alt_name = _keycode_alternate_names[key];
@@ -588,18 +605,18 @@ Options available and defaults:
         return false;
       }
     }
-    for (_k = 0, _len1 = _registered_combos.length; _k < _len1; _k++) {
-      registered_combo = _registered_combos[_k];
-      if (_compare_arrays(combo.keys, registered_combo.keys)) {
-        _log_error("Warning: we're overwriting another combo", combo.keys);
-        _unregister_combo(registered_combo);
-        break;
-      }
-    }
+    /*
+        for registered_combo in _registered_combos
+            if _compare_arrays combo.keys, registered_combo.keys
+                _log_error "Warning: we're overwriting another combo", combo.keys
+                _unregister_combo registered_combo
+                break
+    */
+
     if (__indexOf.call(combo.keys, "meta") >= 0 || __indexOf.call(combo.keys, "cmd") >= 0) {
       non_modifier_keys = combo.keys.slice();
-      for (_l = 0, _len2 = _modifier_keys.length; _l < _len2; _l++) {
-        mod_key = _modifier_keys[_l];
+      for (_k = 0, _len1 = _modifier_keys.length; _k < _len1; _k++) {
+        mod_key = _modifier_keys[_k];
         if ((i = non_modifier_keys.indexOf(mod_key)) > -1) {
           non_modifier_keys.splice(i, 1);
         }
@@ -673,6 +690,7 @@ Options available and defaults:
     return keypress.register_combo({
       keys: keys,
       on_keyup: callback,
+      is_exclusive: true,
       allow_default: allow_default
     });
   };

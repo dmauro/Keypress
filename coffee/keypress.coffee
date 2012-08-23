@@ -26,6 +26,7 @@ Options available and defaults:
     allow_default   : false         - Allow the default key event to happen in addition to the combo.
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
+    is_exclusive    : false         - This combo will replace other exclusive combos when true
     is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
     on_keyup        : null          - A function that is called when the combo is released
@@ -98,15 +99,17 @@ _fire = (event, combo, key_event) ->
         combo.keyup_fired = true
 
 _match_combo_arrays = (potential_match, source_combo_array, allow_partial_match=false) ->
+    # This will return all combos that match
+    matches = []
     for source_combo in source_combo_array
         continue if source_combo_array.is_sequence
         if source_combo.is_ordered
-            return source_combo if potential_match.join("") is source_combo.keys.join("")
-            return source_combo if allow_partial_match and potential_match.join("") is source_combo.keys.slice(0, potential_match.length).join("")
+            matches.push(source_combo) if potential_match.join("") is source_combo.keys.join("")
+            matches.push(source_combo) if allow_partial_match and potential_match.join("") is source_combo.keys.slice(0, potential_match.length).join("")
         else
-            return source_combo if _compare_arrays potential_match, source_combo.keys
-            return source_combo if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
-    return false
+            matches.push(source_combo) if _compare_arrays potential_match, source_combo.keys
+            matches.push(source_combo) if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
+    return matches
 
 _cmd_bug_check = (combo_keys) ->
     # We don't want to allow combos to activate if the cmd key
@@ -117,34 +120,44 @@ _cmd_bug_check = (combo_keys) ->
         return false
     return true
 
-_get_active_combo = (key) ->
+_get_active_combos = (key) ->
     # Based on the keys_down and the key just pressed or released
     # (which should not be in keys_down), we determine if any
     # combo in registered_combos matches exactly.
+    # This will return an array of active combos
+
+    potentials = []
 
     # First check that every key in keys_down maps to a combo
     keys_down = _keys_down.filter (down_key) ->
         down_key isnt key
     keys_down.push key
-    perfect_match = _match_combo_arrays keys_down, _registered_combos
-    return perfect_match if perfect_match and _cmd_bug_check keys_down
+    perfect_matches = _match_combo_arrays keys_down, _registered_combos
+    potentials = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
+
+    is_exclusive = false
+    for potential in potentials
+        is_exclusive = true if potential.is_exclusive
 
     # Then work our way back through a combination with each other key down in order
     # This will match a combo even if some other key that is not part of the combo
     # is being held down.
-    potentials = []
     slice_up_array = (array) ->
         for i in [0...array.length]
             partial = array.slice()
             partial.splice i, 1
             continue unless partial.length
-            fuzzy_match = _match_combo_arrays partial, _registered_combos
-            potentials.push(fuzzy_match) if fuzzy_match and fuzzy_match not in potentials
+            fuzzy_matches = _match_combo_arrays partial, _registered_combos
+            for fuzzy_match in fuzzy_matches
+                potentials.push(fuzzy_match) unless is_exclusive and fuzzy_match.is_exclusive
             slice_up_array partial
         return
     slice_up_array keys_down
 
-    return false unless potentials.length
+    # Trying to return an array of matched combos
+    return potentials
+
+    ###
 
     # Return the combo that includes key in the keys array.
     # If multiple include it, return the longest one, if they
@@ -171,6 +184,7 @@ _get_active_combo = (key) ->
 
     return false unless potentials.length
     return potentials[0] if _cmd_bug_check potentials[0].keys
+    ###
 
 _get_potential_combos = (key) ->
     # Check if we are working towards pressing a combo.
@@ -193,7 +207,9 @@ _add_to_active_combos = (combo) ->
         # We have to check if we're replacing another active combo
         # So compare the combo.keys to all active combos' keys.
         for i in [0..._active_combos.length]
-            active_keys = _active_combos[i].keys.slice()
+            active_combo = _active_combos[i]
+            continue unless active_combo.is_exclusive and combo.is_exclusive
+            active_keys = active_combo.keys.slice()
             for active_key in active_keys
                 is_match = true
                 unless active_key in combo.keys
@@ -287,8 +303,28 @@ _convert_to_shifted_key = (key, e) ->
     return k if k?
     return false
 
+_handle_combo_down = (combo, key, e) ->
+    if combo and !combo.allow_default
+        _prevent_default e
+
+    # If we've already pressed this key, check that we want to fire
+    # again, otherwise just add it to the keys_down list.
+    if key in _keys_down
+        return false unless _allow_key_repeat combo
+
+    # Now we add this combo or replace it in _active_combos
+    _add_to_active_combos combo, key
+
+    # We reset the keyup_fired property because you should be
+    # able to fire that again, if you've pressed the key down again
+    combo.keyup_fired = false
+
+    # Now we fire the keydown event
+    _fire "keydown", combo, e
+    if combo.is_counting and typeof combo.on_keydown is "function"
+        combo.count += 1
+
 _key_down = (key, e) ->
-    console.log "key down is", key, "keycode is", e.keyCode, "meta is", _metakey
     # Check if we're holding shift
     shifted_key = _convert_to_shifted_key key, e
     key = shifted_key if shifted_key
@@ -307,40 +343,38 @@ _key_down = (key, e) ->
         mod = _metakey if mod is "meta"
         continue if mod is key or mod in _keys_down
         _keys_down.push mod
-        console.log "Did some mod stuff", _keys_down
 
-    # Find which combo we have pressed or might be working towards, and prevent default
-    combo = _get_active_combo key
-    if combo and !combo.allow_default
-        _prevent_default e
+    # Find which combos we have pressed or might be working towards, and prevent default
+    combos = _get_active_combos key
+    for combo in combos
+        _handle_combo_down combo, key, e
     potential_combos = _get_potential_combos key
     if potential_combos.length
         for potential in potential_combos
             if !potential.allow_default
                 _prevent_default e
 
-    # If we've already pressed this key, check that we want to fire
-    # again, otherwise just add it to the keys_down list.
-    if key in _keys_down
-        return false unless _allow_key_repeat combo
-    else
+    if key not in _keys_down
         _keys_down.push key
+    return
 
-    # We're done now unless we have a match
-    return false unless combo
+_handle_combo_up = (combo, e) ->
+    # Check if any keys from this combo are still being held.
+    keys_remaining = _keys_remain combo
 
-    # Now we add this combo or replace it in _active_combos
-    _add_to_active_combos combo, key
+    # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
+    # We don't fire those because they will fire on_release on their last key release.
+    if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
+        _fire "keyup", combo, e
+        # Dont' add to the count unless we only have a keyup callback
+        if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
+            combo.count += 1 
 
-    # We reset the keyup_fired property because you should be
-    # able to fire that again, if you've pressed the key down again
-    combo.keyup_fired = false
-
-    # Now we fire the keydown event
-    _fire "keydown", combo, e
-    if combo.is_counting and typeof combo.on_keydown is "function"
-        combo.count += 1
-
+    # If this was the last key released of the combo, clean up.
+    unless keys_remaining
+        if combo.is_counting
+            _fire "release", combo, e
+        _remove_from_active_combos combo
     return
 
 _key_up = (key, e) ->
@@ -366,41 +400,26 @@ _key_up = (key, e) ->
             _keys_down.splice i, 1
             break
 
-    # When releasing we should only check if we
-    # match from _active_combos so that we don't
-    # accidentally fire for a combo that was a
-    # smaller part of the one we actually wanted.
-    for active_combo in _active_combos
-        if key in active_combo.keys
-            combo = active_combo
-            break
-    return unless combo
-
-    # Check if any keys from this combo are still being held.
-    keys_remaining = _keys_remain combo
-
-    # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
-    # We don't fire those because they will fire on_release on their last key release.
-    if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
-        _fire "keyup", combo, e
-        # Dont' add to the count unless we only have a keyup callback
-        if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
-            combo.count += 1 
 
     # Store this for later cleanup
     active_combos_length = _active_combos.length
 
-    # If this was the last key released of the combo, clean up.
-    unless keys_remaining
-        if combo.is_counting
-            _fire "release", combo, e
-        _remove_from_active_combos combo
+    # When releasing we should only check if we
+    # match from _active_combos so that we don't
+    # accidentally fire for a combo that was a
+    # smaller part of the one we actually wanted.
+    combos = []
+    for active_combo in _active_combos
+        if key in active_combo.keys
+            combos.push active_combo
+    for combo in combos
+        _handle_combo_up combo, e
 
     # We also need to check other combos that might still be in active_combos
     # and needs to be removed from it.
     if active_combos_length > 1
         for active_combo in _active_combos
-            continue if combo is active_combo or active_combo is undefined
+            continue if active_combo is undefined or active_combo in combos
             unless _keys_remain active_combo
                 _remove_from_active_combos active_combo
     return
@@ -450,11 +469,13 @@ _validate_combo = (combo) ->
             return false
 
     # Make sure the combo isn't already registered
+    ###
     for registered_combo in _registered_combos
         if _compare_arrays combo.keys, registered_combo.keys
             _log_error "Warning: we're overwriting another combo", combo.keys
             _unregister_combo registered_combo
             break
+    ###
 
     # We can only allow a single non-modifier key
     # in combos that include the command key (this
@@ -525,6 +546,7 @@ keypress.keyup_combo = (keys, callback, allow_default=false) ->
     keypress.register_combo(
         keys            : keys
         on_keyup        : callback
+        is_exclusive    : true
         allow_default   : allow_default
     )
 

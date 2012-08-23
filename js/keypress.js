@@ -407,6 +407,7 @@ Options available and defaults:
 
   _key_down = function(key, e) {
     var combo, event_mod, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _len;
+    console.log("key down is", key, "keycode is", e.keyCode, "meta is", _metakey);
     shifted_key = _convert_to_shifted_key(key, e);
     if (shifted_key) {
       key = shifted_key;
@@ -893,6 +894,7 @@ Options available and defaults:
     109: "num_subtract",
     110: "num_decimal",
     111: "num_divide",
+    144: "num",
     145: "scroll",
     186: ";",
     187: "=",

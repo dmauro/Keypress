@@ -387,6 +387,8 @@ body > header hgroup {
     }
 }
 
+#key_scroll_lock,
+#key_pause_break,
 #key_insert,
 #key_print {
     @include opacity(0.5);

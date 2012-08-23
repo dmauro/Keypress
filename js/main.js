@@ -714,10 +714,10 @@
       }, {
         keys: "pause",
         on_keydown: function() {
-          return on_down(key_nodes.pause);
+          return on_down(key_nodes.pause_break);
         },
         on_keyup: function() {
-          return on_up(key_nodes.pause);
+          return on_up(key_nodes.pause_break);
         }
       }, {
         keys: "insert",

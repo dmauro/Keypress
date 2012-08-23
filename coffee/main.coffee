@@ -544,9 +544,9 @@ bind_keyboard = ->
         ,
             keys : "pause"
             on_keydown : ->
-                on_down key_nodes.pause
+                on_down key_nodes.pause_break
             on_keyup : ->
-                on_up key_nodes.pause
+                on_up key_nodes.pause_break
         ,
             keys : "insert"
             on_keydown : ->

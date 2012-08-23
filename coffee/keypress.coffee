@@ -288,6 +288,7 @@ _convert_to_shifted_key = (key, e) ->
     return false
 
 _key_down = (key, e) ->
+    console.log "key down is", key, "keycode is", e.keyCode, "meta is", _metakey
     # Check if we're holding shift
     shifted_key = _convert_to_shifted_key key, e
     key = shifted_key if shifted_key
@@ -698,6 +699,7 @@ _keycode_dictionary =
     109 : "num_subtract"
     110 : "num_decimal"
     111 : "num_divide"
+    144 : "num"
     145 : "scroll"
     186 : ";"
     187 : "="

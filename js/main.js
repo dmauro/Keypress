@@ -3,7 +3,13 @@
   var activate_demo, bind_demos, bind_keyboard, demos, get_active_demo, unwire_demo, wire_demo;
 
   bind_keyboard = function() {
-    var combos, key_nodes, keys, on_down, on_shift_down, on_shift_up, on_up;
+    var combos, key_nodes, keyboard_msg_node, keys, on_down, on_shift_down, on_shift_up, on_up;
+    keyboard_msg_node = $('.keyboard .message');
+    $('body').bind('keydown', function(e) {
+      return keyboard_msg_node.text("" + e.keyCode + " keyDown");
+    }).bind('keyup', function(e) {
+      return keyboard_msg_node.text("" + e.keyCode + " keyUp");
+    });
     keys = $('.keyboard .key');
     key_nodes = {};
     $.each(keys, function(_, node) {
@@ -804,18 +810,18 @@
       }, {
         keys: "num_enter",
         on_keydown: function() {
-          return on_down(key_nodes.numpad_enter);
+          return on_down(key_nodes.num_enter);
         },
         on_keyup: function() {
-          return on_up(key_nodes.numpad_enter);
+          return on_up(key_nodes.num_enter);
         }
       }, {
         keys: "num_decimal",
         on_keydown: function() {
-          return on_down(key_nodes.numpad_decimal);
+          return on_down(key_nodes.num_decimal);
         },
         on_keyup: function() {
-          return on_up(key_nodes.numpad_decimal);
+          return on_up(key_nodes.num_decimal);
         }
       }, {
         keys: "num_0",

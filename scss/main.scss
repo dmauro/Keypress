@@ -66,6 +66,14 @@ body > header hgroup {
     margin-bottom:2em;
     @include clearfix();
 
+    .note,
+    .message {
+        margin-top:1em;
+        width:175px;
+        font-size:1em;
+        color:#555;
+    }
+
     section {
         float:left;
         margin-right:15px;
@@ -123,7 +131,7 @@ body > header hgroup {
                 color:$pressed_color;
             }
 
-            .triangle {
+            .triangle:first-child {
                 $triangle_color:$pressed_color;
                 
                 &.up {

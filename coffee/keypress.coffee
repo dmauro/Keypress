@@ -501,7 +501,6 @@ keypress.init = ()->
     _decide_meta_key()
     _change_keycodes_by_browser()
     document.body.onkeydown = (e) ->
-        console.log e.keyCode
         _receive_input e, true
         _bug_catcher e
     document.body.onkeyup = (e) ->
@@ -712,7 +711,9 @@ _keycode_dictionary =
     221 : "]"
     222 : "\'"
     224 : "cmd"
-    57392   : "ctrl"    # Opera weirdness
+    # Opera weirdness
+    57392   : "ctrl"
+    63289   : "num"
 
 for _, key of _keycode_dictionary
     _valid_keys.push key

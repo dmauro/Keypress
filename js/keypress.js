@@ -639,7 +639,6 @@ Options available and defaults:
     _decide_meta_key();
     _change_keycodes_by_browser();
     document.body.onkeydown = function(e) {
-      console.log(e.keyCode);
       _receive_input(e, true);
       return _bug_catcher(e);
     };
@@ -907,7 +906,8 @@ Options available and defaults:
     221: "]",
     222: "\'",
     224: "cmd",
-    57392: "ctrl"
+    57392: "ctrl",
+    63289: "num"
   };
 
   for (_ in _keycode_dictionary) {

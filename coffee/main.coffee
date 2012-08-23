@@ -1,4 +1,12 @@
 bind_keyboard = ->
+    # KeyCode feedback near keyboard
+    keyboard_msg_node = $('.keyboard .message')
+    $('body').bind('keydown', (e) ->
+        keyboard_msg_node.text "#{e.keyCode} keyDown"
+    ).bind('keyup', (e) ->
+        keyboard_msg_node.text "#{e.keyCode} keyUp"
+    )
+
     keys = $('.keyboard .key')
     key_nodes = {}
     $.each keys, (_, node) ->
@@ -608,15 +616,15 @@ bind_keyboard = ->
         ,
             keys : "num_enter"
             on_keydown : ->
-                on_down key_nodes.numpad_enter
+                on_down key_nodes.num_enter
             on_keyup : ->
-                on_up key_nodes.numpad_enter
+                on_up key_nodes.num_enter
         ,
             keys : "num_decimal"
             on_keydown : ->
-                on_down key_nodes.numpad_decimal
+                on_down key_nodes.num_decimal
             on_keyup : ->
-                on_up key_nodes.numpad_decimal
+                on_up key_nodes.num_decimal
         ,
             keys : "num_0"
             on_keydown : ->

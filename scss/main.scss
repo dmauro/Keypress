@@ -283,32 +283,6 @@ body > header hgroup {
         @include box-shadow(inset 1px 1px 2px rgba(#000, 0.3));
     }
 
-    nav ul {
-        clear:both;
-        margin-bottom:1em;
-
-        li {
-            display:inline-block;
-
-            a {
-                display:inline-block;
-                margin:0 5px;
-                padding:0.1em 0.75em;
-                background:#ffa034;
-                color:#fff;
-                font-size:1.2em;
-                text-shadow:0 -1px 0 rgba(#000, 0.3);
-                cursor:pointer;
-                @include border-radius(1em);
-                @include box-shadow(0 1px 0 1px #8f3000);
-
-                &.active {
-                    @include box-shadow(inset 0 1px 0 1px #8f3000);
-                }
-            }
-        }
-    }
-
     .demo {
         display:none;
 

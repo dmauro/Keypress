@@ -564,7 +564,9 @@ keypress.unregister_combo = (keys) ->
             _unregister_combo combo
 
 keypress.unregister_many = (combo_array) ->
-    keypress.unregister_combo(combo.keys) for combo in combo_array
+    for combo in combo_array
+        combo = combo.keys if combo.keys
+        keypress.unregister_combo combo
 
 keypress.listen = ->
     _prevent_capture = false
@@ -681,10 +683,16 @@ _keycode_dictionary =
     91  : "cmd"
     92  : "cmd"
     93  : "cmd"
-    96  : "num"
-    97  : "num"
-    98  : "num"
-    99  : "num"
+    96  : "num_0"
+    97  : "num_1"
+    98  : "num_2"
+    99  : "num_3"
+    100 : "num_4"
+    101 : "num_5"
+    102 : "num_6"
+    103 : "num_7"
+    104 : "num_8"
+    105 : "num_9"
     106 : "num_multiply"
     107 : "num_add"
     108 : "num_enter"

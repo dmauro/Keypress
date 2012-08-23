@@ -682,8 +682,79 @@ bind_keyboard = ->
     ]
     keypress.register_many combos
 
+demos =
+    demo_1  :
+        wire    : ->
+            return
+        unwire  : ->
+            return
+    demo_2  :
+        wire    : ->
+            keypress.keyup_combo "w", ->
+                console.log "N"
+            keypress.keyup_combo "a", ->
+                console.log "W"
+            keypress.keyup_combo "s", ->
+                console.log "S"
+            keypress.keyup_combo "d", ->
+                console.log "E"
+            keypress.keyup_combo "w a", ->
+                console.log "NW"
+            keypress.keyup_combo "w d", ->
+                console.log "NE"
+            keypress.keyup_combo "s a", ->
+                console.log "SW"
+            keypress.keyup_combo "s d", ->
+                console.log "SE"
+        unwire  : ->
+            keypress.unregister_many ["w", "a", "s", "d", "w a", "w d", "s a", "s d"]
+    demo_3  :
+        wire    : ->
+            return
+        unwire  : ->
+    demo_4  :
+        wire    : ->
+            return
+        unwire  : ->
+
+unwire_demo = (demo_node) ->
+    wire_demo demo_node, false
+
+wire_demo = (demo_node, wiring=true) ->
+    demo = demo_node.data "demo"
+    demo_obj = demos[demo]
+    return false unless demo_obj
+    return demo_obj.wire() if wiring
+    return demo_obj.unwire()
+
+get_active_demo = ->
+    $('.examples .demo').each((_, node) ->
+        node = $(node)
+        return node if node.css("display") is "block"
+    )
+
+activate_demo = (demo_name) ->
+    demo = $(".examples .demo[data-demo=#{demo_name}]")
+    return false unless demo.length
+    active_demo = get_active_demo()
+    return false if demo is active_demo
+    unwire_demo active_demo
+    active_demo.css "display", "none"
+    demo.css "display", "block"
+    nav_node = $(".examples nav a[data-demo=#{demo_name}]")
+    $('.examples nav a').removeClass "active"
+    nav_node.addClass "active"
+    wire_demo demo
+
+bind_demos = ->
+    $('body').delegate('a.demo_link', 'click', ->
+        demo = $(this).data "demo"
+        activate_demo demo
+    )
 
 $(->
     keypress.init()
     bind_keyboard()
+    bind_demos()
+    activate_demo "demo_1"
 )

@@ -749,7 +749,10 @@ Options available and defaults:
     _results = [];
     for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
       combo = combo_array[_i];
-      _results.push(keypress.unregister_combo(combo.keys));
+      if (combo.keys) {
+        combo = combo.keys;
+      }
+      _results.push(keypress.unregister_combo(combo));
     }
     return _results;
   };
@@ -875,10 +878,16 @@ Options available and defaults:
     91: "cmd",
     92: "cmd",
     93: "cmd",
-    96: "num",
-    97: "num",
-    98: "num",
-    99: "num",
+    96: "num_0",
+    97: "num_1",
+    98: "num_2",
+    99: "num_3",
+    100: "num_4",
+    101: "num_5",
+    102: "num_6",
+    103: "num_7",
+    104: "num_8",
+    105: "num_9",
     106: "num_multiply",
     107: "num_add",
     108: "num_enter",

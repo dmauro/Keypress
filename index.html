@@ -139,15 +139,58 @@
                 </div>
                 <div class="row">
                     <div id="key_num_0" class="key wide_6"><strong>0</strong><span class="right">insert</span></div>
-                    <div id="key_num_decimal" class="key"><strong>.<11/strong><br>del</div>
+                    <div id="key_num_decimal" class="key"><strong>.</strong><br>del</div>
                 </div>
             </section>
         </div>
         <div class="clearfix">
             <div class="examples">
                 <h1 class="orange">Demos:</h1>
+                <nav>
+                    <ul>
+                        <li><a class="demo_link" data-demo="demo_1">Keyup or Keydown</a></li>
+                        <li><a class="demo_link" data-demo="demo_2">Arbitrary modifiers</a></li>
+                        <li><a class="demo_link" data-demo="demo_3">Counting combos</a></li>
+                        <li><a class="demo_link" data-demo="demo_4">Sequential combos</a></li>
+                        <li>Enforceable order</li>
+                    </ul>
+                </nav>
                 <div class="example_window">
-
+                    <div class="demo" data-demo="demo_1">
+                        <p>
+                            You can specify combos that include multiple non-modifer keys. This is very
+                            helpful for doing something like tile-based movement that includes diagonals
+                            with only four directional inputs.
+                        </p>
+                        <p>
+                            In this demo, you can use the wasd keys to move around the tiles. You can
+                            combine two directions to move diagonally.
+                        </p>
+                        <div id="movement_grid">
+                            <div></div>
+                        </div>
+                    </div>
+                    <div class="demo" data-demo="demo_2">
+                        <p>
+                            Sequential combos are great if you want to hide an easter egg or some kind of
+                            'cheat code'. You can have multiple sequential combos without worrying about
+                            collisions (if one combo contained another for instance, they would both fire).
+                        </p>
+                        <p>
+                            Write the word 'keypress' and the word 'JavaScript' (including proper capitalization)
+                            to see these in action.
+                        <p>
+                    </div>
+                    <div class="demo" data-demo="demo_3">
+                        <p>
+                            Counting combos are a unique feature that was created for fast and predictable
+                            navigation. For this demo, the tab key is used for menu navigation. Pressing it
+                            once will always take us back to the default menu position, but we can press
+                            the spacebar while holding down the tab key to jump through the options. The
+                            same number of keypresses will always take you to the same option no matter which
+                            one is currently activated.
+                        </p>
+                    </div>
                 </div>
             </div>
             <div class="overview">
@@ -158,10 +201,10 @@
                     Here's some of what Keypress offers:
                 </p>
                 <ul>
-                    <li>Any key can serve as a modifier</li>
-                    <li>Fire on keyup and/or keydown</li>
-                    <li>Special "counting" combos</li>
-                    <li>Sequential combos</li>
+                    <li>Any key can serve as a modifier <a class="demo_link" data-demo="demo_1">show me</a></li>
+                    <li>Fire on keyup and/or keydown <a class="demo_link" data-demo="demo_2">show me</a></li>
+                    <li>Special "counting" combos <a class="demo_link" data-demo="demo_3">show me</a></li>
+                    <li>Sequential combos <a class="demo_link" data-demo="demo_4">show me</a></li>
                 </ul>
 
                 <h1 class="lime">Why NOT use Keypress?</h1>
@@ -174,9 +217,15 @@
             </div>
         </div>
         <div class="documentation">
+            <h1 class="blue">Great! So how do I use it?</h1>
+            <p>
+                Here's how you use it!
+            </p>
+
 <pre><code>function() {
     alert("hello");
 }</code></pre>
+
         </div>
     </div>
 

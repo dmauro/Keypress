@@ -429,6 +429,7 @@ Options available and defaults:
         continue;
       }
       _keys_down.push(mod);
+      console.log("Did some mod stuff", _keys_down);
     }
     combo = _get_active_combo(key);
     if (combo && !combo.allow_default) {
@@ -572,11 +573,11 @@ Options available and defaults:
       if (alt_name) {
         key = combo.keys[i] = alt_name;
       }
-      if (key === "meta" || key === "cmd") {
+      if (key === "meta") {
         combo.keys.splice(i, 1, _metakey);
-        if (key === "cmd") {
-          _log_error("Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility");
-        }
+      }
+      if (key === "cmd") {
+        _log_error("Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility");
       }
     }
     _ref1 = combo.keys;

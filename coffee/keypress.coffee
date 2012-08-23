@@ -307,6 +307,7 @@ _key_down = (key, e) ->
         mod = _metakey if mod is "meta"
         continue if mod is key or mod in _keys_down
         _keys_down.push mod
+        console.log "Did some mod stuff", _keys_down
 
     # Find which combo we have pressed or might be working towards, and prevent default
     combo = _get_active_combo key
@@ -437,10 +438,10 @@ _validate_combo = (combo) ->
         # Check the name and replace if needed
         alt_name = _keycode_alternate_names[key]
         key = combo.keys[i] = alt_name if alt_name
-        if key is "meta" or key is "cmd"
+        if key is "meta"
             combo.keys.splice i, 1, _metakey
-            if key is "cmd"
-                _log_error "Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility"
+        if key is "cmd"
+            _log_error "Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility"
 
     # Check that all keys in the combo are valid
     for key in combo.keys

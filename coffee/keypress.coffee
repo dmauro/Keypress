@@ -498,7 +498,7 @@ _decide_meta_key = ->
 
 _bug_catcher = (e) ->
     # Force a keyup for non-modifier keys when command is held because they don't fire
-    if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt"]
+    if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
         _receive_input e, false
 
 _change_keycodes_by_browser = ->

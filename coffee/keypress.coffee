@@ -90,10 +90,11 @@ _fire = (event, combo, key_event) ->
     if typeof combo["on_" + event] is "function"
         if event is "release"
             _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
-            combo.count = 0
         else
-            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event) is false)
+            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
     # We need to mark that keyup has already happened
+    if event is "release"
+        combo.count = 0
     if event is "keyup"
         combo.keyup_fired = true
 
@@ -321,9 +322,9 @@ _handle_combo_down = (combo, key, e) ->
     combo.keyup_fired = false
 
     # Now we fire the keydown event
-    _fire "keydown", combo, e
     if combo.is_counting and typeof combo.on_keydown is "function"
         combo.count += 1
+    _fire "keydown", combo, e
 
 _key_down = (key, e) ->
     # Check if we're holding shift
@@ -344,6 +345,14 @@ _key_down = (key, e) ->
         mod = _metakey if mod is "meta"
         continue if mod is key or mod in _keys_down
         _keys_down.push mod
+    # Alternatively, we might not have modifier keys down
+    # that we think are, so we should catch those too
+    for mod, event_mod of _modifier_event_mapping
+        mod = _metakey if mod is "meta"
+        continue if mod is key
+        if mod in _keys_down and not e[event_mod]
+            for i in [0..._keys_down.length]
+                _keys_down.splice(i, 1) if _keys_down[i] is mod
 
     # Find which combos we have pressed or might be working towards, and prevent default
     combos = _get_active_combos key

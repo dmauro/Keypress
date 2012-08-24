@@ -129,10 +129,12 @@ Options available and defaults:
     if (typeof combo["on_" + event] === "function") {
       if (event === "release") {
         _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) === false);
-        combo.count = 0;
       } else {
-        _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event) === false);
+        _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) === false);
       }
+    }
+    if (event === "release") {
+      combo.count = 0;
     }
     if (event === "keyup") {
       return combo.keyup_fired = true;
@@ -422,14 +424,14 @@ Options available and defaults:
     }
     _add_to_active_combos(combo, key);
     combo.keyup_fired = false;
-    _fire("keydown", combo, e);
     if (combo.is_counting && typeof combo.on_keydown === "function") {
-      return combo.count += 1;
+      combo.count += 1;
     }
+    return _fire("keydown", combo, e);
   };
 
   _key_down = function(key, e) {
-    var combo, combos, event_mod, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _len, _len1;
+    var combo, combos, event_mod, i, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _k, _len, _len1, _ref;
     shifted_key = _convert_to_shifted_key(key, e);
     if (shifted_key) {
       key = shifted_key;
@@ -452,15 +454,31 @@ Options available and defaults:
       }
       _keys_down.push(mod);
     }
+    for (mod in _modifier_event_mapping) {
+      event_mod = _modifier_event_mapping[mod];
+      if (mod === "meta") {
+        mod = _metakey;
+      }
+      if (mod === key) {
+        continue;
+      }
+      if (__indexOf.call(_keys_down, mod) >= 0 && !e[event_mod]) {
+        for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+          if (_keys_down[i] === mod) {
+            _keys_down.splice(i, 1);
+          }
+        }
+      }
+    }
     combos = _get_active_combos(key);
-    for (_i = 0, _len = combos.length; _i < _len; _i++) {
-      combo = combos[_i];
+    for (_j = 0, _len = combos.length; _j < _len; _j++) {
+      combo = combos[_j];
       _handle_combo_down(combo, key, e);
     }
     potential_combos = _get_potential_combos(key);
     if (potential_combos.length) {
-      for (_j = 0, _len1 = potential_combos.length; _j < _len1; _j++) {
-        potential = potential_combos[_j];
+      for (_k = 0, _len1 = potential_combos.length; _k < _len1; _k++) {
+        potential = potential_combos[_k];
         _prevent_default(e, !potential.allow_default);
       }
     }

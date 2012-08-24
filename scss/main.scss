@@ -277,8 +277,7 @@ body > header hgroup {
     .example_window {
         clear:both;
         padding:10px;
-        height:300px;
-        background:rgba(#000, 0.2);
+        background:rgba(#000, 0.05);
         @include border-radius(10px);
         @include box-shadow(inset 1px 1px 2px rgba(#000, 0.3));
     }
@@ -288,6 +287,7 @@ body > header hgroup {
 
         p {
             font-size:1.2em;
+            margin-bottom:1em;
         }
     }
 }
@@ -366,4 +366,46 @@ body > header hgroup {
 #key_insert,
 #key_print {
     @include opacity(0.5);
+}
+
+#movement_grid {
+    $width:480px;
+    $units_across:12;
+
+    position:relative;
+    width:$width;
+    margin-bottom:1.2em;
+    @include clearfix();
+    @include box-shadow(0 0 0 1px #aaa);
+
+    div {
+        float:left;
+        width:$width/$units_across;
+        height:$width/$units_across;
+        border:1px solid #ddd;
+        background:#fff;
+    }
+
+    div:first-of-type {
+        position:absolute;
+        background:red;
+        top:$width/$units_across;
+        left:$width/$units_across;
+        z-index:1;
+        border:1px solid #287d9c * 0.5;
+        @include border-radius(5px);
+        @include bg-linear-gradient((-90deg, #7fb5e0 0%, #287d9c 100%));
+
+        &:before {
+            content:"@";
+            display:block;
+            position:absolute;
+            line-height:$width/$units_across - 5;
+            text-align:center;
+            width:100%;
+            font-size:1.8em;
+            color:#fff;
+            text-shadow:0 -1px 0 rgba(#000, 0.5);
+        }
+    }
 }

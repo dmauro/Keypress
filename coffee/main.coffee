@@ -1,3 +1,86 @@
+demo_2 = {}
+
+demo_2.move_piece = (dir) ->
+    grid_width = 12
+    grid_height = 6
+    x_amt = 0
+    y_amt = 0
+    switch dir
+        when "NE"
+            x_amt++
+            y_amt--
+            break
+        when "N"
+            y_amt--
+            break
+        when "SW"
+            x_amt--
+            y_amt++
+            break
+        when "S"
+            y_amt++
+            break
+        when "SE"
+            y_amt++
+            x_amt++
+            break
+        when "E"
+            x_amt++
+            break
+        when "NW"
+            y_amt--
+            x_amt--
+            break
+        when "W"
+            x_amt--
+            break
+    pos = demo_2.piece.position()
+    left = parseInt(pos.left, 10)/demo_2.unit_size
+    top = parseInt(pos.top, 10)/demo_2.unit_size
+    left += x_amt
+    top += y_amt
+    if 0 <= left < grid_width and 0 <= top < grid_height
+        demo_2.piece.css(
+            left    : left*demo_2.unit_size + "px"
+            top     : top*demo_2.unit_size + "px"
+        )
+
+demo_2.combos = [
+        keys        : "w"
+        on_keyup    : ->
+            demo_2.move_piece "N"
+    ,
+        keys        : "a"
+        on_keyup    : ->
+            demo_2.move_piece "W"
+    ,
+        keys        : "s"
+        on_keyup    : ->
+            demo_2.move_piece "S"
+    ,
+        keys        : "d"
+        on_keyup    : ->
+            demo_2.move_piece "E"
+    , 
+        keys        : "w a"
+        on_keyup    : ->
+            demo_2.move_piece "NW"
+    ,
+        keys        : "w d"
+        on_keyup    : ->
+            demo_2.move_piece "NE"
+    ,
+        keys        : "s a"
+        on_keyup    : ->
+            demo_2.move_piece "SW"
+    ,
+        keys        : "s d"
+        on_keyup    : ->
+            demo_2.move_piece "SE"
+]
+for combo in demo_2.combos
+    combo['is_exclusive'] = true
+
 bind_keyboard = ->
     # KeyCode feedback near keyboard
     keyboard_msg_node = $('.keyboard .message')
@@ -685,9 +768,9 @@ bind_keyboard = ->
                 on_down key_nodes.num_9
             on_keyup : ->
                 on_up key_nodes.num_9
-
-
     ]
+    for combo in combos
+        combo['allow_default'] = true
     keypress.register_many combos
 
 demos =
@@ -698,24 +781,19 @@ demos =
             return
     demo_2  :
         wire    : ->
-            keypress.keyup_combo "w", ->
-                console.log "N"
-            keypress.keyup_combo "a", ->
-                console.log "W"
-            keypress.keyup_combo "s", ->
-                console.log "S"
-            keypress.keyup_combo "d", ->
-                console.log "E"
-            keypress.keyup_combo "w a", ->
-                console.log "NW"
-            keypress.keyup_combo "w d", ->
-                console.log "NE"
-            keypress.keyup_combo "s a", ->
-                console.log "SW"
-            keypress.keyup_combo "s d", ->
-                console.log "SE"
+            keypress.register_many demo_2.combos
+            # Add the divs we need for the grid
+            total_spots = 12*6
+            total_spots += 1
+            dom_string = ""
+            for i in [0...total_spots]
+                dom_string += "<div></div>"
+            $('#movement_grid').append(dom_string);
+            # Set up movement
+            demo_2.piece = $('#movement_grid div:first-of-type')
+            demo_2.unit_size = parseInt demo_2.piece.outerWidth(), 10
         unwire  : ->
-            keypress.unregister_many ["w", "a", "s", "d", "w a", "w d", "s a", "s d"]
+            keypress.unregister_many demo_2.combos
     demo_3  :
         wire    : ->
             return
@@ -736,18 +814,22 @@ wire_demo = (demo_node, wiring=true) ->
     return demo_obj.unwire()
 
 get_active_demo = ->
+    return_node = false
     $('.examples .demo').each((_, node) ->
         node = $(node)
-        return node if node.css("display") is "block"
+        if node.css("display") is "block"
+            return_node = node
     )
+    return return_node
 
 activate_demo = (demo_name) ->
     demo = $(".examples .demo[data-demo=#{demo_name}]")
     return false unless demo.length
     active_demo = get_active_demo()
     return false if demo is active_demo
-    unwire_demo active_demo
-    active_demo.css "display", "none"
+    if active_demo
+        unwire_demo active_demo
+        active_demo.css "display", "none"
     demo.css "display", "block"
     nav_node = $(".examples nav a[data-demo=#{demo_name}]")
     $('.examples nav a').removeClass "active"
@@ -764,5 +846,5 @@ $(->
     keypress.init()
     bind_keyboard()
     bind_demos()
-    activate_demo "demo_1"
+    activate_demo "demo_2"
 )

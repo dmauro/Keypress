@@ -97,8 +97,10 @@ Options available and defaults:
     return true;
   };
 
-  _prevent_default = function(e) {
-    return e.preventDefault();
+  _prevent_default = function(e, should_prevent) {
+    if ((should_prevent || keypress.suppress_event_defaults) && !keypress.force_event_defaults) {
+      return e.preventDefault();
+    }
   };
 
   _allow_key_repeat = function(combo) {
@@ -126,14 +128,10 @@ Options available and defaults:
   _fire = function(event, combo, key_event) {
     if (typeof combo["on_" + event] === "function") {
       if (event === "release") {
-        if (combo["on_" + event].call(combo["this"], key_event, combo.count) === false) {
-          _prevent_default(key_event);
-        }
+        _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) === false);
         combo.count = 0;
       } else {
-        if (combo["on_" + event].call(combo["this"], key_event) === false) {
-          _prevent_default(key_event);
-        }
+        _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event) === false);
       }
     }
     if (event === "keyup") {
@@ -313,9 +311,7 @@ Options available and defaults:
     if (sequence_combos.length) {
       for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
         combo = sequence_combos[_i];
-        if (!combo.allow_default) {
-          _prevent_default(e);
-        }
+        _prevent_default(e, !combo.allow_default);
       }
       if (_sequence_timer) {
         clearTimeout(_sequence_timer);
@@ -415,9 +411,10 @@ Options available and defaults:
   };
 
   _handle_combo_down = function(combo, key, e) {
-    if (combo && !combo.allow_default) {
-      _prevent_default(e);
+    if (__indexOf.call(combo.keys, key) < 0) {
+      return false;
     }
+    _prevent_default(e, combo && !combo.allow_default);
     if (__indexOf.call(_keys_down, key) >= 0) {
       if (!_allow_key_repeat(combo)) {
         return false;
@@ -464,9 +461,7 @@ Options available and defaults:
     if (potential_combos.length) {
       for (_j = 0, _len1 = potential_combos.length; _j < _len1; _j++) {
         potential = potential_combos[_j];
-        if (!potential.allow_default) {
-          _prevent_default(e);
-        }
+        _prevent_default(e, !potential.allow_default);
       }
     }
     if (__indexOf.call(_keys_down, key) < 0) {
@@ -650,6 +645,10 @@ Options available and defaults:
 
   window.keypress = {};
 
+  keypress.force_event_defaults = false;
+
+  keypress.suppress_event_defaults = false;
+
   keypress.init = function() {
     if (_ready) {
       _registered_combos = [];
@@ -749,18 +748,28 @@ Options available and defaults:
     return _results;
   };
 
-  keypress.unregister_combo = function(keys) {
+  keypress.unregister_combo = function(keys_or_combo) {
     var combo, _i, _len, _results;
-    _results = [];
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      combo = _registered_combos[_i];
-      if (_compare_arrays(keys, combo.keys)) {
-        _results.push(_unregister_combo(combo));
-      } else {
-        _results.push(void 0);
-      }
+    if (!keys_or_combo) {
+      return false;
     }
-    return _results;
+    if (keys_or_combo.keys) {
+      return _unregister_combo(keys_or_combo);
+    } else {
+      _results = [];
+      for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+        combo = _registered_combos[_i];
+        if (!combo) {
+          continue;
+        }
+        if (_compare_arrays(keys, combo.keys)) {
+          _results.push(_unregister_combo(combo));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    }
   };
 
   keypress.unregister_many = function(combo_array) {
@@ -768,9 +777,6 @@ Options available and defaults:
     _results = [];
     for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
       combo = combo_array[_i];
-      if (combo.keys) {
-        combo = combo.keys;
-      }
       _results.push(keypress.unregister_combo(combo));
     }
     return _results;

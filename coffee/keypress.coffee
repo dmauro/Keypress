@@ -66,10 +66,11 @@ _compare_arrays = (a1, a2) ->
         return false
     return true
 
-_prevent_default = (e) ->
+_prevent_default = (e, should_prevent) ->
     # If we've pressed a combo, or if we are working towards
     # one, we should prevent the default keydown event.
-    e.preventDefault()
+    if (should_prevent or keypress.suppress_event_defaults) and not keypress.force_event_defaults
+        e.preventDefault()
 
 _allow_key_repeat = (combo) ->
     return false if combo.prevent_repeat
@@ -88,12 +89,10 @@ _fire = (event, combo, key_event) ->
     # Only fire this event if the function is defined
     if typeof combo["on_" + event] is "function"
         if event is "release"
-            if combo["on_" + event].call(combo.this, key_event, combo.count) is false
-                _prevent_default key_event
+            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
             combo.count = 0
         else
-            if combo["on_" + event].call(combo.this, key_event) is false
-                _prevent_default key_event
+            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event) is false)
     # We need to mark that keyup has already happened
     if event is "keyup"
         combo.keyup_fired = true
@@ -238,7 +237,7 @@ _add_key_to_sequence = (key, e) ->
     sequence_combos = _get_possible_sequences()
     if sequence_combos.length
         for combo in sequence_combos
-            _prevent_default(e) unless combo.allow_default
+            _prevent_default e, not combo.allow_default
         # If we're working towards one, give them more time to keep going
         clearTimeout(_sequence_timer) if _sequence_timer
         _sequence_timer = setTimeout ->
@@ -304,8 +303,10 @@ _convert_to_shifted_key = (key, e) ->
     return false
 
 _handle_combo_down = (combo, key, e) ->
-    if combo and !combo.allow_default
-        _prevent_default e
+    # Make sure we're not trying to fire for a combo that already fired
+    return false unless key in combo.keys
+
+    _prevent_default e, (combo and !combo.allow_default)
 
     # If we've already pressed this key, check that we want to fire
     # again, otherwise just add it to the keys_down list.
@@ -351,8 +352,7 @@ _key_down = (key, e) ->
     potential_combos = _get_potential_combos key
     if potential_combos.length
         for potential in potential_combos
-            if !potential.allow_default
-                _prevent_default e
+            _prevent_default e, !potential.allow_default
 
     if key not in _keys_down
         _keys_down.push key
@@ -515,6 +515,9 @@ _change_keycodes_by_browser = ->
 ###########################
 window.keypress = {}
 
+keypress.force_event_defaults = false
+keypress.suppress_event_defaults = false
+
 keypress.init = ()->
     # Let us reset by calling init again
     if _ready
@@ -581,14 +584,18 @@ keypress.register_combo = (combo) ->
 keypress.register_many = (combo_array) ->
     keypress.register_combo(combo) for combo in combo_array
 
-keypress.unregister_combo = (keys) ->
-    for combo in _registered_combos
-        if _compare_arrays keys, combo.keys
-            _unregister_combo combo
+keypress.unregister_combo = (keys_or_combo) ->
+    return false unless keys_or_combo
+    if keys_or_combo.keys
+        _unregister_combo keys_or_combo
+    else
+        for combo in _registered_combos
+            continue unless combo
+            if _compare_arrays keys, combo.keys
+                _unregister_combo combo
 
 keypress.unregister_many = (combo_array) ->
     for combo in combo_array
-        combo = combo.keys if combo.keys
         keypress.unregister_combo combo
 
 keypress.listen = ->

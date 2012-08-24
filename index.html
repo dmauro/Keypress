@@ -175,17 +175,6 @@
                     </div>
                     <div class="demo" data-demo="demo_3">
                         <p>
-                            Sequential combos are great if you want to hide an easter egg or some kind of
-                            'cheat code'. You can have multiple sequential combos without worrying about
-                            collisions (if one combo contained another for instance, they would both fire).
-                        </p>
-                        <p>
-                            Write the word 'keypress' and the word 'JavaScript' (including proper capitalization)
-                            to see these in action.
-                        <p>
-                    </div>
-                    <div class="demo" data-demo="demo_4">
-                        <p>
                             Counting combos are a unique feature that was created for fast and predictable
                             navigation. For this demo, the tab key is used for menu navigation. Pressing it
                             once will always take us back to the default menu position, but we can press
@@ -193,6 +182,43 @@
                             same number of keypresses will always take you to the same option no matter which
                             one is currently activated.
                         </p>
+                        <ul id="counting_list">
+                            <li class="active">
+                                Option 1
+                                <div><p>Option 1 page</p></div>
+                            </li>
+                            <li>
+                                Option 2
+                                <div><p>Option 2 page</p></div>
+                            </li>
+                            <li>
+                                Option 3
+                                <div><p>Option 3 page</p></div>
+                            </li>
+                            <li>
+                                Option 4
+                                <div><p>Option 4 page</p></div>
+                            </li>
+                            <li>
+                                Option 5
+                                <div><p>Option 5 page</p></div>
+                            </li>
+                            <li>
+                                Option 6
+                                <div><p>Option 6 page</p></div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="demo" data-demo="demo_4">
+                        <p>
+                            Sequential combos are great if you want to hide an easter egg or some kind of
+                            cheat code. You can have multiple sequential combos without worrying about
+                            collisions (if one combo contained another for instance, they would both fire).
+                        </p>
+                        <p id="sequential_combo">
+                            Write the word '<span class="keypress"><span class="key">key</span>press</span>' and the word '<span class="javascript">JavaScript</span>' (including proper capitalization)
+                            to see these in action.
+                        <p>
                     </div>
                 </div>
             </div>
@@ -204,19 +230,19 @@
                     Here's some of what Keypress offers:
                 </p>
                 <ul>
-                    <li>Any key can serve as a modifier <a class="demo_link" data-demo="demo_1">show me</a></li>
-                    <li>Fire on keyup and/or keydown <a class="demo_link" data-demo="demo_2">show me</a></li>
+                    <li>Fire on keyup and/or keydown <a class="demo_link" data-demo="demo_1">show me</a></li>
+                    <li>Any key can serve as a modifier <a class="demo_link" data-demo="demo_2">show me</a></li>
                     <li>Special "counting" combos <a class="demo_link" data-demo="demo_3">show me</a></li>
                     <li>Sequential combos <a class="demo_link" data-demo="demo_4">show me</a></li>
-                    <li>Strict or arbitrary ordering</li>
+                    <li>Strict or arbitrary ordering <a class="demo_link" data-demo="demo_5">show me</a></li>
                 </ul>
 
                 <h1 class="lime">Why NOT use Keypress?</h1>
                 <p>
-                    I'm still working on this, and I haven't done extensive cross-browser testing,
-                    so I don't recommend it for a production environment just yet. And I have not
-                    incorporated support for keyboard + mouse combos, which is something I will
-                    be adding in the future.
+                    While I am trying to make the API as easy to use as possible,
+                    this does have a lot of complexity, so there might be a simpler
+                    solution out there for you. I also haven't put this to the
+                    screws yet, so use at your own risk for now.
                 </p>
             </div>
         </div>
@@ -230,7 +256,7 @@
     alert("hello");
 }</code></pre>
 
-            <h1>A few notes</h1>
+            <h1 class="pink">A few notes</h1>
             <p>
                 Non-modifier keys do not ever fire a keyup event when the command key is
                 held down, so we manually force a keyup event immediately after keydown is received.

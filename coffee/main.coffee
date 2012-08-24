@@ -46,40 +46,90 @@ demo_2.move_piece = (dir) ->
         )
 
 demo_2.combos = [
-        keys        : "w"
-        on_keyup    : ->
-            demo_2.move_piece "N"
-    ,
-        keys        : "a"
-        on_keyup    : ->
-            demo_2.move_piece "W"
-    ,
-        keys        : "s"
-        on_keyup    : ->
-            demo_2.move_piece "S"
-    ,
-        keys        : "d"
-        on_keyup    : ->
-            demo_2.move_piece "E"
-    , 
-        keys        : "w a"
-        on_keyup    : ->
-            demo_2.move_piece "NW"
-    ,
-        keys        : "w d"
-        on_keyup    : ->
-            demo_2.move_piece "NE"
-    ,
-        keys        : "s a"
-        on_keyup    : ->
-            demo_2.move_piece "SW"
-    ,
-        keys        : "s d"
-        on_keyup    : ->
-            demo_2.move_piece "SE"
+    keys        : "w"
+    on_keyup    : ->
+        demo_2.move_piece "N"
+,
+    keys        : "a"
+    on_keyup    : ->
+        demo_2.move_piece "W"
+,
+    keys        : "s"
+    on_keyup    : ->
+        demo_2.move_piece "S"
+,
+    keys        : "d"
+    on_keyup    : ->
+        demo_2.move_piece "E"
+, 
+    keys        : "w a"
+    on_keyup    : ->
+        demo_2.move_piece "NW"
+,
+    keys        : "w d"
+    on_keyup    : ->
+        demo_2.move_piece "NE"
+,
+    keys        : "s a"
+    on_keyup    : ->
+        demo_2.move_piece "SW"
+,
+    keys        : "s d"
+    on_keyup    : ->
+        demo_2.move_piece "SE"
 ]
 for combo in demo_2.combos
     combo['is_exclusive'] = true
+    combo['allow_default'] = true
+
+
+demo_3 = {}
+
+demo_3.select_option = (index) ->
+    $('#counting_list li').removeClass "active"
+    $("#counting_list li:nth-child(#{index+1})").addClass "active"
+
+demo_3.combos = [
+    keys            : "tab space"
+    is_counting     : true
+    is_ordered      : true
+    allow_default   : false
+    is_exclusive    : true
+    on_keydown      : (e, count) ->
+        demo_3.select_option count
+,
+    keys            : "tab"
+    allow_default   : false
+    is_exclusive    : true
+    on_keydown      : ->
+        demo_3.select_option 0
+]
+
+
+demo_4 = {}
+
+demo_4.highlight = (node) ->
+    node.addClass "highlight"
+    setTimeout ->
+        node.removeClass "highlight"
+    , 1000
+
+demo_4.combos = [
+    keys        : "k e y"
+    is_sequence : true
+    on_keydown  : ->
+        demo_4.highlight $('#sequential_combo span.key')
+,
+    keys        : "k e y p r e s s"
+    is_sequence : true
+    on_keydown  : ->
+        demo_4.highlight $('#sequential_combo span.keypress')
+,
+    keys        : "shift j a v a shift s c r i p t"
+    is_sequence : true
+    on_keydown  : ->
+        demo_4.highlight $('#sequential_combo span.javascript')
+]
 
 bind_keyboard = ->
     # KeyCode feedback near keyboard
@@ -788,7 +838,7 @@ demos =
             dom_string = ""
             for i in [0...total_spots]
                 dom_string += "<div></div>"
-            $('#movement_grid').append(dom_string);
+            $('#movement_grid').empty().append(dom_string);
             # Set up movement
             demo_2.piece = $('#movement_grid div:first-of-type')
             demo_2.unit_size = parseInt demo_2.piece.outerWidth(), 10
@@ -796,12 +846,14 @@ demos =
             keypress.unregister_many demo_2.combos
     demo_3  :
         wire    : ->
-            return
+            keypress.register_many demo_3.combos
         unwire  : ->
+            keypress.unregister_many demo_3.combos
     demo_4  :
         wire    : ->
-            return
+            keypress.register_many demo_4.combos
         unwire  : ->
+            keypress.unregister_many demo_4.combos
 
 unwire_demo = (demo_node) ->
     wire_demo demo_node, false

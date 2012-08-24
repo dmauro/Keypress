@@ -359,6 +359,10 @@ body > header hgroup {
             @include bg-linear-gradient((90deg, rgba(#fff, 0.05) 0%, rgba(#fff, 0) 100%));
         }
     }
+
+    pre {
+        margin-bottom:1.4em;
+    }
 }
 
 #key_scroll_lock,
@@ -375,6 +379,8 @@ body > header hgroup {
     position:relative;
     width:$width;
     margin-bottom:1.2em;
+    overflow:hidden;
+    background:url(../img/paper_bg.jpg);
     @include clearfix();
     @include box-shadow(0 0 0 1px #aaa);
 
@@ -382,8 +388,8 @@ body > header hgroup {
         float:left;
         width:$width/$units_across;
         height:$width/$units_across;
-        border:1px solid #ddd;
-        background:#fff;
+        border:1px solid #C5DEFF;
+        background:rgba(#fff, 0.75);
     }
 
     div:first-of-type {
@@ -407,5 +413,55 @@ body > header hgroup {
             color:#fff;
             text-shadow:0 -1px 0 rgba(#000, 0.5);
         }
+
+        &:after {
+            content:" W \000a A D \000a  S";
+            white-space:pre;
+            display:block;
+            position:absolute;
+            width:300%;
+            height:300%;
+            left:-100%;
+            top:-100%;
+            padding:0 10px;
+            font-size:2.4em;
+            line-height:165%;
+            letter-spacing:28px;
+            color:#ccc;
+            @include box-sizing(border-box);
+        }
+    }
+}
+
+#counting_list {
+    position:relative;
+
+    li {
+        display:inline-block;
+        background:#eee;
+
+        div {
+            display:none;
+            position:absolute;
+            width:100%;
+            height:200px;
+            top:1em;
+            left:0;
+            background:blue;
+        }
+
+        &.active {
+            background:#ccc;
+
+            div {
+                display:block;
+            }
+        }
+    }
+}
+
+#sequential_combo {
+    span.highlight {
+        background:yellow;
     }
 }

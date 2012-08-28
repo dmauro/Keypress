@@ -321,6 +321,12 @@
                         <p>
                             You can specify the option 'this' which will be the scope of this in your callbacks.
                         </p>
+                        <p>
+                            When entering the key sequence for your combo, you can use characters that are
+                            entered using the shift key, such as the curly brace, '}', and Keypress will handle
+                            that for you seamlessly. You can see this in the keyboard above by typing the curly
+                            brace and seeing it light up on the keyboard.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -351,12 +357,92 @@
         <div class="documentation">
             <h1 class="blue">Great! So how do I use it?</h1>
             <p>
-                Here's how you use it!
+                The simplest way to register a combo is to use 'keypress.combo' which will fire the
+                specified callback on keydown. You can pass an optional third parameter as true to
+                allow the default browser behavior which will otherwise be prevented.
+            </p>
+<pre><code class="javascript">keypress.combo("shift s", function(e) {
+    // Our callback here
+    return;
+});</code></pre>
+            <p>
+                Here's what entering a single combo looks like without using any of the shortcuts,
+                which will give you an idea of the options available.
             </p>
 
-<pre><code>function() {
-    alert("hello");
-}</code></pre>
+<pre><code class="javascript">keypress.register_combo({
+    "keys"          : "meta s", // An array or string of the keys to press
+    "allow_default" : false,    // When set to false, we will preventDefault
+    "is_ordered"    : false,    // The keys can be pressed in any order to activate the combo
+    "is_counting"   : false,    // Make this a counting combo as described above
+    "is_exclusive"  : false,    // Described above
+    "is_sequence"   : false,    // Is this a sequential combo as described above
+    "prevent_repeat": false,    // Do we only fire this once
+    "on_keydown"    : function(event, count) {
+        // Our keydown callback, it is passed 'count' if it is
+        // a counting combo only.
+        // We can prevent the default behavior by returning false
+        return false;
+    },
+    "on_keyup"      : function(event) {
+        // Our keyup callback
+        return;
+    },
+    "on_release"    : function(event) {
+        // This callback is called only for sequential combos
+        // when all of the keys have been released.
+        return;
+    },
+    "this"          : window    // The scope of our callbacks
+});</code></pre>
+
+            <p>
+                You can also register multiple combos at once using 'keypress.register_many'
+                and supplying it an array of objects.
+            </p>
+<pre><code class="javascript">my_combos = [
+    {
+        "keys"          : "shift s",
+        "is_exclusive"  : true,
+        "on_keydown"    : function(e) {
+            // Do something here
+        },
+        "on_keyup"      : function(e) {
+            // Then do something else here
+        },
+        "this"          : my_scope
+    },
+    {
+        "keys"          : "s"
+        "is_exclusive"  : true,
+        "on_keyup"      : function(e) {
+            // Doing something here
+        },
+        "this"          : my_scope
+    }
+];
+keypress.register_many(my_combos);</code></pre>
+
+            <p>
+                You can then also unregister your combos either specifying the keys (beware that
+                this will clear ALL combos that match the keys), or you can unregister by passing
+                in the object you passed in to register_combo (if you didn't use the keypress.combo
+                shortcut method). Here are some examples.
+            </p>
+
+<pre><code class="javascript">// Unregistering the combos we just specified
+keypress.unregister_many(my_combos);
+
+// Or we can remove all of the "shift s" combos we registered
+keypress.unregister_combo("shift s");</code></pre>
+
+            <p>
+                If we simply want keypress to stop listening (for instance when focusing on a 
+                text input field or textarea). We could use keypress.stop_listening() like so:
+            </p>
+<pre><code class="javascript">$('input[type=text]')
+    .bind("focus", keypress.stop_listening)
+    .bind("blur", keypress.listen);</code></pre>
 
             <h1 class="pink">A few notes</h1>
             <p>

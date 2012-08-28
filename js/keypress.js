@@ -23,6 +23,8 @@ version 1.0.0
 
 
 /*
+TODO: Make counting combos on two keys max. Put negative edge in sequences.
+
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
@@ -46,7 +48,7 @@ Options available and defaults:
 
   _ready = false;
 
-  _registered_combos = [];
+  window.reg = _registered_combos = [];
 
   _sequence = [];
 
@@ -597,6 +599,9 @@ Options available and defaults:
 
   _validate_combo = function(combo) {
     var alt_name, i, key, mod_key, non_modifier_keys, _i, _j, _k, _len, _len1, _ref, _ref1;
+    if (!combo.keys.length) {
+      _log_error("You're trying to bind a combo with no keys.");
+    }
     for (i = _i = 0, _ref = combo.keys.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       key = combo.keys[i];
       alt_name = _keycode_alternate_names[key];
@@ -937,6 +942,7 @@ Options available and defaults:
     109: "num_subtract",
     110: "num_decimal",
     111: "num_divide",
+    124: "print",
     144: "num",
     145: "scroll",
     186: ";",

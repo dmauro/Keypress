@@ -119,6 +119,7 @@
       allow_default: false,
       is_exclusive: true,
       on_keydown: function(e, count) {
+        count = count % 6;
         return demo_3.select_option(count);
       }
     }, {
@@ -140,6 +141,18 @@
     }, 1000);
   };
 
+  demo_4.ryu_position = function(position, time) {
+    var ryu;
+    ryu = $('.examples .ryu');
+    ryu.attr("class", "ryu");
+    ryu.addClass(position);
+    if (time) {
+      return setTimeout(function() {
+        return demo_4.ryu_position("standing");
+      }, time);
+    }
+  };
+
   demo_4.combos = [
     {
       keys: "k e y",
@@ -158,6 +171,12 @@
       is_sequence: true,
       on_keydown: function() {
         return demo_4.highlight($('#sequential_combo span.javascript'));
+      }
+    }, {
+      keys: "down right x",
+      is_sequence: true,
+      on_keydown: function() {
+        return demo_4.ryu_position("hadoken", 1000);
       }
     }
   ];
@@ -856,8 +875,8 @@
           return on_up(key_nodes.right);
         }
       }, {
-        key: "print",
-        on_keydown: function() {
+        keys: "print",
+        on_keydown: function(e) {
           return on_down(key_nodes.print);
         },
         on_keyup: function() {
@@ -1097,10 +1116,17 @@
     },
     demo_3: {
       wire: function() {
-        return keypress.register_many(demo_3.combos);
+        var list;
+        keypress.register_many(demo_3.combos);
+        list = $('#counting_list li');
+        return list.bind("click", function() {
+          list.removeClass("active");
+          return $(this).addClass("active");
+        });
       },
       unwire: function() {
-        return keypress.unregister_many(demo_3.combos);
+        keypress.unregister_many(demo_3.combos);
+        return $('#counting_list li').unbind("click");
       }
     },
     demo_4: {
@@ -1160,8 +1186,8 @@
       active_demo.css("display", "none");
     }
     demo.css("display", "block");
-    nav_node = $(".examples nav a[data-demo=" + demo_name + "]");
-    $('.examples nav a').removeClass("active");
+    nav_node = $(".overview li a[data-demo=" + demo_name + "]");
+    $('.overview li a').removeClass("active");
     nav_node.addClass("active");
     return wire_demo(demo);
   };
@@ -1174,11 +1200,16 @@
     });
   };
 
-  $(function() {
-    keypress.init();
-    bind_keyboard();
-    bind_demos();
-    return activate_demo("demo_2");
-  });
+  keypress.init();
+
+  bind_keyboard();
+
+  bind_demos();
+
+  activate_demo("demo_1");
+
+  if (navigator.userAgent.indexOf("Mac OS X") !== -1) {
+    $('#key_scroll_lock, #key_pause_break, #key_insert').css("opacity", 0.5);
+  }
 
 }).call(this);

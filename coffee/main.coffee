@@ -96,6 +96,7 @@ demo_3.combos = [
     allow_default   : false
     is_exclusive    : true
     on_keydown      : (e, count) ->
+        count = count%6
         demo_3.select_option count
 ,
     keys            : "tab"
@@ -114,6 +115,15 @@ demo_4.highlight = (node) ->
         node.removeClass "highlight"
     , 1000
 
+demo_4.ryu_position = (position, time) ->
+    ryu = $('.examples .ryu')
+    ryu.attr "class", "ryu"
+    ryu.addClass position
+    if time
+        setTimeout ->
+            demo_4.ryu_position "standing"
+        , time
+
 demo_4.combos = [
     keys        : "k e y"
     is_sequence : true
@@ -129,6 +139,11 @@ demo_4.combos = [
     is_sequence : true
     on_keydown  : ->
         demo_4.highlight $('#sequential_combo span.javascript')
+,
+    keys        : "down right x"
+    is_sequence : true
+    on_keydown  : ->
+        demo_4.ryu_position "hadoken", 1000
 ]
 
 bind_keyboard = ->
@@ -662,9 +677,8 @@ bind_keyboard = ->
                 on_up key_nodes.right
         ,
         #Next section
-            # The print key doesn't actually work
-            key : "print"
-            on_keydown : ->
+            keys : "print"
+            on_keydown : (e) ->
                 on_down key_nodes.print
             on_keyup : ->
                 on_up key_nodes.print
@@ -847,8 +861,14 @@ demos =
     demo_3  :
         wire    : ->
             keypress.register_many demo_3.combos
+            list = $('#counting_list li')
+            list.bind("click", ->
+                list.removeClass "active"
+                $(this).addClass "active"
+            )
         unwire  : ->
             keypress.unregister_many demo_3.combos
+            $('#counting_list li').unbind "click"
     demo_4  :
         wire    : ->
             keypress.register_many demo_4.combos
@@ -883,8 +903,8 @@ activate_demo = (demo_name) ->
         unwire_demo active_demo
         active_demo.css "display", "none"
     demo.css "display", "block"
-    nav_node = $(".examples nav a[data-demo=#{demo_name}]")
-    $('.examples nav a').removeClass "active"
+    nav_node = $(".overview li a[data-demo=#{demo_name}]")
+    $('.overview li a').removeClass "active"
     nav_node.addClass "active"
     wire_demo demo
 
@@ -894,9 +914,11 @@ bind_demos = ->
         activate_demo demo
     )
 
-$(->
-    keypress.init()
-    bind_keyboard()
-    bind_demos()
-    activate_demo "demo_2"
-)
+keypress.init()
+bind_keyboard()
+bind_demos()
+activate_demo "demo_1"
+
+# Fade out some keys on Mac
+if navigator.userAgent.indexOf("Mac OS X") != -1
+    $('#key_scroll_lock, #key_pause_break, #key_insert').css "opacity", 0.5

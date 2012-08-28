@@ -151,8 +151,27 @@
         </div>
         <div class="clearfix">
             <div class="examples">
-                <h1 class="orange">Demos:</h1>
                 <div class="example_window">
+                    <div class="demo" data-demo="demo_1">
+                        <h2>Bind to either or both keydown and keyup</h2>
+                        <p>
+                            While most of the time you'll want to bind to the keydown event to improve
+                            the perceived responsiveness, there are times when you'll need to bind to 
+                            keyup in addition to keydown, or even exclusively.
+                        </p>
+                        <p>
+                            The keyboard demo above demonstrates binding to both by depressing the key when keydown
+                            is triggered, and then releasing it when keyup is triggered. For some key
+                            combos or outlier keys (eg. pressing a non-modifier key while the command key
+                            is depressed) no keyup event is fired, in which case we manually trigger the
+                            keyup callback immediately after keydown.
+                        </p>
+                        <p>
+                            Any keys you press on your keyboard should reflect on the keyboard above. Be default
+                            we are not preventing the default action for the events, so standard browser key
+                            shortcuts will still fire normally.
+                        </p>
+                    </div>
                     <div class="demo" data-demo="demo_2">
                         <h2>Arbitrary Modifiers</h2>
                         <p>
@@ -174,6 +193,72 @@
                         </p>
                     </div>
                     <div class="demo" data-demo="demo_3">
+                        <h2>Counting combos</h2>
+                        <p>
+                            You can navigate these tabs by holding the tab button down and pressing the
+                            spacebar repeatedly to cycle through them.
+                        </p>
+                        <ul id="counting_list">
+                            <li class="active">
+                                <h3>Home</h3>
+                                <div>
+                                    <p>
+                                        The first tab is very easy to get to by simply pressing the tab key
+                                        once on it's own. This is great for something users will need to get
+                                        back to often and quickly.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <h3>Portfolio</h3>
+                                <div>
+                                    <p>
+                                        You would probably want to arrange these by order of importance and
+                                        how often you expect the user to get to them. This requires only
+                                        pressing tab and space once.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <h3>About</h3>
+                                <div>
+                                    <p>
+                                        Here, have some lorem ipsum:
+                                        <br>
+                                        Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+                                        sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <h3>Contact</h3>
+                                <div>
+                                    <p>
+                                        Nothing to see here folks. You don't even get lipsum.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <h3>Another Option</h3>
+                                <div>
+                                    <p>
+                                        Yes, manila file folder, very tacky and silly, but you get it. I'm
+                                        only trying to make a very obvious point about how you could use
+                                        this feature.
+                                    </p>
+                                </div>
+                            </li>
+                            <li>
+                                <h3>Last One</h3>
+                                <div>
+                                    <p>
+                                        If the user continues to press space while holding tab, we'll wrap
+                                        around to the start (we do that in our callback using modulo on the count
+                                        integer that keypress passes to the callback as the second argument).
+                                    </p>
+                                </div>
+                            </li>
+                        </ul>
                         <p>
                             Counting combos are a unique feature that was created for fast and predictable
                             navigation. For this demo, the tab key is used for menu navigation. Pressing it
@@ -182,43 +267,60 @@
                             same number of keypresses will always take you to the same option no matter which
                             one is currently activated.
                         </p>
-                        <ul id="counting_list">
-                            <li class="active">
-                                Option 1
-                                <div><p>Option 1 page</p></div>
-                            </li>
-                            <li>
-                                Option 2
-                                <div><p>Option 2 page</p></div>
-                            </li>
-                            <li>
-                                Option 3
-                                <div><p>Option 3 page</p></div>
-                            </li>
-                            <li>
-                                Option 4
-                                <div><p>Option 4 page</p></div>
-                            </li>
-                            <li>
-                                Option 5
-                                <div><p>Option 5 page</p></div>
-                            </li>
-                            <li>
-                                Option 6
-                                <div><p>Option 6 page</p></div>
-                            </li>
-                        </ul>
+                        <p>
+                            As long as we're holding down the tab key, on each press of the spacebar, we'll
+                            call the keyDown callback with an additional count argument which is an integer
+                            letting us know how many times space has been pressed. This count is reset each
+                            time the last key of the combo, "tab", has been released.
+                        </p>
                     </div>
                     <div class="demo" data-demo="demo_4">
+                        <h2>Sequential Combos</h2>
                         <p>
                             Sequential combos are great if you want to hide an easter egg or some kind of
                             cheat code. You can have multiple sequential combos without worrying about
                             collisions (if one combo contained another for instance, they would both fire).
                         </p>
                         <p id="sequential_combo">
-                            Write the word '<span class="keypress"><span class="key">key</span>press</span>' and the word '<span class="javascript">JavaScript</span>' (including proper capitalization)
-                            to see these in action.
+                            Write the word
+                            '<strong><span class="keypress"><span class="key">key</span>press</span></strong>'
+                            and the word '<strong><span class="javascript">JavaScript</span></strong>'
+                            (including proper capitalization) to see these in action. We've created sequence
+                            combos for the sequences "key", "keypress" and "JavaScript".
+                        </p>
                         <p>
+                            You can probably find other fun uses for sequence combos such as entering combos
+                            in a fighting game. Try making Ryu do a hadoken ("down", "right" then "x").
+                        </p>
+                        <div class="ryu standing"></div>
+                    </div>
+                    <div class="demo" data-demo="demo_5">
+                        <h2>Other Features</h2>
+                        <p>
+                            When entering a combo, there are few features hidden features you can take advantage
+                            of. Specify allow_default if you'd like your combo not to prevent default browser
+                            behaviors (such as page scrolling with the arrow keys). You can also access the global
+                            variables keypress.force_event_defaults and keypress.suppress_event_defaults to
+                            override the allow_default setting for all combos.
+                        </p>
+                        <p>
+                            You can specify is_ordered as true to make sure the user has to press the keys in
+                            the order you specify them in for the combo to trigger. By default a combo such as
+                            shift + s when specified could be triggered by pressing s first, then pressing shift.
+                        </p>
+                        <p>
+                            The is_exclusive option will allow you to keep combos from firing that shouldn't overlap
+                            with other combos. This is used in the 'arbitrary modifiers' example above to make sure
+                            that when a diagonal combo fires, the component combos don't also fire.
+                        </p>
+                        <p>
+                            By default when holding down the key, the keydown callback will continue to be called
+                            everytime the keydown event is fired. If you specify prevent_repeat, it will only be
+                            called the first time you press the key down.
+                        </p>
+                        <p>
+                            You can specify the option 'this' which will be the scope of this in your callbacks.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -230,11 +332,11 @@
                     Here's some of what Keypress offers:
                 </p>
                 <ul>
-                    <li>Fire on keyup and/or keydown <a class="demo_link" data-demo="demo_1">show me</a></li>
-                    <li>Any key can serve as a modifier <a class="demo_link" data-demo="demo_2">show me</a></li>
-                    <li>Special "counting" combos <a class="demo_link" data-demo="demo_3">show me</a></li>
-                    <li>Sequential combos <a class="demo_link" data-demo="demo_4">show me</a></li>
-                    <li>Strict or arbitrary ordering <a class="demo_link" data-demo="demo_5">show me</a></li>
+                    <li><a class="demo_link" data-demo="demo_1">Fire on keyup and/or keydown</a></li>
+                    <li><a class="demo_link" data-demo="demo_2">Any key can serve as a modifier</a></li>
+                    <li><a class="demo_link" data-demo="demo_3">Special "counting" combos</a></li>
+                    <li><a class="demo_link" data-demo="demo_4">Sequential combos</a></li>
+                    <li><a class="demo_link" data-demo="demo_5">Other features...</a></li>
                 </ul>
 
                 <h1 class="lime">Why NOT use Keypress?</h1>

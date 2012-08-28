@@ -270,20 +270,30 @@ body > header hgroup {
     }
 }
 
+$example_border_color:#C3D2D5;
+
 .examples {
     float:right;
-    width:500px;
+    width:512px;
 
     .example_window {
         clear:both;
+        border:4px solid $example_border_color;
         padding:10px;
-        background:rgba(#000, 0.05);
+        background:rgba(#fff, 0.8);
+        //background:rgba(#000, 0.05);
         @include border-radius(10px);
-        @include box-shadow(inset 1px 1px 2px rgba(#000, 0.3));
     }
 
     .demo {
         display:none;
+
+        h2 {
+            margin-bottom:0.5em;
+            font-size:1.6em;
+            line-height:1.1em;
+            border-bottom:1px solid #aaa;
+        }
 
         p {
             font-size:1.2em;
@@ -301,34 +311,64 @@ body > header hgroup {
         margin-bottom:3em;
 
         li {
-            font-size:1.8em;
-
             a {
-                margin-left:1em;
-                padding:0.1em 0.75em;
-                background:#aaa;
-                font-size:0.65em;
-                color:#fff;
-                cursor:pointer;
-                text-shadow:0 -1px 0 rgba(#000, 0.3);
-                @include border-radius(1em);
-            }
-
-            &:before {
-                content:"+";
-                display:inline-block;
                 position:relative;
-                top:0.2em;
-                margin-right:1em;
-                background:#ff0089;
-                width:1em;
-                height:1em;
-                line-height:0.9em;
-                vertical-align:top;
-                color:#fff;
-                font-weight:bold;
-                text-align:center;
-                @include border-radius(1em);
+                display:block;
+                margin:0.5em 0;
+                border:1px solid #bbb;
+                padding:0.25em 6em 0.25em 0.75em;
+                color:#222;
+                font-size:1.6em;
+                cursor:pointer;
+                text-shadow:0 1px 0 rgba(#fff, 0.5);
+                @include border-radius(4px);
+                @include box-shadow((inset 1px 1px 0 0 rgba(#fff, 0.5), inset -1px -1px 0 0 rgba(#000, 0.05)));
+                @include bg-linear-gradient((-90deg, #ddd 0%, #ccc 100%));
+
+                &:before {
+                    content:"»";
+                    position:absolute;
+                    font-size:2em;
+                    color:#fff;
+                    line-height:0.9em;
+                    right:0.25em;
+                    top:0;
+                    text-shadow:0 -1px 0 rgba(#000, 0.3);
+                }
+
+                &:after {
+                    content:"show me";
+                    display:block;
+                    position:absolute;
+                    font-size:0.8em;
+                    color:#fff;
+                    right:2.4em;
+                    top:0.5em;
+                    text-shadow:0 -1px 0 rgba(#000, 0.3);
+                }
+
+                &.active {
+                    color:#219CBB;
+                    @include bg-linear-gradient((90deg, #ddd 0%, #ccc 100%));
+                    @include box-shadow((inset 1px 1px 0 0 rgba(#000, 0.05), inset -1px -1px 0 0 rgba(#fff, 0.5)));
+
+                    &:before {
+                        content:none;
+                    }
+
+                    &:after {
+                        $size:20px;
+                        content:"\00a0";
+                        position:absolute;
+                        right:-32px;
+                        top:-5px;
+                        width:0px;
+                        height:0px;
+                        border-style:solid;
+                        border-width:$size $size $size 0;
+                        border-color:transparent $example_border_color transparent transparent;
+                    }
+                }
             }
         }
     }
@@ -363,13 +403,6 @@ body > header hgroup {
     pre {
         margin-bottom:1.4em;
     }
-}
-
-#key_scroll_lock,
-#key_pause_break,
-#key_insert,
-#key_print {
-    @include opacity(0.5);
 }
 
 #movement_grid {
@@ -435,27 +468,45 @@ body > header hgroup {
 
 #counting_list {
     position:relative;
+    height:180px;
+    padding-left:0;
 
     li {
         display:inline-block;
-        background:#eee;
+        padding:5px 10px;
+        height:30px;
+        background:#E6DD93*0.9;
+        cursor:pointer;
+        @include border-radius(5 5 0 0);
+        @include bg-linear-gradient((-90deg, #E6DD93*0.9 0%, #E6DD93*0.8 100%));
+
+        &:not(:last-of-type) {
+            margin-right:2px;
+        }
+
+        &.active {
+            background:#E6DD93;
+
+            div {
+                display:block;
+            }
+        }
+
+        h3 {
+            font-size:1.4em;
+            font-weight:normal;
+        }
 
         div {
             display:none;
             position:absolute;
             width:100%;
-            height:200px;
-            top:1em;
+            height:150px;
+            top:30px;
             left:0;
-            background:blue;
-        }
-
-        &.active {
-            background:#ccc;
-
-            div {
-                display:block;
-            }
+            padding:15px;
+            background:#E6DD93;
+            @include bg-linear-gradient((-90deg, #E6DD93 0%, #E6DD93*0.95 100%));
         }
     }
 }
@@ -464,4 +515,21 @@ body > header hgroup {
     span.highlight {
         background:yellow;
     }
+}
+
+.ryu {
+    display:block;
+    width:136px;
+    height:111px;
+    margin:0 auto;
+    background-position:left bottom;
+    background-repeat:no-repeat;
+
+    &.standing { background-image:url(../img/standing.gif); }
+    &.hadoken { background-image:url(../img/hadoken.gif); }
+    &.shoryuken { background-image:url(../img/shoryuken.gif); }
+}
+
+.demo[data-demo="demo_1"] {
+    display:block;
 }

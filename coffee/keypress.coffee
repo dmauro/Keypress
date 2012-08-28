@@ -20,6 +20,8 @@ version 1.0.0
 ###
 
 ###
+TODO: Make counting combos on two keys max. Put negative edge in sequences.
+
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
@@ -36,7 +38,7 @@ Options available and defaults:
 ###
 
 _ready = false
-_registered_combos = []
+window.reg = _registered_combos = []
 _sequence = []
 _sequence_timer = null
 window.keys_down = _keys_down = []
@@ -457,6 +459,10 @@ _unregister_combo = (combo) ->
             break
 
 _validate_combo = (combo) ->
+    # Warn for lack of keys
+    unless combo.keys.length
+        _log_error "You're trying to bind a combo with no keys."
+
     # Convert "meta" to either "ctrl" or "cmd"
     # Don't explicity use the command key, it breaks
     # because it is the windows key in Windows, and
@@ -738,6 +744,7 @@ _keycode_dictionary =
     109 : "num_subtract"
     110 : "num_decimal"
     111 : "num_divide"
+    124 : "print"
     144 : "num"
     145 : "scroll"
     186 : ";"

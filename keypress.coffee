@@ -157,35 +157,6 @@ _get_active_combos = (key) ->
     # Trying to return an array of matched combos
     return potentials
 
-    ###
-
-    # Return the combo that includes key in the keys array.
-    # If multiple include it, return the longest one, if they
-    # are the same length, announce a conflict.
-    check_for_conflict = (array) ->
-        if array.length > 1 and array[0].keys.length is array[1].keys.length
-            _log_error "Conflicting combos registered"
-            return true
-
-    if potentials.length > 1
-        potentials.sort (a, b) ->
-            b.keys.length - a.keys.length
-        better_pots = []
-        for potential in potentials
-            better_pots.push(potential) if key in potential.keys
-
-        # If at least one potential contains key
-        if better_pots.length
-            return false if check_for_conflict better_pots
-            potentials = better_pots
-        # If none of the potentials contain key
-        else
-            return false if check_for_conflict potentials
-
-    return false unless potentials.length
-    return potentials[0] if _cmd_bug_check potentials[0].keys
-    ###
-
 _get_potential_combos = (key) ->
     # Check if we are working towards pressing a combo.
     # Used for preventing default on keys that might match

@@ -20,16 +20,11 @@ version 1.0.0
 ###
 
 ###
-TODO:
-    Make counting combos two keys max.
-    Put negative edge in sequences.
-    Remove on_release
-    Check that is_exclusive works properly
 
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    prevent_default : false         - Allow the default key event to happen in addition to the combo.
+    prevent_default : false         - Prevent default behavior for all component key keypresses.
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
     is_exclusive    : false         - This combo will replace other exclusive combos when true

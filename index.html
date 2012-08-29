@@ -4,6 +4,7 @@
     <title>Keypress: A Javascript library for capturing input</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/solarized_dark.css">
+    <script src="./js/keypress.js"></script>
 </head>
 <body>
     <header>
@@ -297,35 +298,28 @@
                     <div class="demo" data-demo="demo_5">
                         <h2>Other Features</h2>
                         <p>
-                            When entering a combo, there are few features hidden features you can take advantage
-                            of. Specify allow_default if you'd like your combo not to prevent default browser
-                            behaviors (such as page scrolling with the arrow keys). You can also access the global
-                            variables keypress.force_event_defaults and keypress.suppress_event_defaults to
-                            override the allow_default setting for all combos.
+                            Below in the documentation you can find details of all the options you can specify
+                            when creating a Keypress combo, but here's a quick synopsis of some more things you
+                            can do:
                         </p>
                         <p>
-                            You can specify is_ordered as true to make sure the user has to press the keys in
-                            the order you specify them in for the combo to trigger. By default a combo such as
-                            shift + s when specified could be triggered by pressing s first, then pressing shift.
+                            The prevent_default option in Keypress is special because it will preventDefault
+                            on all keys that are part of a combo, rather than only preventing when the full
+                            combo is pressed.
                         </p>
                         <p>
-                            The is_exclusive option will allow you to keep combos from firing that shouldn't overlap
-                            with other combos. This is used in the 'arbitrary modifiers' example above to make sure
-                            that when a diagonal combo fires, the component combos don't also fire.
+                            You can use the is_ordered option to force your combos to be pressed in a particular
+                            order. By default, all combos can be pressed in an arbitrary order (except for
+                            sequence combos which of course are always ordered).
                         </p>
                         <p>
-                            By default when holding down the key, the keydown callback will continue to be called
-                            everytime the keydown event is fired. If you specify prevent_repeat, it will only be
-                            called the first time you press the key down.
+                            The prevent_repeat option makes sure your callback is only called once instead of
+                            being called every time the keydown event is fired.
                         </p>
                         <p>
-                            You can specify the option 'this' which will be the scope of this in your callbacks.
-                        </p>
-                        <p>
-                            When entering the key sequence for your combo, you can use characters that are
-                            entered using the shift key, such as the curly brace, '}', and Keypress will handle
-                            that for you seamlessly. You can see this in the keyboard above by typing the curly
-                            brace and seeing it light up on the keyboard.
+                            You can enter special characters that can only be entered with the shift key
+                            (eg. !, @, #, $, etc.) as part of your combo and Keypress will seamlessly handle
+                            that for you.
                         </p>
                     </div>
                 </div>
@@ -334,8 +328,8 @@
                 <h1 class="pink">Why this input library?</h1>
                 <p>
                     Keypress is a very robust library with some very special features,
-                    it is easy to pick up and use, and it has a small footprint (~5kb minified).
-                    Here's some of what Keypress offers:
+                    it is easy to pick up and use, has a small footprint (~5kb minified),
+                    and has no dependencies. Here's some of what Keypress offers:
                 </p>
                 <ul>
                     <li><a class="demo_link" data-demo="demo_1">Fire on keyup and/or keydown</a></li>
@@ -347,76 +341,149 @@
 
                 <h1 class="lime">Why NOT use Keypress?</h1>
                 <p>
-                    While I am trying to make the API as easy to use as possible,
-                    this does have a lot of complexity, so there might be a simpler
-                    solution out there for you. I also haven't put this to the
-                    screws yet, so use at your own risk for now.
+                    I have tried to make this very easy to use even for simple
+                    keyboard shortcuts, but if you don't need more advanced combos
+                    such as for a game, you might be better of with some of the
+                    simpler solutions out there. The API is subject to change as
+                    I get feedback, so if you're after stability, this might not be
+                    for you just yet.
                 </p>
             </div>
         </div>
         <div class="documentation">
             <h1 class="blue">Great! So how do I use it?</h1>
             <p>
-                The simplest way to register a combo is to use 'keypress.combo' which will fire the
-                specified callback on keydown. You can pass an optional third parameter as true to
-                allow the default browser behavior which will otherwise be prevented.
+                Of course you'll need to include the js file in your HTML, but that's all you need
+                to do to get started. The script will initialize itself. So all that's left for you
+                to do is describe all of your key combos.
             </p>
-<pre><code class="javascript">keypress.combo("shift s", function(e) {
-    // Our callback here
-    return;
-});</code></pre>
             <p>
-                Here's what entering a single combo looks like without using any of the shortcuts,
-                which will give you an idea of the options available.
+                The simplest way to register a combo is to use 'keypress.combo()'. The first parameter
+                is a string or array of key names that describe the combo. The second parameter is
+                the on_keydown callback, and the third optional parameter is the prevent_default
+                option which defaults to false.
+            </p>
+<pre><code class="javascript">keypress.combo("shift s", function() {
+    console.log("You pressed shift and s");
+});
+
+// There are also a few other shortcut methods:
+
+// If we want to register a counting combo
+keypress.counting_combo("tab space", function(e, count) {
+    console.log("You've pressed this " + count + " times.");
+});
+
+// If you want to register a sequence combo
+keypress.sequence_combo("up up down down left right left right b a enter", function() {
+    lives = 30;
+}, true);
+</code></pre>
+            <p>
+                If you only want to use Keypress for some very simple keyboard shortcuts,
+                that's all you need to know, and you can stop reading.
+            <p>
+                If you want to use some of the more advanced features of Keypress, you can use
+                'keypress.register_combo()' and supply an object with any number of options
+                described below. All of the options are listed below with their default settings.
             </p>
 
 <pre><code class="javascript">keypress.register_combo({
-    "keys"          : "meta s", // An array or string of the keys to press
-    "allow_default" : false,    // When set to false, we will preventDefault
-    "is_ordered"    : false,    // The keys can be pressed in any order to activate the combo
-    "is_counting"   : false,    // Make this a counting combo as described above
-    "is_exclusive"  : false,    // Described above
-    "is_sequence"   : false,    // Is this a sequential combo as described above
-    "prevent_repeat": false,    // Do we only fire this once
-    "on_keydown"    : function(event, count) {
-        // Our keydown callback, it is passed 'count' if it is
-        // a counting combo only.
-        // We can prevent the default behavior by returning false
-        return false;
-    },
-    "on_keyup"      : function(event) {
-        // Our keyup callback
-        return;
-    },
-    "on_release"    : function(event) {
-        // This callback is called only for sequential combos
-        // when all of the keys have been released.
-        return;
-    },
-    "this"          : window    // The scope of our callbacks
+    "keys"              : null,
+    "prevent_default"   : false,
+    "is_ordered"        : false,
+    "is_counting"       : false,
+    "is_sequence"       : false,
+    "is_exclusive"      : false,
+    "prevent_repeat"    : false,
+    "on_keydown"        : null,
+    "on_keyup"          : null,
+    "this"              : window
 });</code></pre>
+            <ul>
+                <li>
+                    <strong>keys:</strong> This option can be either an array of strings,
+                    or a single space separated string of key names that describe the
+                    keys that make up the combo.
+                </li>
+                <li>
+                    <strong>prevent_default:</strong> While you can either return false in
+                    your callback or use event.preventDefault() to prevent the default
+                    browser behavior for a combo, this option will prevent the default
+                    browser behavior for all keypresses that are part of a combo. What this
+                    means is that if you have, for example, a combo "shift s", both 'shift'
+                    and 's' will independantly preventDefault when pressed.
+                </li>
+                <li>
+                    <strong>is_ordered:</strong> This option allows us to force the order in
+                    which the user presses the keys to activate the combo. The combo
+                    "shift s" will normally activate even if the user presses 's' first, then
+                    presses 'shift' while still holding down 's'. Setting this option to true
+                    will force the user to press the keys in the order described in the keys option.
+                </li>
+                <li>
+                    <strong>is_counting:</strong> Setting this to true will make the combo a
+                    counting combo as described above.
+                </li>
+                <li>
+                    <strong>is_sequence:</strong> Setting this to true will make the combo a
+                    sequential combo as described above.
+                </li>
+                <li>
+                    <strong>is_exclusive:</strong> Normally when pressing a key, any and all combos
+                    that match will have their callbacks called. For instance, pressing 'shift' and
+                    then 's' would activate the following combos if they existed: "shift", "shift s"
+                    and "s". When we set is_exclusive to true, we will not call the callbacks for
+                    any combos that are also exclusive and less specific.
+                </li>
+                <li>
+                    <strong>prevent_repeat:</strong> Normally the on_keydown callback will be
+                    called as fast as your browser fires the keydown event, but by setting this
+                    option to true, the on_keydown callback will only be called the first time.
+                </li>
+                <li>
+                    <strong>on_keydown:</strong> This is a function that gets called everytime
+                    the keydown event for our combo is fired. We pass this two arguments: the
+                    keydown event that triggered it, and an integer representing the number of
+                    times the combo has been pressed (this will be 0 unless it is a counting
+                    combo).
+                </li>
+                <li>
+                    <strong>on_keyup:</strong> Same as above but for keyup. This only receives
+                    the keyup event and does not receive the second 'count' argument. This will
+                    only be called the first time you release one of the component keys of the combo.
+                </li>
+                <li>
+                    <strong>this:</strong> By default our callbacks will be called with 'this'
+                    set to window, but we can specify the scope with this option.
+                </li>
+            </ul>
 
             <p>
-                You can also register multiple combos at once using 'keypress.register_many'
-                and supplying it an array of objects.
+                If you are registering a lot of combos at once, you'll probably want to describe
+                combo objects as described above, store them all in an array, and then register
+                them all at once using 'keypress.register_many()'. That might look something like
+                this:
             </p>
-<pre><code class="javascript">my_combos = [
+<pre><code class="javascript">my_scope = this;
+my_combos = [
     {
         "keys"          : "shift s",
         "is_exclusive"  : true,
-        "on_keydown"    : function(e) {
-            // Do something here
+        "on_keydown"    : function() {
+            console.log("You pressed shift and s together.");
         },
         "on_keyup"      : function(e) {
-            // Then do something else here
+            console.log("And now you've released one of the keys.");
         },
         "this"          : my_scope
     },
     {
         "keys"          : "s"
         "is_exclusive"  : true,
-        "on_keyup"      : function(e) {
-            // Doing something here
+        "on_keyup"      : function(event) {
+            event.preventDefault();
+            console.log("We've prevented the s key from doing anything!");
         },
         "this"          : my_scope
     }
@@ -426,15 +493,19 @@ keypress.register_many(my_combos);</code></pre>
             <p>
                 You can then also unregister your combos either specifying the keys (beware that
                 this will clear ALL combos that match the keys), or you can unregister by passing
-                in the object you passed in to register_combo (if you didn't use the keypress.combo
-                shortcut method). Here are some examples.
+                in the object you passed in to register_combo (another reason to manually create
+                the combo objects yourself instead of using the 'keypress.combo()' shortcut method).
+                Or you can simply remove all registered combos using 'keypress.reset()'.
             </p>
 
-<pre><code class="javascript">// Unregistering the combos we just specified
+<pre><code class="javascript">// Remove all "shift s" combos we've registered
+keypress.unregister_combo("shift s");
+
+// Or only these specific combos
 keypress.unregister_many(my_combos);
 
-// Or we can remove all of the "shift s" combos we registered
-keypress.unregister_combo("shift s");</code></pre>
+// Or remove ALL combos that have been registered
+keypress.reset();</code></pre>
 
             <p>
                 If we simply want keypress to stop listening (for instance when focusing on a 
@@ -444,18 +515,30 @@ keypress.unregister_combo("shift s");</code></pre>
     .bind("focus", keypress.stop_listening)
     .bind("blur", keypress.listen);</code></pre>
 
+            <br>
             <h1 class="pink">A few notes</h1>
             <p>
                 Non-modifier keys do not ever fire a keyup event when the command key is
                 held down, so we manually force a keyup event immediately after keydown is received.
                 This means that if your combo includes the meta key, it can contain any number of
-                modifier keys, but only one non-modifier key.
+                modifier keys, but only one non-modifier key. Modifier keys are: "meta", "alt",
+                "option", "ctrl", "shift", and "cmd".
+            </p>
+            <p>
+                If you want to make a shortcut to override default behavior such as saving, you should
+                use the "meta" key instead of specifically using "ctrl" or "cmd". This "meta" key
+                will become "ctrl" or "cmd" appropriately depending on the user's system.
+            </p>
+            <h1 class="lime">Thanks!</h1>
+            <p>
+                Any feedback is appreciated, and if you are using this library, I'd love to hear
+                about it so I can brag about it and give a shout out here on this page.
             </p>
         </div>
     </div>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8.0/jquery.min.js"></script>
-    <script src="./js/keypress.js"></script>
+    
     <script src="./js/main.js"></script>
     <script src="./js/highlight.js"></script>
     <script>hljs.initHighlightingOnLoad();</script>

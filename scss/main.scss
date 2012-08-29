@@ -275,6 +275,7 @@ $example_border_color:#C3D2D5;
 .examples {
     float:right;
     width:512px;
+    margin-top:3.7em;
 
     .example_window {
         clear:both;
@@ -381,6 +382,28 @@ $example_border_color:#C3D2D5;
     p {
         clear:both;
         margin-bottom:1em;
+    }
+
+    ul {
+        font-size:1.6em;
+        border-left:4px solid rgba(#003744, 0.25);
+        padding-left:1em;
+
+        li {
+            margin-bottom:1em;
+
+            strong {
+                position:relative;
+                top:-1px;
+                padding:2px 6px 4px;
+                background:#003744;
+                font-family:monospace, serif;
+                font-weight:normal;
+                font-size:0.9em;
+                color:#00ac98;
+                @include border-radius(4px);
+            }
+        }
     }
 
     code {

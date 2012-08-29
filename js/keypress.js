@@ -23,12 +23,16 @@ version 1.0.0
 
 
 /*
-TODO: Make counting combos on two keys max. Put negative edge in sequences.
+TODO:
+    Make counting combos two keys max.
+    Put negative edge in sequences.
+    Remove on_release
+    Check that is_exclusive works properly
 
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    allow_default   : false         - Allow the default key event to happen in addition to the combo.
+    prevent_default : false         - Allow the default key event to happen in addition to the combo.
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
     is_exclusive    : false         - This combo will replace other exclusive combos when true
@@ -42,21 +46,19 @@ Options available and defaults:
 
 
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combos, _get_possible_sequences, _get_potential_combos, _get_sequence, _handle_combo_down, _handle_combo_up, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bind_key_events, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _event_classname, _fire, _get_active_combos, _get_possible_sequences, _get_potential_combos, _get_sequence, _handle_combo_down, _handle_combo_up, _init, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     __hasProp = {}.hasOwnProperty;
 
-  _ready = false;
-
-  window.reg = _registered_combos = [];
+  _registered_combos = [];
 
   _sequence = [];
 
   _sequence_timer = null;
 
-  window.keys_down = _keys_down = [];
+  _keys_down = [];
 
-  window.active_combos = _active_combos = [];
+  _active_combos = [];
 
   _prevent_capture = false;
 
@@ -315,7 +317,7 @@ Options available and defaults:
     if (sequence_combos.length) {
       for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
         combo = sequence_combos[_i];
-        _prevent_default(e, !combo.allow_default);
+        _prevent_default(e, combo.prevent_default);
       }
       if (_sequence_timer) {
         clearTimeout(_sequence_timer);
@@ -418,7 +420,7 @@ Options available and defaults:
     if (__indexOf.call(combo.keys, key) < 0) {
       return false;
     }
-    _prevent_default(e, combo && !combo.allow_default);
+    _prevent_default(e, combo && combo.prevent_default);
     if (__indexOf.call(_keys_down, key) >= 0) {
       if (!_allow_key_repeat(combo)) {
         return false;
@@ -481,7 +483,7 @@ Options available and defaults:
     if (potential_combos.length) {
       for (_k = 0, _len1 = potential_combos.length; _k < _len1; _k++) {
         potential = potential_combos[_k];
-        _prevent_default(e, !potential.allow_default);
+        _prevent_default(e, potential.prevent_default);
       }
     }
     if (__indexOf.call(_keys_down, key) < 0) {
@@ -666,19 +668,7 @@ Options available and defaults:
     }
   };
 
-  window.keypress = {};
-
-  keypress.force_event_defaults = false;
-
-  keypress.suppress_event_defaults = false;
-
-  keypress.init = function() {
-    if (_ready) {
-      _registered_combos = [];
-      return;
-    }
-    _decide_meta_key();
-    _change_keycodes_by_browser();
+  _bind_key_events = function() {
     document.body.onkeydown = function(e) {
       _receive_input(e, true);
       return _bug_catcher(e);
@@ -686,40 +676,59 @@ Options available and defaults:
     document.body.onkeyup = function(e) {
       return _receive_input(e, false);
     };
-    window.onblur = function() {
-      var _valid_combos;
+    return window.onblur = function() {
+      var key, _i, _len, _valid_combos;
+      for (_i = 0, _len = _keys_down.length; _i < _len; _i++) {
+        key = _keys_down[_i];
+        _key_up(key, {});
+      }
       _keys_down = [];
       return _valid_combos = [];
     };
-    return _ready = true;
   };
 
-  keypress.combo = function(keys, callback, allow_default) {
-    if (allow_default == null) {
-      allow_default = false;
+  _init = function() {
+    _decide_meta_key();
+    return _change_keycodes_by_browser();
+  };
+
+  window.keypress = {};
+
+  keypress.force_event_defaults = false;
+
+  keypress.suppress_event_defaults = false;
+
+  keypress.reset = function() {
+    _registered_combos = [];
+  };
+
+  keypress.combo = function(keys, callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
     }
     return keypress.register_combo({
       keys: keys,
       on_keydown: callback,
-      allow_default: allow_default
+      prevent_default: prevent_default
     });
   };
 
-  keypress.keyup_combo = function(keys, callback, allow_default) {
-    if (allow_default == null) {
-      allow_default = false;
-    }
-    return keypress.register_combo({
-      keys: keys,
-      on_keyup: callback,
-      is_exclusive: true,
-      allow_default: allow_default
-    });
-  };
+  /*
+  Deprecated?
+  
+  keypress.keyup_combo = (keys, callback, prevent_default=false) ->
+      keypress.register_combo(
+          keys            : keys
+          on_keyup        : callback
+          is_exclusive    : true
+          prevent_default : prevent_default
+      )
+  */
 
-  keypress.counting_combo = function(keys, count_callback, release_callback, allow_default) {
-    if (allow_default == null) {
-      allow_default = false;
+
+  keypress.counting_combo = function(keys, count_callback, release_callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
     }
     return keypress.register_combo({
       keys: keys,
@@ -727,19 +736,19 @@ Options available and defaults:
       is_ordered: true,
       on_keydown: count_callback,
       on_release: release_callback,
-      allow_default: allow_default
+      prevent_default: prevent_default
     });
   };
 
-  keypress.sequence = function(keys, callback, allow_default) {
-    if (allow_default == null) {
-      allow_default = false;
+  keypress.sequence_combo = function(keys, callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
     }
     return keypress.register_combo({
       keys: keys,
       on_keydown: callback,
       is_sequence: true,
-      allow_default: allow_default
+      prevent_default: prevent_default
     });
   };
 
@@ -970,5 +979,19 @@ Options available and defaults:
     key = _keycode_shifted_keys[_];
     _valid_keys.push(key);
   }
+
+  _init();
+
+  _ready = function(callback) {
+    if (/in/.test(document.readyState)) {
+      return setTimeout(function() {
+        return _ready(callback);
+      }, 9);
+    } else {
+      return callback();
+    }
+  };
+
+  _ready(_bind_key_events);
 
 }).call(this);

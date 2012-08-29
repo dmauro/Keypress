@@ -80,7 +80,6 @@ demo_2.combos = [
 ]
 for combo in demo_2.combos
     combo['is_exclusive'] = true
-    combo['allow_default'] = true
 
 
 demo_3 = {}
@@ -93,14 +92,14 @@ demo_3.combos = [
     keys            : "tab space"
     is_counting     : true
     is_ordered      : true
-    allow_default   : false
+    prevent_default : true
     is_exclusive    : true
     on_keydown      : (e, count) ->
         count = count%6
         demo_3.select_option count
 ,
     keys            : "tab"
-    allow_default   : false
+    prevent_default : true
     is_exclusive    : true
     on_keydown      : ->
         demo_3.select_option 0
@@ -125,24 +124,28 @@ demo_4.ryu_position = (position, time) ->
         , time
 
 demo_4.combos = [
-    keys        : "k e y"
-    is_sequence : true
-    on_keydown  : ->
+    keys            : "k e y"
+    prevent_default : true
+    is_sequence     : true
+    on_keydown      : ->
         demo_4.highlight $('#sequential_combo span.key')
 ,
-    keys        : "k e y p r e s s"
-    is_sequence : true
-    on_keydown  : ->
+    keys            : "k e y p r e s s"
+    prevent_default : true
+    is_sequence     : true
+    on_keydown      : ->
         demo_4.highlight $('#sequential_combo span.keypress')
 ,
-    keys        : "shift j a v a shift s c r i p t"
-    is_sequence : true
-    on_keydown  : ->
+    keys            : "shift j a v a shift s c r i p t"
+    prevent_default : true
+    is_sequence     : true
+    on_keydown      : ->
         demo_4.highlight $('#sequential_combo span.javascript')
 ,
-    keys        : "down right x"
-    is_sequence : true
-    on_keydown  : ->
+    keys            : "down right x"
+    prevent_default : true
+    is_sequence     : true
+    on_keydown      : ->
         demo_4.ryu_position "hadoken", 1000
 ]
 
@@ -172,14 +175,6 @@ bind_keyboard = ->
         node.addClass "shift_pressed"
     on_shift_up = (node) ->
         node.removeClass "shift_pressed"
-
-    window.onblur = ->
-        # Make sure the alt tab keys don't stay pressed
-        on_up key_nodes.left_cmd
-        on_up key_nodes.right_cmd
-        on_up key_nodes.tab
-        on_up key_nodes.left_alt
-        on_up key_nodes.right_alt
 
     combos = [
             keys : "`"
@@ -833,8 +828,6 @@ bind_keyboard = ->
             on_keyup : ->
                 on_up key_nodes.num_9
     ]
-    for combo in combos
-        combo['allow_default'] = true
     keypress.register_many combos
 
 demos =
@@ -908,13 +901,51 @@ activate_demo = (demo_name) ->
     nav_node.addClass "active"
     wire_demo demo
 
+activate_next_demo = ->
+    active_demo = get_active_demo();
+    next_demo = active_demo.next()
+    if next_demo.length
+        next_name = next_demo.data "demo"
+    else
+        next_name = "demo_1"
+    activate_demo next_name
+
+activate_prev_demo = ->
+    active_demo = get_active_demo();
+    next_demo = active_demo.prev()
+    if next_demo.length
+        next_name = next_demo.data "demo"
+    else
+        next_name = "demo_5"
+    activate_demo next_name
+
 bind_demos = ->
     $('body').delegate('a.demo_link', 'click', ->
         demo = $(this).data "demo"
         activate_demo demo
     )
+    keypress.register_combo({
+        keys            : "`",
+        is_exclusive    : true,
+        prevent_default : true,
+        on_keydown      : activate_next_demo,
+    });
+    keypress.combo "1", ->
+        activate_demo "demo_1"
+    , true
+    keypress.combo "2", ->
+        activate_demo "demo_2"
+    , true
+    keypress.combo "3", ->
+        activate_demo "demo_3"
+    , true
+    keypress.combo "4", ->
+        activate_demo "demo_4"
+    , true
+    keypress.combo "5", ->
+        activate_demo "demo_5"
+    , true
 
-keypress.init()
 bind_keyboard()
 bind_demos()
 activate_demo "demo_1"

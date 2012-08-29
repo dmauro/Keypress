@@ -20,12 +20,16 @@ version 1.0.0
 ###
 
 ###
-TODO: Make counting combos on two keys max. Put negative edge in sequences.
+TODO:
+    Make counting combos two keys max.
+    Put negative edge in sequences.
+    Remove on_release
+    Check that is_exclusive works properly
 
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    allow_default   : false         - Allow the default key event to happen in addition to the combo.
+    prevent_default : false         - Allow the default key event to happen in addition to the combo.
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
     is_exclusive    : false         - This combo will replace other exclusive combos when true
@@ -37,12 +41,11 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
-_ready = false
-window.reg = _registered_combos = []
+_registered_combos = []
 _sequence = []
 _sequence_timer = null
-window.keys_down = _keys_down = []
-window.active_combos = _active_combos = []
+_keys_down = []
+_active_combos = []
 _prevent_capture = false
 _event_classname = "keypress_events"
 _metakey = "ctrl"
@@ -240,7 +243,7 @@ _add_key_to_sequence = (key, e) ->
     sequence_combos = _get_possible_sequences()
     if sequence_combos.length
         for combo in sequence_combos
-            _prevent_default e, not combo.allow_default
+            _prevent_default e, combo.prevent_default
         # If we're working towards one, give them more time to keep going
         clearTimeout(_sequence_timer) if _sequence_timer
         _sequence_timer = setTimeout ->
@@ -309,7 +312,7 @@ _handle_combo_down = (combo, key, e) ->
     # Make sure we're not trying to fire for a combo that already fired
     return false unless key in combo.keys
 
-    _prevent_default e, (combo and !combo.allow_default)
+    _prevent_default e, (combo and combo.prevent_default)
 
     # If we've already pressed this key, check that we want to fire
     # again, otherwise just add it to the keys_down list.
@@ -363,7 +366,7 @@ _key_down = (key, e) ->
     potential_combos = _get_potential_combos key
     if potential_combos.length
         for potential in potential_combos
-            _prevent_default e, !potential.allow_default
+            _prevent_default e, potential.prevent_default
 
     if key not in _keys_down
         _keys_down.push key
@@ -525,6 +528,24 @@ _change_keycodes_by_browser = ->
         _keycode_dictionary["17"] = "cmd"
     return
 
+_bind_key_events = ->
+    document.body.onkeydown = (e) ->
+        _receive_input e, true
+        _bug_catcher e
+    document.body.onkeyup = (e) ->
+        _receive_input e, false
+    window.onblur = ->
+        # Assume all keys are released when we can't catch key events
+        # This prevents alt+tab conflicts
+        for key in _keys_down
+            _key_up key, {}
+        _keys_down = []
+        _valid_combos = []
+
+_init = ->
+    _decide_meta_key()
+    _change_keycodes_by_browser()
+
 ###########################
 # Public object and methods
 ###########################
@@ -533,42 +554,31 @@ window.keypress = {}
 keypress.force_event_defaults = false
 keypress.suppress_event_defaults = false
 
-keypress.init = ()->
-    # Let us reset by calling init again
-    if _ready
-        _registered_combos = []
-        return
-    
-    _decide_meta_key()
-    _change_keycodes_by_browser()
-    document.body.onkeydown = (e) ->
-        _receive_input e, true
-        _bug_catcher e
-    document.body.onkeyup = (e) ->
-        _receive_input e, false
-    window.onblur = ->
-        # This prevents alt+tab conflicts
-        _keys_down = []
-        _valid_combos = []
-    _ready = true
+keypress.reset = () ->
+    _registered_combos = []
+    return
 
-keypress.combo = (keys, callback, allow_default=false) ->
+keypress.combo = (keys, callback, prevent_default=false) ->
     # Shortcut for simple combos.
     keypress.register_combo(
         keys            : keys
         on_keydown      : callback
-        allow_default   : allow_default
+        prevent_default : prevent_default
     )
 
-keypress.keyup_combo = (keys, callback, allow_default=false) ->
+###
+Deprecated?
+
+keypress.keyup_combo = (keys, callback, prevent_default=false) ->
     keypress.register_combo(
         keys            : keys
         on_keyup        : callback
         is_exclusive    : true
-        allow_default   : allow_default
+        prevent_default : prevent_default
     )
+###
 
-keypress.counting_combo = (keys, count_callback, release_callback, allow_default=false) ->
+keypress.counting_combo = (keys, count_callback, release_callback, prevent_default=false) ->
     # Shortcut for counting combos
     keypress.register_combo(
         keys            : keys
@@ -576,15 +586,15 @@ keypress.counting_combo = (keys, count_callback, release_callback, allow_default
         is_ordered      : true
         on_keydown      : count_callback
         on_release      : release_callback
-        allow_default   : allow_default
+        prevent_default : prevent_default
     )
 
-keypress.sequence = (keys, callback, allow_default=false) ->
+keypress.sequence_combo = (keys, callback, prevent_default=false) ->
     keypress.register_combo(
         keys            : keys
         on_keydown      : callback
         is_sequence     : true
-        allow_default   : allow_default
+        prevent_default : prevent_default
     )
 
 keypress.register_combo = (combo) ->
@@ -767,3 +777,18 @@ for _, key of _keycode_dictionary
     _valid_keys.push key
 for _, key of _keycode_shifted_keys
     _valid_keys.push key
+
+############################
+# Initialize, bind on ready
+############################
+_init()
+
+_ready = (callback) ->
+    if /in/.test document.readyState
+        setTimeout ->
+            _ready callback
+        , 9
+    else
+        callback()
+
+_ready _bind_key_events

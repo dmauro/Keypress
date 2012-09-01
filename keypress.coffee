@@ -20,7 +20,6 @@ version 1.0.0
 ###
 
 ###
-
 Options available and defaults:
     keys            : []            - An array of the keys pressed together to activate combo
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
@@ -451,15 +450,6 @@ _validate_combo = (combo) ->
         unless key in _valid_keys
             _log_error "Do not recognize the key \"#{key}\""
             return false
-
-    # Make sure the combo isn't already registered
-    ###
-    for registered_combo in _registered_combos
-        if _compare_arrays combo.keys, registered_combo.keys
-            _log_error "Warning: we're overwriting another combo", combo.keys
-            _unregister_combo registered_combo
-            break
-    ###
 
     # We can only allow a single non-modifier key
     # in combos that include the command key (this

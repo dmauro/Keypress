@@ -5,6 +5,16 @@
     @include box-sizing(border-box);
 }
 
+a,
+a:visited {
+    font-weight:bold;
+    color:#29abe2 * 0.75;
+
+    &:hover {
+        color:#29abe2 * 0.5;
+    }
+}
+
 .clearfix {
     @include clearfix();
 }
@@ -19,6 +29,26 @@ h1 {
     font-size:1.8em;
     font-weight:normal;
     color:#333;
+}
+
+.dmauro {
+    float:right;
+    position:relative;
+    width:482px;
+    height:95px;
+    right:0;
+    background:url(../img/dmauro_bg.png);
+
+    p {
+        position:absolute;
+        left:210px;
+        bottom:3px;
+        font-family:"MuseoSlab";
+        font-size:1.4em;
+        font-weight:normal;
+        color:#000;
+        text-shadow:0 1px 0 rgba(#fff, 0.5);
+    }
 }
 
 body {
@@ -55,8 +85,8 @@ body {
     }
 }
 
-body > .fixed_width_wrapper,
-body > header hgroup {
+.fixed_width_wrapper {
+    position:relative;
     width:1080px;
     margin:0 auto;
     padding:0 20px;
@@ -252,6 +282,7 @@ body > header hgroup {
 
 .examples,
 .overview,
+.get_keypress,
 .documentation {
     > h1 {
         margin-bottom:0.5em;
@@ -261,12 +292,70 @@ body > header hgroup {
         &.pink { border-bottom:3px solid #FF0089; }
         &.lime { border-bottom:3px solid #aade00; }
         &.orange { border-bottom:3px solid #ff7914; }
-        &.blue { border-bottom:3px solid #3053de; }
+        &.blue { border-bottom:3px solid #63B3E0; }
     }
 
     p {
         font-size:1.6em;
         clear:both;
+
+        img {
+            float:left;
+            margin-right:1em;
+        }
+    }
+}
+
+.get_keypress {
+    float:right;
+    width:512px;
+}
+
+.github_wrapper {
+    clear:left;
+    padding:10px;
+    background:#fff;
+    @include border-radius(5px);
+
+    a {
+        text-decoration:none;
+    }
+
+    img {
+        margin-right:15px;
+    }
+
+    .github_style {
+        position:relative;
+        display:inline-block;
+        border:1px solid #ddd;
+        border-bottom-color:#bbb;
+        padding:9px 15px;
+        font-family:Helvetica, arial, freesans, clean, sans-serif;
+        font-size:12px;
+        font-weight:bold;
+        color:#666;
+        text-shadow:0 1px rgba(#fff, 0.9);
+        cursor:pointer;
+        @include border-radius(3px);
+        @include box-shadow(0 1px 3px rgba(#000, 0.1));
+        @include bg-linear-gradient((-90deg, whiteSmoke 0%, #e5e5e5 100%));
+
+        &:hover {
+            color:#337797;
+            border:1px solid #CBE3EE;
+            border-bottom-color:#97C7DD;
+            @include bg-linear-gradient((-90deg, #F0F7FA 0%, #D8EAF2 100%));
+        }
+
+        &:active {
+            border:1px solid #2A65A0;
+            border-bottom-color:#0770A0;
+            color:#fff;
+            text-shadow:0 -1px 0 rgba(#000, 0.3);
+            @include bg-linear-gradient((-90deg, #0770A0 0%, #0CA6DD 100%));
+            @include box-shadow(0 1px 3px 0 rgba(#000, 0.1));
+        }
     }
 }
 
@@ -274,8 +363,9 @@ $example_border_color:#C3D2D5;
 
 .examples {
     float:right;
+    clear:right;
     width:512px;
-    margin-top:3.7em;
+    margin-top:1em;
 
     .example_window {
         clear:both;
@@ -319,6 +409,7 @@ $example_border_color:#C3D2D5;
                 border:1px solid #bbb;
                 padding:0.25em 6em 0.25em 0.75em;
                 color:#222;
+                font-weight:normal;
                 font-size:1.6em;
                 cursor:pointer;
                 text-shadow:0 1px 0 rgba(#fff, 0.5);
@@ -349,7 +440,7 @@ $example_border_color:#C3D2D5;
                 }
 
                 &.active {
-                    color:#219CBB;
+                    color:#25678D;
                     @include bg-linear-gradient((90deg, #ddd 0%, #ccc 100%));
                     @include box-shadow((inset 1px 1px 0 0 rgba(#000, 0.05), inset -1px -1px 0 0 rgba(#fff, 0.5)));
 
@@ -534,7 +625,7 @@ $example_border_color:#C3D2D5;
     }
 }
 
-#sequential_combo {
+#sequence_combo {
     span.highlight {
         background:yellow;
     }

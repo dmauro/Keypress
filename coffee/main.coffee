@@ -128,19 +128,19 @@ demo_4.combos = [
     prevent_default : true
     is_sequence     : true
     on_keydown      : ->
-        demo_4.highlight $('#sequential_combo span.key')
+        demo_4.highlight $('#sequence_combo span.key')
 ,
     keys            : "k e y p r e s s"
     prevent_default : true
     is_sequence     : true
     on_keydown      : ->
-        demo_4.highlight $('#sequential_combo span.keypress')
+        demo_4.highlight $('#sequence_combo span.keypress')
 ,
     keys            : "shift j a v a shift s c r i p t"
     prevent_default : true
     is_sequence     : true
     on_keydown      : ->
-        demo_4.highlight $('#sequential_combo span.javascript')
+        demo_4.highlight $('#sequence_combo span.javascript')
 ,
     keys            : "down right x"
     prevent_default : true

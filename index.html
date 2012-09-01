@@ -8,11 +8,19 @@
 </head>
 <body>
     <header>
-        <hgroup>
-            <h1>Keypress</h1>
-            <!--<h2>A robust Javascript library for capturing keyboard input</h2>-->
-            <h2>Hi! this project isn't quite ready, please come back soon!</h2>
-        </hgroup>
+        <div class="fixed_width_wrapper">
+            <hgroup>
+                <h1>Keypress</h1>
+                <h2>A robust Javascript library for capturing keyboard input</h2>
+            </hgroup>
+            <a href="http://dmauro.com">
+                <div class="dmauro">
+                    <p>
+                        © David Mauro 2012
+                    </p>
+                </div>
+            </a>
+        </div>
     </header>
     <div class="fixed_width_wrapper">
         <div class="keyboard">
@@ -152,6 +160,50 @@
             </section>
         </div>
         <div class="clearfix">
+            <div class="overview">
+                <h1 class="pink">Why this input library?</h1>
+                <p>
+                    Keypress is an input capture library with some very special features,
+                    it is easy to pick up and use, has a reasonable footprint (~9kb),
+                    and has no dependencies.
+                    <br><br>
+                    Here's some of what Keypress offers:
+                </p>
+                <ul>
+                    <li><a class="demo_link" data-demo="demo_1">Fire on keyup and/or keydown</a></li>
+                    <li><a class="demo_link" data-demo="demo_2">Any key can serve as a modifier</a></li>
+                    <li><a class="demo_link" data-demo="demo_3">Special "counting" combos</a></li>
+                    <li><a class="demo_link" data-demo="demo_4">Sequence combos</a></li>
+                    <li><a class="demo_link" data-demo="demo_5">Other features...</a></li>
+                </ul>
+
+                <h1 class="lime">Why NOT use Keypress?</h1>
+                <p>
+                    I have tried to make this very easy to use even for simple
+                    keyboard shortcuts, but if you don't need the more advanced
+                    features, you might be better of with some of the
+                    simpler solutions out there. The API is subject to change as
+                    I get feedback, so if you're after stability, this might not be
+                    for you just yet.
+                </p>
+            </div>
+
+            <div class="get_keypress">
+                <h1 class="blue">Download Keypress</h1>
+                <div class="github_wrapper">
+                    <img src="img/github_logo.png" width="77" height="34">
+                    <a href="https://github.com/dmauro/Keypress/zipball/master">
+                        <button class="github_style">Download as zip</button>
+                    </a>
+                    <a href="https://github.com/dmauro/Keypress/tarball/master">
+                        <button class="github_style">Download as tar.gz</button>
+                    </a>
+                    <a href="https://github.com/dmauro/Keypress/">
+                        <button class="github_style">Fork on Github</button>
+                    </a>
+                </div>
+            </div>
+
             <div class="examples">
                 <div class="example_window">
                     <div class="demo" data-demo="demo_1">
@@ -277,13 +329,13 @@
                         </p>
                     </div>
                     <div class="demo" data-demo="demo_4">
-                        <h2>Sequential Combos</h2>
+                        <h2>Sequence Combos</h2>
                         <p>
-                            Sequential combos are great if you want to hide an easter egg or some kind of
-                            cheat code. You can have multiple sequential combos without worrying about
+                            Sequence combos are great if you want to hide an easter egg or some kind of
+                            cheat code. You can have multiple sequence combos without worrying about
                             collisions (if one combo contained another for instance, they would both fire).
                         </p>
-                        <p id="sequential_combo">
+                        <p id="sequence_combo">
                             Write the word
                             '<strong><span class="keypress"><span class="key">key</span>press</span></strong>'
                             and the word '<strong><span class="javascript">JavaScript</span></strong>'
@@ -324,31 +376,6 @@
                         </p>
                     </div>
                 </div>
-            </div>
-            <div class="overview">
-                <h1 class="pink">Why this input library?</h1>
-                <p>
-                    Keypress is a very robust library with some very special features,
-                    it is easy to pick up and use, has a reasonable footprint (~9kb),
-                    and has no dependencies. Here's some of what Keypress offers:
-                </p>
-                <ul>
-                    <li><a class="demo_link" data-demo="demo_1">Fire on keyup and/or keydown</a></li>
-                    <li><a class="demo_link" data-demo="demo_2">Any key can serve as a modifier</a></li>
-                    <li><a class="demo_link" data-demo="demo_3">Special "counting" combos</a></li>
-                    <li><a class="demo_link" data-demo="demo_4">Sequential combos</a></li>
-                    <li><a class="demo_link" data-demo="demo_5">Other features...</a></li>
-                </ul>
-
-                <h1 class="lime">Why NOT use Keypress?</h1>
-                <p>
-                    I have tried to make this very easy to use even for simple
-                    keyboard shortcuts, but if you don't need more advanced combos
-                    such as for a game, you might be better of with some of the
-                    simpler solutions out there. The API is subject to change as
-                    I get feedback, so if you're after stability, this might not be
-                    for you just yet.
-                </p>
             </div>
         </div>
         <div class="documentation">
@@ -428,7 +455,7 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                 </li>
                 <li>
                     <strong>is_sequence:</strong> Setting this to true will make the combo a
-                    sequential combo as described above.
+                    sequence combo as described above.
                 </li>
                 <li>
                     <strong>is_exclusive:</strong> Normally when pressing a key, any and all combos
@@ -533,7 +560,8 @@ keypress.reset();</code></pre>
             <h1 class="lime">Thanks!</h1>
             <p>
                 Any feedback is appreciated, and if you are using this library, I'd love to hear
-                about it so I can brag about it and give a shout out here on this page.
+                about it so I can brag about it and give a shout out here on this page. Contact me
+                on twitter as <a href="http://twitter.com/dmaurolizer">@dmaurolizer</a>.
             </p>
         </div>
     </div>

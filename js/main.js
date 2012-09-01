@@ -158,21 +158,21 @@
       prevent_default: true,
       is_sequence: true,
       on_keydown: function() {
-        return demo_4.highlight($('#sequential_combo span.key'));
+        return demo_4.highlight($('#sequence_combo span.key'));
       }
     }, {
       keys: "k e y p r e s s",
       prevent_default: true,
       is_sequence: true,
       on_keydown: function() {
-        return demo_4.highlight($('#sequential_combo span.keypress'));
+        return demo_4.highlight($('#sequence_combo span.keypress'));
       }
     }, {
       keys: "shift j a v a shift s c r i p t",
       prevent_default: true,
       is_sequence: true,
       on_keydown: function() {
-        return demo_4.highlight($('#sequential_combo span.javascript'));
+        return demo_4.highlight($('#sequence_combo span.javascript'));
       }
     }, {
       keys: "down right x",

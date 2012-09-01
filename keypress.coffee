@@ -31,7 +31,7 @@ Options available and defaults:
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
     on_keyup        : null          - A function that is called when the combo is released
     on_keydown      : null          - A function that is called when the combo is pressed.
-    on_release      : null          - A function that is called for counting combos when all keys are released.
+    on_release      : null          - A function that is called hen all keys are released.
     this            : undefined     - The scope for this of your callback functions
 ###
 
@@ -522,26 +522,13 @@ keypress.combo = (keys, callback, prevent_default=false) ->
         prevent_default : prevent_default
     )
 
-###
-Deprecated?
-
-keypress.keyup_combo = (keys, callback, prevent_default=false) ->
-    keypress.register_combo(
-        keys            : keys
-        on_keyup        : callback
-        is_exclusive    : true
-        prevent_default : prevent_default
-    )
-###
-
-keypress.counting_combo = (keys, count_callback, release_callback, prevent_default=false) ->
+keypress.counting_combo = (keys, count_callback, prevent_default=false) ->
     # Shortcut for counting combos
     keypress.register_combo(
         keys            : keys
         is_counting     : true
         is_ordered      : true
         on_keydown      : count_callback
-        on_release      : release_callback
         prevent_default : prevent_default
     )
 

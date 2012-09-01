@@ -9,4 +9,5 @@ released under the Apache License, version 2.0
 
 TODO:
     Put negative edge in sequences.
-    Check that is_exclusive works properly
+    Check that is_exclusive works properly.
+    Make ordered combos the default.

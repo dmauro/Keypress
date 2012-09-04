@@ -161,7 +161,7 @@
         </div>
         <div class="clearfix">
             <div class="overview">
-                <h1 class="pink">Why this input library?</h1>
+                <h1 class="pink">Why use Keypress?</h1>
                 <p>
                     Keypress is an input capture library with some very special features,
                     it is easy to pick up and use, has a reasonable footprint (~9kb),
@@ -382,8 +382,7 @@
             <h1 class="blue">Great! So how do I use it?</h1>
             <p>
                 Of course you'll need to include the js file in your HTML, but that's all you need
-                to do to get started. The script will initialize itself. So all that's left for you
-                to do is describe all of your key combos.
+                to do to get started. All that's left for you to do is describe all of your key combos.
             </p>
             <p>
                 The simplest way to register a combo is to use 'keypress.combo()'. The first parameter
@@ -418,24 +417,40 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
 
 <pre><code class="javascript">keypress.register_combo({
     "keys"              : null,
+    "on_keydown"        : null,
+    "on_keyup"          : null,
+    "this"              : window,
     "prevent_default"   : false,
+    "prevent_repeat"    : false,
     "is_ordered"        : false,
     "is_counting"       : false,
     "is_sequence"       : false,
-    "is_exclusive"      : false,
-    "prevent_repeat"    : false,
-    "on_keydown"        : null,
-    "on_keyup"          : null,
-    "this"              : window
+    "is_exclusive"      : false
 });</code></pre>
             <ul>
                 <li>
-                    <strong>keys:</strong> This option can be either an array of strings,
+                    <strong class="group_1">keys:</strong> This option can be either an array of strings,
                     or a single space separated string of key names that describe the
                     keys that make up the combo.
                 </li>
                 <li>
-                    <strong>prevent_default:</strong> While you can either return false in
+                    <strong class="group_2">on_keydown:</strong> This is a function that gets called everytime
+                    the keydown event for our combo is fired. We pass this two arguments: the
+                    keydown event that triggered it, and an integer representing the number of
+                    times the combo has been pressed (this will be 0 unless it is a counting
+                    combo).
+                </li>
+                <li>
+                    <strong class="group_2">on_keyup:</strong> Same as above but for keyup. This only receives
+                    the keyup event and does not receive the second 'count' argument. This will
+                    only be called the first time you release one of the component keys of the combo.
+                </li>
+                <li>
+                    <strong class="group_2">this:</strong> By default our callbacks will be called with 'this'
+                    set to window, but we can specify the scope with this option.
+                </li>
+                <li>
+                    <strong class="group_3">prevent_default:</strong> While you can either return false in
                     your callback or use event.preventDefault() to prevent the default
                     browser behavior for a combo, this option will prevent the default
                     browser behavior for all keypresses that are part of a combo. What this
@@ -443,47 +458,31 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     and 's' will independantly preventDefault when pressed.
                 </li>
                 <li>
-                    <strong>is_ordered:</strong> This option allows us to force the order in
+                    <strong class="group_3">prevent_repeat:</strong> Normally the on_keydown callback will be
+                    called as fast as your browser fires the keydown event, but by setting this
+                    option to true, the on_keydown callback will only be called the first time.
+                </li>
+                <li>
+                    <strong class="group_4">is_ordered:</strong> This option allows us to force the order in
                     which the user presses the keys to activate the combo. The combo
                     "shift s" will normally activate even if the user presses 's' first, then
                     presses 'shift' while still holding down 's'. Setting this option to true
                     will force the user to press the keys in the order described in the keys option.
                 </li>
                 <li>
-                    <strong>is_counting:</strong> Setting this to true will make the combo a
+                    <strong class="group_4">is_counting:</strong> Setting this to true will make the combo a
                     counting combo as described above.
                 </li>
                 <li>
-                    <strong>is_sequence:</strong> Setting this to true will make the combo a
+                    <strong class="group_4">is_sequence:</strong> Setting this to true will make the combo a
                     sequence combo as described above.
                 </li>
                 <li>
-                    <strong>is_exclusive:</strong> Normally when pressing a key, any and all combos
+                    <strong class="group_4">is_exclusive:</strong> Normally when pressing a key, any and all combos
                     that match will have their callbacks called. For instance, pressing 'shift' and
                     then 's' would activate the following combos if they existed: "shift", "shift s"
                     and "s". When we set is_exclusive to true, we will not call the callbacks for
                     any combos that are also exclusive and less specific.
-                </li>
-                <li>
-                    <strong>prevent_repeat:</strong> Normally the on_keydown callback will be
-                    called as fast as your browser fires the keydown event, but by setting this
-                    option to true, the on_keydown callback will only be called the first time.
-                </li>
-                <li>
-                    <strong>on_keydown:</strong> This is a function that gets called everytime
-                    the keydown event for our combo is fired. We pass this two arguments: the
-                    keydown event that triggered it, and an integer representing the number of
-                    times the combo has been pressed (this will be 0 unless it is a counting
-                    combo).
-                </li>
-                <li>
-                    <strong>on_keyup:</strong> Same as above but for keyup. This only receives
-                    the keyup event and does not receive the second 'count' argument. This will
-                    only be called the first time you release one of the component keys of the combo.
-                </li>
-                <li>
-                    <strong>this:</strong> By default our callbacks will be called with 'this'
-                    set to window, but we can specify the scope with this option.
                 </li>
             </ul>
 
@@ -544,7 +543,12 @@ keypress.reset();</code></pre>
     .bind("blur", keypress.listen);</code></pre>
 
             <br>
-            <h1 class="pink">A few notes</h1>
+            <h1 class="pink">A few notes on usage</h1>
+            <p>
+                If you want to make a shortcut to override default behavior such as saving, you should
+                use the "meta" key instead of specifically using "ctrl" or "cmd". This "meta" key
+                will become "ctrl" or "cmd" appropriately depending on the user's system.
+            </p>
             <p>
                 Non-modifier keys do not ever fire a keyup event when the command key is
                 held down, so we manually force a keyup event immediately after keydown is received.
@@ -553,9 +557,20 @@ keypress.reset();</code></pre>
                 "option", "ctrl", "shift", and "cmd".
             </p>
             <p>
-                If you want to make a shortcut to override default behavior such as saving, you should
-                use the "meta" key instead of specifically using "ctrl" or "cmd". This "meta" key
-                will become "ctrl" or "cmd" appropriately depending on the user's system.
+                Some keys have unreliable support and should mostly be avoided. Print, Scroll Lock,
+                Pause/Break, and Insert have unreliable keyup or keydown firing in Windows or OS X, so
+                I suggest avoiding them, although Keypress does still allow them.
+            </p>
+            <p>
+                The numpad keys should also be used with caution since you can't always count on the user
+                having a numpad, and browser support for the numpad keys is not standardized. The numpad
+                keys have to be specified manually with "num_" preceeding the key name. If you used a "."
+                in your combo, for instance, it would assume a period and not a decimal (which would be 
+                "num_decimal").
+            </p>
+            <p>
+                For a full list of the key names, you should refer to the
+                <a href="https://github.com/dmauro/Keypress/blob/master/keypress.coffee#L584-717">source code</a>.
             </p>
             <h1 class="lime">Thanks!</h1>
             <p>

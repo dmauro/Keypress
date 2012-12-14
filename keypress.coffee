@@ -70,6 +70,8 @@ _prevent_default = (e, should_prevent) ->
     # one, we should prevent the default keydown event.
     if (should_prevent or keypress.suppress_event_defaults) and not keypress.force_event_defaults
         e.preventDefault()
+        if e.stopPropagation
+            e.stopPropagation()
 
 _allow_key_repeat = (combo) ->
     return false if combo.prevent_repeat

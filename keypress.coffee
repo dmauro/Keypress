@@ -490,9 +490,11 @@ _change_keycodes_by_browser = ->
 
 _bind_key_events = ->
     document.body.onkeydown = (e) ->
+        e = e || window.event
         _receive_input e, true
         _bug_catcher e
     document.body.onkeyup = (e) ->
+        e = e || window.event
         _receive_input e, false
     window.onblur = ->
         # Assume all keys are released when we can't catch key events

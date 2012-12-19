@@ -35,6 +35,14 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
+# Extending Array's prototype
+unless Array::filter
+  Array::filter = (callback) ->
+    element for element in this when callback(element)
+
+
+
+
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
@@ -69,7 +77,12 @@ _prevent_default = (e, should_prevent) ->
     # If we've pressed a combo, or if we are working towards
     # one, we should prevent the default keydown event.
     if (should_prevent or keypress.suppress_event_defaults) and not keypress.force_event_defaults
-        e.preventDefault()
+        
+        if e.preventDefault
+    	    e.preventDefault()
+		else
+		    e.returnValue = false
+		  
         if e.stopPropagation
             e.stopPropagation()
 

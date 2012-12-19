@@ -78,11 +78,8 @@ _prevent_default = (e, should_prevent) ->
     # one, we should prevent the default keydown event.
     if (should_prevent or keypress.suppress_event_defaults) and not keypress.force_event_defaults
         
-        if e.preventDefault
-    	    e.preventDefault()
-		else
-		    e.returnValue = false
-		  
+        if e.preventDefault then e.preventDefault() else e.returnValue = false	  
+        
         if e.stopPropagation
             e.stopPropagation()
 

@@ -35,6 +35,14 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
+# Extending Array's prototype
+unless Array::filter
+  Array::filter = (callback) ->
+    element for element in this when callback(element)
+
+
+
+
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
@@ -69,7 +77,9 @@ _prevent_default = (e, should_prevent) ->
     # If we've pressed a combo, or if we are working towards
     # one, we should prevent the default keydown event.
     if (should_prevent or keypress.suppress_event_defaults) and not keypress.force_event_defaults
-        e.preventDefault()
+        
+        if e.preventDefault then e.preventDefault() else e.returnValue = false	  
+        
         if e.stopPropagation
             e.stopPropagation()
 
@@ -415,7 +425,8 @@ _receive_input = (e, is_keydown) ->
     # Catch tabbing out of a non-capturing state
     if !is_keydown and !_keys_down.length
         return
-    key = _convert_key_to_readable e.keyCode
+    keyCode = if (window.event) then window.event.keyCode else e.keyCode
+    key = _convert_key_to_readable keyCode
     return unless key
     if is_keydown
         _key_down key, e
@@ -474,7 +485,8 @@ _decide_meta_key = ->
 
 _bug_catcher = (e) ->
     # Force a keyup for non-modifier keys when command is held because they don't fire
-    if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
+    keyCode = if (window.event) then window.event.keyCode else e.keyCode
+    if "cmd" in _keys_down and _convert_key_to_readable(keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
         _receive_input e, false
 
 _change_keycodes_by_browser = ->
@@ -488,9 +500,11 @@ _change_keycodes_by_browser = ->
 
 _bind_key_events = ->
     document.body.onkeydown = (e) ->
+        e = e || window.event
         _receive_input e, true
         _bug_catcher e
     document.body.onkeyup = (e) ->
+        e = e || window.event
         _receive_input e, false
     window.onblur = ->
         # Assume all keys are released when we can't catch key events

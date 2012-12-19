@@ -415,7 +415,7 @@ _receive_input = (e, is_keydown) ->
     # Catch tabbing out of a non-capturing state
     if !is_keydown and !_keys_down.length
         return
-    keyCode = (window.event) ? window.event.keyCode : e.keyCode;
+    keyCode = (window.event) ? window.event.keyCode : e.keyCode
     key = _convert_key_to_readable keyCode
     return unless key
     if is_keydown
@@ -475,7 +475,7 @@ _decide_meta_key = ->
 
 _bug_catcher = (e) ->
     # Force a keyup for non-modifier keys when command is held because they don't fire
-    keyCode = (window.event) ? window.event.keyCode : e.keyCode;
+    keyCode = (window.event) ? window.event.keyCode : e.keyCode
     if "cmd" in _keys_down and _convert_key_to_readable(keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
         _receive_input e, false
 

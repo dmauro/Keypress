@@ -735,7 +735,7 @@ for _, key of _keycode_shifted_keys
 _init()
 
 _ready = (callback) ->
-    if /in/.test document.readyState
+    if /loading/.test document.readyState
         setTimeout ->
             _ready callback
         , 9

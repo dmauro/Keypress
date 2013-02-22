@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.2
+version 1.0.3
 ###
 
 ###
@@ -219,7 +219,7 @@ _add_key_to_sequence = (key, e) ->
         clearTimeout(_sequence_timer) if _sequence_timer
         _sequence_timer = setTimeout ->
             _sequence = []
-        , 800
+        , keypress.sequence_delay
     else
         # If we're not working towards something, just clear it out
         _sequence = []
@@ -517,6 +517,7 @@ window.keypress = {}
 
 keypress.force_event_defaults = false
 keypress.suppress_event_defaults = false
+keypress.sequence_delay = 800
 
 keypress.reset = () ->
     _registered_combos = []

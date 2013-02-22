@@ -217,9 +217,10 @@ _add_key_to_sequence = (key, e) ->
             _prevent_default e, combo.prevent_default
         # If we're working towards one, give them more time to keep going
         clearTimeout(_sequence_timer) if _sequence_timer
-        _sequence_timer = setTimeout ->
-            _sequence = []
-        , keypress.sequence_delay
+        if keypress.sequence_delay > -1
+            _sequence_timer = setTimeout ->
+                _sequence = []
+            , keypress.sequence_delay
     else
         # If we're not working towards something, just clear it out
         _sequence = []

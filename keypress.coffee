@@ -384,7 +384,6 @@ _key_up = (key, e) ->
             _keys_down.splice i, 1
             break
 
-
     # Store this for later cleanup
     active_combos_length = _active_combos.length
 
@@ -517,6 +516,10 @@ window.keypress = {}
 keypress.force_event_defaults = false
 keypress.suppress_event_defaults = false
 keypress.sequence_delay = 800
+
+
+keypress.get_registered_combos = ->
+    return _registered_combos
 
 keypress.reset = () ->
     _registered_combos = []

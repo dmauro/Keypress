@@ -319,13 +319,11 @@ _key_down = (key, e) ->
     # This only works for explicit modifier keys.
     for mod, event_mod of _modifier_event_mapping
         continue unless e[event_mod]
-        mod = _metakey if mod is "meta"
         continue if mod is key or mod in _keys_down
         _keys_down.push mod
     # Alternatively, we might not have modifier keys down
     # that we think are, so we should catch those too
     for mod, event_mod of _modifier_event_mapping
-        mod = _metakey if mod is "meta"
         continue if mod is key
         if mod in _keys_down and not e[event_mod]
             for i in [0..._keys_down.length]
@@ -586,7 +584,7 @@ _convert_key_to_readable = (k) ->
     return _keycode_dictionary[k]
 
 _modifier_event_mapping =
-    "meta"  : "metaKey"
+    "cmd"   : "metaKey"
     "ctrl"  : "ctrlKey"
     "shift" : "shiftKey"
     "alt"   : "altKey"
@@ -721,6 +719,7 @@ _keycode_dictionary =
     220 : "\\"
     221 : "]"
     222 : "\'"
+    223 : "`"
     224 : "cmd"
     # Opera weirdness
     57392   : "ctrl"

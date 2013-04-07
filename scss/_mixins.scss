@@ -69,7 +69,6 @@
     background-image: -webkit-linear-gradient($gradients);
     background-image: -o-linear-gradient($gradients);
     background-image: -ms-linear-gradient($gradients);
-    background-image: linear-gradient($gradients);
     @if $ie {
         $grad_type: 0;
         /* Do our best to approximate veritcal and horizontal */

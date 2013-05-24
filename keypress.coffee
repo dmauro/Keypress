@@ -739,11 +739,11 @@ for _, key of _keycode_shifted_keys
 _init()
 
 _ready = (callback) ->
-    if /loading/.test document.readyState
+    if ((if document.attachEvent then document.readyState is "complete" else document.readyState isnt "loading"))
+        callback()
+    else
         setTimeout ->
             _ready callback
         , 9
-    else
-        callback()
 
 _ready _bind_key_events

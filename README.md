@@ -14,3 +14,4 @@ TODO:
     Add is_solitary property.
     Put negative edge in sequences.
     Check that is_exclusive works properly.
+    BUGHUNT: Shift + diagonal in "Arbitrary Modifiers" example breaks

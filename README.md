@@ -9,6 +9,8 @@ Copyright 2012 David Mauro
 released under the Apache License, version 2.0
 
 TODO:
+    Make ordered combos the default.
+    Find a good testing solution.
+    Add is_solitary property.
     Put negative edge in sequences.
     Check that is_exclusive works properly.
-    Make ordered combos the default.

@@ -1,4 +1,4 @@
 *.DS_Store
 *.scssc
-*.sh
-compiler.jar
+watch_coffee.sh
+watch_sass.sh

@@ -127,18 +127,18 @@ _get_active_combos = (key) ->
     # combo in registered_combos matches exactly.
     # This will return an array of active combos
 
-    potentials = []
+    active_combos = []
 
     # First check that every key in keys_down maps to a combo
     keys_down = _keys_down.filter (down_key) ->
         down_key isnt key
     keys_down.push key
     perfect_matches = _match_combo_arrays keys_down, _registered_combos
-    potentials = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
+    active_combos = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
 
     is_exclusive = false
-    for potential in potentials
-        is_exclusive = true if potential.is_exclusive
+    for active_combo in active_combos
+        is_exclusive = true if active_combo.is_exclusive
 
     # Then work our way back through a combination with each other key down in order
     # This will match a combo even if some other key that is not part of the combo
@@ -151,13 +151,13 @@ _get_active_combos = (key) ->
             continue unless partial.length
             fuzzy_matches = _match_combo_arrays partial, _registered_combos
             for fuzzy_match in fuzzy_matches
-                potentials.push(fuzzy_match) unless is_exclusive and fuzzy_match.is_exclusive
+                active_combos.push(fuzzy_match) unless is_exclusive and fuzzy_match.is_exclusive
             slice_up_array partial
         return
     slice_up_array keys_down
 
     # Trying to return an array of matched combos
-    return potentials
+    return active_combos
 
 _get_potential_combos = (key) ->
     # Check if we are working towards pressing a combo.

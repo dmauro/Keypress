@@ -15,3 +15,4 @@ TODO:
     Put negative edge in sequences.
     Check that is_exclusive works properly.
     BUGHUNT: Shift + diagonal in "Arbitrary Modifiers" example breaks
+    Document the "on_release" callback

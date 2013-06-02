@@ -92,10 +92,7 @@ _keys_remain = (combo) ->
 _fire = (event, combo, key_event) ->
     # Only fire this event if the function is defined
     if typeof combo["on_" + event] is "function"
-        if event is "release"
-            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
-        else
-            _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
+        _prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) is false)
     # We need to mark that keyup has already happened
     if event is "release"
         combo.count = 0

@@ -144,6 +144,7 @@ _get_active_combos = (key) ->
     # This will match a combo even if some other key that is not part of the combo
     # is being held down.
     slice_up_array = (array) ->
+        return unless array.length > 1
         for i in [0...array.length]
             partial = array.slice()
             partial.splice i, 1

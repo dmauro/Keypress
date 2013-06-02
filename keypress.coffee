@@ -46,7 +46,6 @@ _sequence_timer = null
 _keys_down = []
 _active_combos = []
 _prevent_capture = false
-_event_classname = "keypress_events"
 _metakey = "ctrl"
 _modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"]
 _valid_keys = []

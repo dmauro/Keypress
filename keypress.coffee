@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.5
+version 1.0.6
 ###
 
 ###
@@ -99,17 +99,17 @@ _fire = (event, combo, key_event) ->
     if event is "keyup"
         combo.keyup_fired = true
 
-_match_combo_arrays = (potential_match, source_combo_array, allow_partial_match=false) ->
+_match_combo_arrays = (potential_match, source_combo_array) ->
     # This will return all combos that match
     matches = []
     for source_combo in source_combo_array
         continue if source_combo_array.is_sequence
         if source_combo.is_ordered
-            matches.push(source_combo) if potential_match.join("") is source_combo.keys.join("")
-            matches.push(source_combo) if allow_partial_match and potential_match.join("") is source_combo.keys.slice(0, potential_match.length).join("")
+            if potential_match.join("") is source_combo.keys.join("")
+                matches.push source_combo
         else
-            matches.push(source_combo) if _compare_arrays potential_match, source_combo.keys
-            matches.push(source_combo) if allow_partial_match and _compare_arrays potential_match, source_combo.keys.slice(0, potential_match.length)
+            if _compare_arrays potential_match, source_combo.keys
+                matches.push source_combo
     return matches
 
 _cmd_bug_check = (combo_keys) ->
@@ -124,7 +124,7 @@ _cmd_bug_check = (combo_keys) ->
 _get_active_combos = (key) ->
     # Based on the keys_down and the key just pressed or released
     # (which should not be in keys_down), we determine if any
-    # combo in registered_combos matches exactly.
+    # combo in registered_combos could be considered active.
     # This will return an array of active combos
 
     active_combos = []
@@ -135,10 +135,6 @@ _get_active_combos = (key) ->
     keys_down.push key
     perfect_matches = _match_combo_arrays keys_down, _registered_combos
     active_combos = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
-
-    is_exclusive = false
-    for active_combo in active_combos
-        is_exclusive = true if active_combo.is_exclusive
 
     # Then work our way back through a combination with each other key down in order
     # This will match a combo even if some other key that is not part of the combo
@@ -151,12 +147,10 @@ _get_active_combos = (key) ->
             continue unless partial.length
             fuzzy_matches = _match_combo_arrays partial, _registered_combos
             for fuzzy_match in fuzzy_matches
-                active_combos.push(fuzzy_match) unless is_exclusive and fuzzy_match.is_exclusive
+                active_combos.push fuzzy_match
             slice_up_array partial
         return
     slice_up_array keys_down
-
-    # Trying to return an array of matched combos
     return active_combos
 
 _get_potential_combos = (key) ->
@@ -170,7 +164,9 @@ _get_potential_combos = (key) ->
     return potentials
 
 _add_to_active_combos = (combo) ->
-    replaced = false
+    should_replace = false
+    should_prepend = true
+    already_replaced = false
     # An active combo is any combo which the user has already entered.
     # We use this to track when a user has released the last key of a
     # combo for on_release, and to keep combos from 'overlapping'.
@@ -181,21 +177,35 @@ _add_to_active_combos = (combo) ->
         # So compare the combo.keys to all active combos' keys.
         for i in [0..._active_combos.length]
             active_combo = _active_combos[i]
-            continue unless active_combo.is_exclusive and combo.is_exclusive
-            active_keys = active_combo.keys.slice()
-            for active_key in active_keys
-                is_match = true
-                unless active_key in combo.keys
-                    is_match = false
-                    break
-            if is_match
-                # In this case we'll just replace it
-                _active_combos.splice i, 1, combo
-                replaced = true
-                break
-    unless replaced
+            continue unless active_combo and active_combo.is_exclusive and combo.is_exclusive
+            active_keys = active_combo.keys
+
+            unless should_replace
+                for active_key in active_keys
+                    should_replace = true
+                    unless active_key in combo.keys
+                        should_replace = false
+                        break
+
+            if should_prepend and not should_replace
+                for combo_key in combo.keys
+                    should_prepend = false
+                    unless combo_key in active_keys
+                        should_prepend = true
+                        break
+
+            if should_replace
+                if already_replaced
+                    _active_combos.splice i, 1
+                else
+                    _active_combos.splice i, 1, combo
+                    already_replaced = true
+                should_prepend = false
+
+    if should_prepend
         _active_combos.unshift combo
-    return true
+
+    return should_replace or should_prepend
 
 _remove_from_active_combos = (combo) ->
     for i in [0..._active_combos.length]

@@ -27,6 +27,7 @@ Options available and defaults:
     is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
     is_counting     : false         - Makes this a counting combo (see documentation)
     is_exclusive    : false         - This combo will replace other exclusive combos when true
+    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down
     is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
     on_keyup        : null          - A function that is called when the combo is released
@@ -99,8 +100,9 @@ _fire = (event, combo, key_event) ->
     if event is "keyup"
         combo.keyup_fired = true
 
-_match_combo_arrays = (potential_match, source_combo_array) ->
+_match_combo_arrays = (potential_match) ->
     # This will return all combos that match
+    source_combo_array = _registered_combos
     matches = []
     for source_combo in source_combo_array
         continue if source_combo_array.is_sequence
@@ -133,7 +135,7 @@ _get_active_combos = (key) ->
     keys_down = _keys_down.filter (down_key) ->
         down_key isnt key
     keys_down.push key
-    perfect_matches = _match_combo_arrays keys_down, _registered_combos
+    perfect_matches = _match_combo_arrays keys_down
     active_combos = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
 
     # Then work our way back through a combination with each other key down in order
@@ -145,9 +147,9 @@ _get_active_combos = (key) ->
             partial = array.slice()
             partial.splice i, 1
             continue unless partial.length
-            fuzzy_matches = _match_combo_arrays partial, _registered_combos
+            fuzzy_matches = _match_combo_arrays partial
             for fuzzy_match in fuzzy_matches
-                active_combos.push fuzzy_match
+                active_combos.push(fuzzy_match) unless fuzzy_match.is_solitary
             slice_up_array partial
         return
     slice_up_array keys_down
@@ -349,17 +351,21 @@ _key_down = (key, e) ->
         _keys_down.push key
     return
 
-_handle_combo_up = (combo, e) ->
+_handle_combo_up = (combo, e, key) ->
     # Check if any keys from this combo are still being held.
     keys_remaining = _keys_remain combo
 
     # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
     # We don't fire those because they will fire on_release on their last key release.
     if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
-        _fire "keyup", combo, e
-        # Dont' add to the count unless we only have a keyup callback
-        if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
-            combo.count += 1 
+        # And we should not fire it if it is a solitary combo and something else is pressed
+        keys_down = _keys_down.slice()
+        keys_down.push key
+        if not combo.is_solitary or _compare_arrays keys_down, combo.keys
+            _fire "keyup", combo, e
+            # Dont' add to the count unless we only have a keyup callback
+            if combo.is_counting and typeof combo.on_keyup is "function" and typeof combo.on_keydown isnt "function"
+                combo.count += 1
 
     # If this was the last key released of the combo, clean up.
     unless keys_remaining
@@ -403,7 +409,7 @@ _key_up = (key, e) ->
         if key in active_combo.keys
             combos.push active_combo
     for combo in combos
-        _handle_combo_up combo, e
+        _handle_combo_up combo, e, key
 
     # We also need to check other combos that might still be in active_combos
     # and needs to be removed from it.

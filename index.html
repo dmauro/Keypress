@@ -424,6 +424,7 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
     "keys"              : null,
     "on_keydown"        : null,
     "on_keyup"          : null,
+    "on_release"        : null,
     "this"              : window,
     "prevent_default"   : false,
     "prevent_repeat"    : false,
@@ -431,6 +432,7 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
     "is_counting"       : false,
     "is_sequence"       : false,
     "is_exclusive"      : false
+    "is_solitary"       : false
 });</code></pre>
             <ul>
                 <li>
@@ -449,6 +451,11 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     <strong class="group_2">on_keyup:</strong> Same as above but for keyup. This only receives
                     the keyup event and does not receive the second 'count' argument. This will
                     only be called the first time you release one of the component keys of the combo.
+                </li>
+                <li>
+                    <strong class="group_2">on_release:</strong> This is similar to keyup, but will fire
+                    once when ALL of the keys of a combo have been released. If you're unsure, you probably
+                    want to ignore this and use on_keyup.
                 </li>
                 <li>
                     <strong class="group_2">this:</strong> By default our callbacks will be called with 'this'
@@ -488,6 +495,11 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     then 's' would activate the following combos if they existed: "shift", "shift s"
                     and "s". When we set is_exclusive to true, we will not call the callbacks for
                     any combos that are also exclusive and less specific.
+                </li>
+                <li>
+                    <strong class="group_4">is_solitary:</strong> This option will check that ONLY the
+                    combo's keys are being pressed when set to true. When set to the default value of false,
+                    a combo can be activated even if extraneous keys are pressed.
                 </li>
             </ul>
 

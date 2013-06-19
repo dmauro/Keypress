@@ -1,6 +1,6 @@
 Keypress
 ========
-Version 1.0.6
+Version 1.0.7
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
@@ -12,6 +12,10 @@ released under the Apache License, version 2.0
 
 **What's new**
 ---------------
+
+1.0.7
+
+* Fixed combo matching to prevent performance issues as more keys are pressed.
 
 1.0.6
 
@@ -25,4 +29,4 @@ TODO
 
 * Find a good testing solution.
 * Put negative edge in sequences.
-* Improve is_exclusive performance
+* See if we can do away with keyup_fired property

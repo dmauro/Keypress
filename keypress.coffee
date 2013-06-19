@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.6
+version 1.0.7
 ###
 
 ###
@@ -65,9 +65,32 @@ _compare_arrays = (a1, a2) ->
     for item in a1
         continue if item in a2
         return false
-    for item in a2
-        continue if item in a1
-        return false
+    return true
+
+_compare_arrays_sorted = (a1, a2) ->
+    return false unless a1.length is a2.length
+    for i in [0...a1.length]
+        return false unless a1[i] is a2[i]
+    return true
+
+_is_array_in_array = (a1, a2) ->
+    # Returns true only if all of the contents of
+    # a1 are included in a2
+    for item in a1
+        return false unless item in a2
+    return true
+
+_is_array_in_array_sorted = (a1, a2) ->
+    # Return true only if all of the contents of
+    # a1 are include in a2 and they appear in the
+    # same order in both.
+    prev = 0
+    for item in a1
+        index = a2.indexOf item
+        if index >= prev
+            prev = index
+        else
+            return false
     return true
 
 _prevent_default = (e, should_prevent) ->
@@ -100,19 +123,19 @@ _fire = (event, combo, key_event) ->
     if event is "keyup"
         combo.keyup_fired = true
 
-_match_combo_arrays = (potential_match) ->
+_match_combo_arrays = (potential_match, match_handler) ->
     # This will return all combos that match
-    source_combo_array = _registered_combos
-    matches = []
-    for source_combo in source_combo_array
-        continue if source_combo_array.is_sequence
-        if source_combo.is_ordered
-            if potential_match.join("") is source_combo.keys.join("")
-                matches.push source_combo
-        else
-            if _compare_arrays potential_match, source_combo.keys
-                matches.push source_combo
-    return matches
+    for source_combo in _registered_combos
+        if (source_combo.is_ordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (_compare_arrays(potential_match, source_combo.keys))
+            match_handler source_combo
+    return
+
+_fuzzy_match_combo_arrays = (potential_match, match_handler) ->
+    # This will return combos that match even if other keys are pressed
+    for source_combo in _registered_combos
+        if (source_combo.is_ordered and _is_array_in_array_sorted(source_combo.keys, potential_match)) or (_is_array_in_array(source_combo.keys, potential_match))
+            match_handler source_combo
+    return
 
 _cmd_bug_check = (combo_keys) ->
     # We don't want to allow combos to activate if the cmd key
@@ -135,24 +158,16 @@ _get_active_combos = (key) ->
     keys_down = _keys_down.filter (down_key) ->
         down_key isnt key
     keys_down.push key
-    perfect_matches = _match_combo_arrays keys_down
-    active_combos = perfect_matches if perfect_matches.length and _cmd_bug_check keys_down
 
-    # Then work our way back through a combination with each other key down in order
-    # This will match a combo even if some other key that is not part of the combo
-    # is being held down.
-    slice_up_array = (array) ->
-        return unless array.length > 1
-        for i in [0...array.length]
-            partial = array.slice()
-            partial.splice i, 1
-            continue unless partial.length
-            fuzzy_matches = _match_combo_arrays partial
-            for fuzzy_match in fuzzy_matches
-                active_combos.push(fuzzy_match) unless fuzzy_match.is_solitary
-            slice_up_array partial
-        return
-    slice_up_array keys_down
+    # Get perfect matches
+    _match_combo_arrays keys_down, (match) ->
+        active_combos.push(match) if _cmd_bug_check match.keys
+
+    # Get fuzzy matches
+    _fuzzy_match_combo_arrays keys_down, (match) ->
+        return if match in active_combos
+        active_combos.push(match) unless match.is_solitary or not _cmd_bug_check match.keys
+    
     return active_combos
 
 _get_potential_combos = (key) ->
@@ -301,7 +316,7 @@ _handle_combo_down = (combo, key, e) ->
         return false unless _allow_key_repeat combo
 
     # Now we add this combo or replace it in _active_combos
-    _add_to_active_combos combo, key
+    _add_to_active_combos combo, key unless combo in _active_combos
 
     # We reset the keyup_fired property because you should be
     # able to fire that again, if you've pressed the key down again
@@ -491,6 +506,9 @@ _bug_catcher = (e) ->
     # Force a keyup for non-modifier keys when command is held because they don't fire
     if "cmd" in _keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
         _receive_input e, false
+    # Note: we're currently ignoring the fact that this doesn't catch the bug that a keyup
+    # will not fire if you keydown a combo, then press and hold cmd, then keyup the combo.
+    # Perhaps we should fire keyup on all active combos when we press cmd?
 
 _change_keycodes_by_browser = ->
     if navigator.userAgent.indexOf("Opera") != -1

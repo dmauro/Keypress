@@ -384,8 +384,7 @@ _handle_combo_up = (combo, e, key) ->
 
     # If this was the last key released of the combo, clean up.
     unless keys_remaining
-        if combo.is_counting
-            _fire "release", combo, e
+        _fire "release", combo, e
         _remove_from_active_combos combo
     return
 

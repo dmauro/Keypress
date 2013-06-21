@@ -69,7 +69,6 @@ describe "Keypress:", ->
                 expect(key_handler).toHaveBeenCalled()
 
             it "can take a string", ->
-                console.log key_handler.calls.length
                 keypress.register_combo(
                     keys        : "a"
                     on_keydown  : key_handler
@@ -87,6 +86,18 @@ describe "Keypress:", ->
                 down_event = on_keydown "a"
                 on_keyup "a"
                 expect(received_event).toEqual(down_event)
+
+            it "only fires when all of the keys have been pressed", ->
+                keypress.combo "a b c", key_handler
+                on_keydown "a"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keydown "b"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keydown "c"
+                expect(key_handler).toHaveBeenCalled()
+                on_keyup "a"
+                on_keyup "b"
+                on_keyup "c"
 
         describe "on_keyup", ->
 
@@ -108,4 +119,135 @@ describe "Keypress:", ->
                 on_keydown "a"
                 up_event = on_keyup "a"
                 expect(received_event).toEqual(up_event)
+
+            it "fires only after all keys are down and the first has been released", ->
+                keypress.register_combo(
+                    keys        : "a b c"
+                    on_keyup    : key_handler
+                )
+                on_keydown "a"
+                on_keydown "b"
+                on_keydown "c"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keyup "b"
+                expect(key_handler).toHaveBeenCalled()
+                on_keyup "c"
+                expect(key_handler.calls.length).toEqual(1)
+                on_keyup "a"
+                expect(key_handler.calls.length).toEqual(1)
+
+        describe "on_release", ->
+
+            it "only fires after all of the keys have been released", ->
+                keypress.register_combo(
+                    keys        : "a b c"
+                    on_release  : key_handler
+                )
+                on_keydown "a"
+                on_keydown "b"
+                on_keydown "c"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keyup "b"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keyup "c"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keyup "a"
+                expect(key_handler).toHaveBeenCalled()
+
+        describe "this keyword", ->
+
+            it "defaults to window", ->
+                keypress.combo "a", ->
+                    expect(this).toEqual(window)
+                press_key "a"
+
+            it "can be set to any arbitrary scope", ->
+                my_scope = {}
+                keypress.register_combo(
+                    keys        : "a"
+                    this        : my_scope
+                    on_keydown  : ->
+                        expect(this).toEqual(my_scope)
+                )
+                press_key "a"
+
+        describe "prevent_default", ->
+
+            it "manual: only prevents on the key that activated the handler", ->
+                keypress.register_combo(
+                    keys        : "a b c"
+                    on_keydown  : (event) ->
+                        event.preventDefault()
+                    on_keyup    : (event) ->
+                        event.preventDefault()
+                    on_release  : (event) ->
+                        event.preventDefault()
+                )
+
+                a_down_event = on_keydown "a"
+                expect(a_down_event.preventDefault).not.toHaveBeenCalled()
+                b_down_event = on_keydown "b"
+                expect(b_down_event.preventDefault).not.toHaveBeenCalled()
+                c_down_event = on_keydown "c"
+                expect(c_down_event.preventDefault).toHaveBeenCalled()
+                a_up_event = on_keyup "a"
+                expect(a_up_event.preventDefault).toHaveBeenCalled()
+                b_up_event = on_keyup "b"
+                expect(b_up_event.preventDefault).not.toHaveBeenCalled()
+                c_up_event = on_keyup "c"
+                expect(c_up_event.preventDefault).toHaveBeenCalled()
+
+            it "return false: only prevents the key that activated the handler", ->
+                keypress.register_combo(
+                    keys        : "a b c"
+                    on_keydown  : (event) ->
+                        return false
+                    on_keyup    : (event) ->
+                        return false
+                    on_release  : (event) ->
+                        return false
+                )
+
+                a_down_event = on_keydown "a"
+                expect(a_down_event.preventDefault).not.toHaveBeenCalled()
+                b_down_event = on_keydown "b"
+                expect(b_down_event.preventDefault).not.toHaveBeenCalled()
+                c_down_event = on_keydown "c"
+                expect(c_down_event.preventDefault).toHaveBeenCalled()
+                a_up_event = on_keyup "a"
+                expect(a_up_event.preventDefault).toHaveBeenCalled()
+                b_up_event = on_keyup "b"
+                expect(b_up_event.preventDefault).not.toHaveBeenCalled()
+                c_up_event = on_keyup "c"
+                expect(c_up_event.preventDefault).toHaveBeenCalled()
+
+            it "property: prevents on all events related and only those related", ->
+                keypress.register_combo(
+                    keys            : "a b c"
+                    prevent_default : true
+                    on_keydown      : ->
+                    on_keyup        : ->
+                    on_release      : ->
+                )
+
+                a_down_event = on_keydown "a"
+                expect(a_down_event.preventDefault).toHaveBeenCalled()
+                b_down_event = on_keydown "b"
+                expect(b_down_event.preventDefault).toHaveBeenCalled()
+                x_down_event = on_keydown "x"
+                expect(x_down_event.preventDefault).not.toHaveBeenCalled()
+                c_down_event = on_keydown "c"
+                expect(c_down_event.preventDefault).toHaveBeenCalled()
+                a_up_event = on_keyup "a"
+                x_up_event = on_keyup "x"
+                b_up_event = on_keyup "b"
+                c_up_event = on_keyup "c"
+                ### We don't prevent on keyup and release. Something to consider
+                expect(a_up_event.preventDefault).toHaveBeenCalled()
+                expect(x_up_event.preventDefault).not.toHaveBeenCalled()
+                expect(b_up_event.preventDefault).toHaveBeenCalled()
+                expect(c_up_event.preventDefault).toHaveBeenCalled()
+                ###
+
+
 

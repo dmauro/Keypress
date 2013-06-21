@@ -13,6 +13,10 @@ released under the Apache License, version 2.0
 **What's new**
 ---------------
 
+1.0.8 (in progress)
+
+* Ensure that on_release is called for all combos, not just counting combos.
+
 1.0.7
 
 * Fixed combo matching to prevent performance issues as more keys are pressed.

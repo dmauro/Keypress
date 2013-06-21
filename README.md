@@ -27,6 +27,6 @@ released under the Apache License, version 2.0
 TODO
 ----
 
-* Find a good testing solution.
+* Test.
 * Put negative edge in sequences.
 * See if we can do away with keyup_fired property

@@ -188,7 +188,7 @@ _add_to_active_combos = (combo) ->
     # We use this to track when a user has released the last key of a
     # combo for on_release, and to keep combos from 'overlapping'.
     if combo in _active_combos
-        return false
+        return true
     else if _active_combos.length
         # We have to check if we're replacing another active combo
         # So compare the combo.keys to all active combos' keys.
@@ -323,7 +323,7 @@ _handle_combo_down = (combo, key, e) ->
         return false unless _allow_key_repeat combo
 
     # Now we add this combo or replace it in _active_combos
-    _add_to_active_combos combo, key unless combo in _active_combos
+    result = _add_to_active_combos combo, key
 
     # We reset the keyup_fired property because you should be
     # able to fire that again, if you've pressed the key down again
@@ -332,7 +332,10 @@ _handle_combo_down = (combo, key, e) ->
     # Now we fire the keydown event
     if combo.is_counting and typeof combo.on_keydown is "function"
         combo.count += 1
-    _fire "keydown", combo, e
+
+    # Only fire keydown if we added it
+    if result
+        _fire "keydown", combo, e
 
 _key_down = (key, e) ->
     # Check if we're holding shift
@@ -558,6 +561,7 @@ keypress.get_registered_combos = ->
     return _registered_combos
 
 keypress.reset = () ->
+    # TODO: Just make Keypress Class based
     _registered_combos = []
     return
 

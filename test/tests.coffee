@@ -99,6 +99,8 @@ describe "Keypress:", ->
                 on_keyup "b"
                 on_keyup "c"
 
+            # DO A TEST FOR PRESSING THE LAST KEYDOWN MULTIPLE TIMES
+
         describe "on_keyup", ->
 
             it "fires properly", ->
@@ -314,6 +316,7 @@ describe "Keypress:", ->
                 on_keydown "space"
                 expect(last_count).toEqual(2)
                 on_keyup "space"
+                on_keyup "x"
                 on_keyup "tab"
 
             it "does not increment count on keyup if we have keydown handler", ->
@@ -343,14 +346,13 @@ describe "Keypress:", ->
                 )
                 keypress.register_combo(
                     keys        : "tab space a"
-                    on_keydown  : (event) ->
-                        last_count = 100
+                    on_keydown  : key_handler
                 )
                 on_keydown "tab"
                 on_keydown "space"
                 expect(last_count).toEqual(1)
                 on_keydown "a"
-                expect(last_count).toEqual(100)
+                expect(key_handler).toHaveBeenCalled()
                 on_keyup "a"
                 on_keyup "space"
                 on_keyup "tab"
@@ -359,6 +361,122 @@ describe "Keypress:", ->
                 expect(last_count).toEqual(1)
                 on_keyup "space"
                 on_keyup "tab"
+
+        describe "is_sequence", ->
+
+            it "properly registers a sequence", ->
+                keypress.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_keydown  : key_handler
+                )
+                press_key "h"
+                press_key "i"
+                expect(key_handler).toHaveBeenCalled()
+
+            it "works with the prevent_default property", ->
+                keypress.register_combo(
+                    keys            : "h i t"
+                    is_sequence     : true
+                    prevent_default : true
+                    on_keydown      : key_handler
+                )
+                h_keydown = on_keydown "h"
+                on_keyup "h"
+                i_keydown = on_keydown "i"
+                on_keyup "i"
+                t_keydown = on_keydown "t"
+                on_keyup "t"
+                expect(key_handler).toHaveBeenCalled()
+                expect(h_keydown.preventDefault).toHaveBeenCalled()
+                expect(i_keydown.preventDefault).toHaveBeenCalled()
+                expect(t_keydown.preventDefault).toHaveBeenCalled()
+
+            it "will trigger overlapping sequences", ->
+                keypress.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_keydown  : key_handler
+                )
+                keypress.register_combo(
+                    keys            : "h i t"
+                    is_sequence     : true
+                    on_keydown      : key_handler
+                )
+                press_key "h"
+                press_key "i"
+                press_key "t"
+                expect(key_handler.calls.length).toEqual(2)
+
+        describe "is_exclusive", ->
+
+            it "will fire both all combos by default", ->
+                keypress.register_combo(
+                    keys            : "a b"
+                    on_keydown      : key_handler
+                )
+                keypress.register_combo(
+                    keys            : "a b c"
+                    on_keydown      : key_handler
+                )
+                on_keydown "c"
+                on_keydown "a"
+                on_keydown "b"
+                expect(key_handler.calls.length).toEqual(2)
+                on_keyup "a"
+                on_keyup "b"
+                on_keyup "c"
+
+            it "will not fire keydown for a less specific combo that is also exclusive", ->
+                fired = null
+                keypress.register_combo(
+                    keys            : "a b"
+                    is_exclusive    : true
+                    on_keydown      : ->
+                        fired = "smaller"
+                        key_handler()
+                )
+                keypress.register_combo(
+                    keys            : "a b c"
+                    is_exclusive    : true
+                    on_keydown      : ->
+                        fired = "bigger"
+                        key_handler()
+                )
+                on_keydown "c"
+                on_keydown "a"
+                on_keydown "b"
+                expect(key_handler.calls.length).toEqual(1)
+                expect(fired).toEqual("bigger")
+                on_keyup "a"
+                on_keyup "b"
+                on_keyup "c"
+
+            it "will not fire keyup for a less specific combo that is also exclusive", ->
+                fired = null
+                keypress.register_combo(
+                    keys            : "a b"
+                    is_exclusive    : true
+                    on_keyup        : ->
+                        fired = "smaller"
+                        key_handler()
+                )
+                keypress.register_combo(
+                    keys            : "a b c"
+                    is_exclusive    : true
+                    on_keyup        : ->
+                        fired = "bigger"
+                        key_handler()
+                )
+                on_keydown "c"
+                on_keydown "a"
+                on_keydown "b"
+                on_keyup "c"
+                on_keyup "b"
+                on_keyup "a"
+                expect(key_handler.calls.length).toEqual(1)
+                expect(fired).toEqual("bigger")
+
 
 describe "Keypress Functional components:", ->
     afterEach ->

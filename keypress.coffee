@@ -213,9 +213,9 @@ _add_to_active_combos = (combo) ->
 
             if should_replace
                 if already_replaced
-                    _active_combos.splice i, 1
+                    _reset_combo _active_combos.splice i, 1
                 else
-                    _active_combos.splice i, 1, combo
+                    _reset_combo _active_combos.splice i, 1, combo
                     already_replaced = true
                 should_prepend = false
 
@@ -228,9 +228,16 @@ _remove_from_active_combos = (combo) ->
     for i in [0..._active_combos.length]
         active_combo = _active_combos[i]
         if active_combo is combo
-            _active_combos.splice i, 1
+            _reset_combo _active_combos.splice i, 1
             break
     return
+
+_reset_combo = (combo) ->
+    # We set some properties on combos,
+    # so we need to make sure we reset them.
+    return unless combo
+    combo.count = null
+    combo.keyup_fired = null
 
 _add_key_to_sequence = (key, e) ->
     _sequence.push key
@@ -370,9 +377,8 @@ _handle_combo_up = (combo, e, key) ->
     # Check if any keys from this combo are still being held.
     keys_remaining = _keys_remain combo
 
-    # Any unactivated combos will fire, unless it is a counting combo with no keys remaining.
-    # We don't fire those because they will fire on_release on their last key release.
-    if !combo.keyup_fired and (!combo.is_counting or (combo.is_counting and keys_remaining))
+    # Any unactivated combos will fire
+    if !combo.keyup_fired
         # And we should not fire it if it is a solitary combo and something else is pressed
         keys_down = _keys_down.slice()
         keys_down.push key

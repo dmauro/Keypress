@@ -16,6 +16,7 @@ released under the Apache License, version 2.0
 1.0.8 (in progress)
 
 * Ensure that on_release is called for all combos, not just counting combos.
+* Fix bug that was causing is_ordered to be ignored.
 
 1.0.7
 

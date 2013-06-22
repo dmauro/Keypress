@@ -126,14 +126,14 @@ _fire = (event, combo, key_event) ->
 _match_combo_arrays = (potential_match, match_handler) ->
     # This will return all combos that match
     for source_combo in _registered_combos
-        if (source_combo.is_ordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (_compare_arrays(potential_match, source_combo.keys))
+        if (source_combo.is_ordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (not source_combo.is_ordered and _compare_arrays(potential_match, source_combo.keys))
             match_handler source_combo
     return
 
 _fuzzy_match_combo_arrays = (potential_match, match_handler) ->
     # This will return combos that match even if other keys are pressed
     for source_combo in _registered_combos
-        if (source_combo.is_ordered and _is_array_in_array_sorted(source_combo.keys, potential_match)) or (_is_array_in_array(source_combo.keys, potential_match))
+        if (source_combo.is_ordered and _is_array_in_array_sorted(source_combo.keys, potential_match)) or (not source_combo.is_ordered and _is_array_in_array(source_combo.keys, potential_match))
             match_handler source_combo
     return
 

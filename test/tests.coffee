@@ -296,6 +296,70 @@ describe "Keypress:", ->
                 on_keyup "b"
                 expect(key_handler).toHaveBeenCalled()
 
+        describe "is_counting", ->
+
+            it "calls the keydown handler with the count", ->
+                last_count = 0
+                keypress.register_combo(
+                    keys        : "tab x space"
+                    is_counting : true
+                    on_keydown  : (event, count) ->
+                        last_count = count
+                )
+                on_keydown "tab"
+                on_keydown "x"
+                on_keydown "space"
+                expect(last_count).toEqual(1)
+                on_keyup "space"
+                on_keydown "space"
+                expect(last_count).toEqual(2)
+                on_keyup "space"
+                on_keyup "tab"
+
+            it "does not increment count on keyup if we have keydown handler", ->
+                last_count = 0
+                keypress.register_combo(
+                    keys        : "tab space"
+                    is_counting : true
+                    on_keydown  : (event, count) ->
+                        last_count = count
+                    on_keyup    : (event, count) ->
+                        last_count = count
+                )
+                on_keydown "tab"
+                on_keydown "space"
+                expect(last_count).toEqual(1)
+                on_keyup "space"
+                expect(last_count).toEqual(1)
+                on_keyup "tab"
+
+            it "resets the count even if the combo gets dropped", ->
+                last_count = 0
+                keypress.register_combo(
+                    keys        : "tab space"
+                    is_counting : true
+                    on_keydown  : (event, count) ->
+                        last_count = count
+                )
+                keypress.register_combo(
+                    keys        : "tab space a"
+                    on_keydown  : (event) ->
+                        last_count = 100
+                )
+                on_keydown "tab"
+                on_keydown "space"
+                expect(last_count).toEqual(1)
+                on_keydown "a"
+                expect(last_count).toEqual(100)
+                on_keyup "a"
+                on_keyup "space"
+                on_keyup "tab"
+                on_keydown "tab"
+                on_keydown "space"
+                expect(last_count).toEqual(1)
+                on_keyup "space"
+                on_keyup "tab"
+
 describe "Keypress Functional components:", ->
     afterEach ->
         keypress.reset()

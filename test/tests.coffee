@@ -1,4 +1,6 @@
 describe "Keypress:", ->
+    SHIFT = false
+
     convert_readable_key_to_keycode = (keyname) ->
         for keycode, name of window._keycode_dictionary
             return keycode if name is keyname
@@ -8,18 +10,23 @@ describe "Keypress:", ->
         event = {}
         event.preventDefault = ->
             return
+        event.shiftKey = SHIFT
         spyOn event, "preventDefault"
         key_code = convert_readable_key_to_keycode key
         event.keyCode = key_code
         return event
 
     on_keydown = (key) ->
+        if key is "shift"
+            SHIFT = true
         event = event_for_key key
         window._receive_input event, true
         window._bug_catcher event
         return event
 
     on_keyup = (key) ->
+        if key is "shift"
+            SHIFT = false
         event = event_for_key key
         window._receive_input event, false
         return event
@@ -50,6 +57,38 @@ describe "Keypress:", ->
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).not.toHaveBeenCalled()
+
+    describe "Shift key helpers", ->
+        key_handler = null
+        beforeEach ->
+            key_handler = jasmine.createSpy()
+        afterEach ->
+            keypress.reset()
+
+        it "evaluates keys as shifted to match combos", ->
+            keypress.combo "!", key_handler
+            on_keydown "shift"
+            on_keydown "1"
+            expect(key_handler).toHaveBeenCalled()
+            on_keyup "shift"
+            on_keyup "1"
+
+        it "still fires the correct keyup even if you let off shift first", ->
+            keypress.register_combo(
+                keys        : "a !"
+                on_keydown  : key_handler
+                on_keyup    : key_handler
+            )
+            on_keydown "shift"
+            on_keydown "a"
+            on_keydown "1"
+            expect(key_handler).toHaveBeenCalled()
+            on_keyup "shift"
+            expect(key_handler.calls.length).toEqual(1)
+            on_keyup "1"
+            on_keyup "a"
+            expect(key_handler.calls.length).toEqual(2)
+
 
     describe "Explicit combo options", ->
         key_handler = null
@@ -476,6 +515,40 @@ describe "Keypress:", ->
                 on_keyup "a"
                 expect(key_handler.calls.length).toEqual(1)
                 expect(fired).toEqual("bigger")
+
+        describe "is_solitary", ->
+
+            it "will not fire the combo if additional keys are pressed", ->
+                keypress.register_combo(
+                    keys        : "a b"
+                    is_solitary : true
+                    on_keydown  : key_handler
+                    on_keyup    : key_handler
+                    on_release  : key_handler
+                )
+                on_keydown "a"
+                on_keydown "x"
+                on_keydown "b"
+                on_keyup "a"
+                on_keyup "x"
+                on_keyup "b"
+                expect(key_handler).not.toHaveBeenCalled()
+
+            it "will not fire up if down was not fired", ->
+                keypress.register_combo(
+                    keys        : "a b"
+                    is_solitary : true
+                    on_keydown  : key_handler
+                    on_keyup    : key_handler
+                    on_release  : key_handler
+                )
+                on_keydown "a"
+                on_keydown "x"
+                on_keydown "b"
+                on_keyup "x"
+                on_keyup "a"
+                on_keyup "b"
+                expect(key_handler).not.toHaveBeenCalled()
 
 
 describe "Keypress Functional components:", ->

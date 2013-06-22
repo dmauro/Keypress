@@ -249,5 +249,103 @@ describe "Keypress:", ->
                 expect(c_up_event.preventDefault).toHaveBeenCalled()
                 ###
 
+        describe "prevent_repeat", ->
 
+            it "allows multiple firings of the keydown event by default", ->
+                keypress.combo "a", key_handler
+                on_keydown "a"
+                on_keydown "a"
+                expect(key_handler.calls.length).toEqual(2)
+                on_keyup "a"
+
+            it "only fires the first time it is pressed down when true", ->
+                keypress.register_combo(
+                    keys            : "a"
+                    on_keydown      : key_handler
+                    prevent_repeat  : true
+                )
+                on_keydown "a"
+                on_keydown "a"
+                expect(key_handler.calls.length).toEqual(1)
+                on_keyup "a"
+
+        describe "is_ordered", ->
+
+            it "allows a user to press the keys in any order by default", ->
+                keypress.combo "a b", key_handler
+                on_keydown "b"
+                on_keydown "a"
+                on_keyup "b"
+                on_keyup "a"
+                expect(key_handler).toHaveBeenCalled()
+
+            it "forces the order described when set to true", ->
+                keypress.register_combo(
+                    keys        : "a b"
+                    on_keydown  : key_handler
+                    is_ordered  : true
+                )
+                on_keydown "b"
+                on_keydown "a"
+                on_keyup "b"
+                on_keyup "a"
+                expect(key_handler).not.toHaveBeenCalled()
+                on_keydown "a"
+                on_keydown "b"
+                on_keyup "a"
+                on_keyup "b"
+                expect(key_handler).toHaveBeenCalled()
+
+describe "Keypress Functional components:", ->
+    afterEach ->
+        keypress.reset()
+
+    describe "_is_array_in_array_sorted", ->
+
+        it "case 1", ->
+            result = window._is_array_in_array_sorted ["a", "b"], ["a", "b", "c"] 
+            expect(result).toBe(true)
+
+        it "case 2", ->
+            result = window._is_array_in_array_sorted ["a", "b", "c"], ["a", "b"] 
+            expect(result).toBe(false)
+
+        it "case 3", ->
+            result = window._is_array_in_array_sorted ["a", "b"], ["a", "x", "b"]
+            expect(result).toBe(true)
+
+        it "case 4", ->
+            result = window._is_array_in_array_sorted ["b", "a"], ["a", "x", "b"]
+            expect(result).toBe(false)
+
+    describe "_fuzzy_match_combo_arrays", ->
+
+        it "properly matches even with something else in the array", ->
+            keypress.register_combo(
+                keys        : "a b"
+            )
+            foo = 0
+            window._fuzzy_match_combo_arrays ["b", "x", "a"], ->
+                foo += 1
+            expect(foo).toEqual(1)
+
+        it "won't match a sorted combo that isn't in the same order", ->
+            keypress.register_combo(
+                keys        : "a b"
+                is_ordered  : true
+            )
+            foo = 0
+            window._fuzzy_match_combo_arrays ["b", "x", "a"], ->
+                foo += 1
+            expect(foo).toEqual(0)
+
+        it "will match a sorted combo that is in the correct order", ->
+            keypress.register_combo(
+                keys        : "a b"
+                is_ordered  : true
+            )
+            foo = 0
+            window._fuzzy_match_combo_arrays ["a", "x", "b"], ->
+                foo += 1
+            expect(foo).toEqual(1)
 

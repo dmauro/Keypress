@@ -528,14 +528,20 @@ _change_keycodes_by_browser = ->
     return
 
 _bind_key_events = ->
-    document.body.onkeydown = (e) ->
+    attach_handler = (target, event, handler) ->
+        if target.addEventListener
+            target.addEventListener event, handler
+        else if target.attachEvent
+            target.attachEvent "on#{event}", handler
+
+    attach_handler document.body, "keydown", (e) ->
         e = e or window.event
         _receive_input e, true
         _bug_catcher e
-    document.body.onkeyup = (e) ->
+    attach_handler document.body, "keyup", (e) ->
         e = e or window.event
         _receive_input e, false
-    window.onblur = ->
+    attach_handler window, "blur", ->
         # Assume all keys are released when we can't catch key events
         # This prevents alt+tab conflicts
         for key in _keys_down

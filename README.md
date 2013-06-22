@@ -34,6 +34,5 @@ released under the Apache License, version 2.0
 TODO
 ----
 
-* Test.
 * Put negative edge in sequences.
-* See if we can do away with keyup_fired property
+* See if we can do away with keyup_fired and count properties.

@@ -1,6 +1,5 @@
 #!/bin/bash
-
-cd ~/Projects/Keypress
+cd "$( cd "$( dirname "$0" )" && pwd )"
 coffee -c keypress.coffee
 java -jar compiler.jar --js keypress.js --js_output_file keypress.min.js
 rm keypress.js

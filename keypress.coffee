@@ -36,11 +36,6 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
-# Extending Array's prototype for IE support
-unless Array::filter
-  Array::filter = (callback) ->
-    element for element in this when callback(element)
-
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
@@ -54,6 +49,13 @@ _combo_defaults = {
     keys            : []
     count           : 0
 }
+
+_filter = (array, callback) ->
+  if array.filter
+    return array.filter(callback)
+  else
+    # For browsers without Array.prototype.filter like IE<9:
+    return (element for element in array when callback(element))
 
 _log_error = () ->
     console.log arguments...
@@ -155,7 +157,7 @@ _get_active_combos = (key) ->
     active_combos = []
 
     # First check that every key in keys_down maps to a combo
-    keys_down = _keys_down.filter (down_key) ->
+    keys_down = _filter _keys_down, (down_key) ->
         down_key isnt key
     keys_down.push key
 
@@ -267,7 +269,7 @@ _get_possible_sequences = ->
             sequence = _sequence.slice -j
             continue unless combo.is_sequence
             unless "shift" in combo.keys
-                sequence = sequence.filter (key) ->
+                sequence = _filter sequence, (key) ->
                     return key isnt "shift"
                 continue unless sequence.length
             for i in [0...sequence.length]
@@ -286,7 +288,7 @@ _get_sequence = (key) ->
         for j in [1.._sequence.length]
             # As we are traversing backwards through the sequence keys,
             # Take out any shift keys, unless shift is in the combo.
-            sequence = _sequence.filter((seq_key) ->
+            sequence = (_filter _sequence, (seq_key) ->
                 return true if "shift" in combo.keys
                 return seq_key isnt "shift"
             ).slice -j

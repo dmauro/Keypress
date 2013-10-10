@@ -36,11 +36,6 @@ Options available and defaults:
     this            : undefined     - The scope for this of your callback functions
 ###
 
-# Extending Array's prototype for IE support
-unless Array::filter
-  Array::filter = (callback) ->
-    element for element in this when callback(element)
-
 _registered_combos = []
 _sequence = []
 _sequence_timer = null
@@ -54,6 +49,13 @@ _combo_defaults = {
     keys            : []
     count           : 0
 }
+
+_filter = (array, callback) ->
+  if array.filter
+    return array.filter(callback)
+  else
+    # For browsers without Array.prototype.filter like IE<9:
+    return (element for element in array when callback(element))
 
 _log_error = () ->
     console.log arguments...

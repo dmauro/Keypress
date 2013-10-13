@@ -641,6 +641,7 @@ _modifier_event_mapping =
     "alt"   : "altKey"
 
 _keycode_alternate_names =
+    "escape"        : "esc"
     "control"       : "ctrl"
     "command"       : "cmd"
     "break"         : "pause"

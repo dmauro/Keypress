@@ -846,6 +846,7 @@ Options available and defaults:
   };
 
   _keycode_alternate_names = {
+    "escape": "esc",
     "control": "ctrl",
     "command": "cmd",
     "break": "pause",

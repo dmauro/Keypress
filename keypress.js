@@ -1,21 +1,1010 @@
-/* Keypress version 1.0.8 */
-(function(){var u,v,j,P,Q,R,S,w,x,y,T,F,G,z,o,U,V,W,X,H,Y,Z,$,aa,ba,I,ca,p,q,g,J,r,da,K,s,L,A,t,M,B,h,N,C,n,D,O,E,ea,i=Array.prototype.indexOf||function(a){for(var c=0,b=this.length;c<b;c++)if(c in this&&this[c]===a)return c;return-1},fa=Object.prototype.hasOwnProperty;h=[];n=[];D=null;g=[];j=[];A=!1;K="ctrl";L="meta alt option ctrl shift cmd".split(" ");E=[];x={keys:[],count:0};z=function(a,c){var b;if(a.filter)return a.filter(c);var d,e,f;f=[];d=0;for(e=a.length;d<e;d++)b=a[d],c(b)&&f.push(b);return f};
-r=function(){return console.log.apply(console,arguments)};y=function(a,c){var b,d,e;if(a.length!==c.length)return!1;d=0;for(e=a.length;d<e;d++)if(b=a[d],!(0<=i.call(c,b)))return!1;return!0};T=function(a,c){var b,d;if(a.length!==c.length)return!1;b=0;for(d=a.length;0<=d?b<d:b>d;0<=d?b++:b--)if(a[b]!==c[b])return!1;return!0};$=function(a,c){var b,d,e;d=0;for(e=a.length;d<e;d++)if(b=a[d],0>i.call(c,b))return!1;return!0};aa=function(a,c){var b,d,e,f;e=d=0;for(f=a.length;e<f;e++)if(b=a[e],b=c.indexOf(b),
-b>=d)d=b;else return!1;return!0};t=function(a,c){if((c||keypress.suppress_event_defaults)&&!keypress.force_event_defaults)if(a.preventDefault?a.preventDefault():a.returnValue=!1,a.stopPropagation)return a.stopPropagation()};R=function(a){if(a.prevent_repeat)return!1;if("function"===typeof a.on_keydown)return!0};J=function(a){var c,b,d,e;e=a.keys;b=0;for(d=e.length;b<d;b++)if(a=e[b],0<=i.call(g,a)){c=!0;break}return c};o=function(a,c,b){"function"===typeof c["on_"+a]&&t(b,!1===c["on_"+a].call(c["this"],
-b,c.count));"release"===a&&(c.count=0);if("keyup"===a)return c.keyup_fired=!0};da=function(a,c){var b,d,e;d=0;for(e=h.length;d<e;d++)b=h[d],(b.is_ordered&&T(a,b.keys)||!b.is_ordered&&y(a,b.keys))&&c(b)};U=function(a,c){var b,d,e;d=0;for(e=h.length;d<e;d++)b=h[d],(b.is_ordered&&aa(b.keys,a)||!b.is_ordered&&$(b.keys,a))&&c(b)};w=function(a){return 0<=i.call(g,"cmd")&&0>i.call(a,"cmd")?!1:!0};V=function(a){var c,b;c=[];b=z(g,function(b){return b!==a});b.push(a);da(b,function(b){if(w(b.keys))return c.push(b)});
-U(b,function(b){if(!(0<=i.call(c,b))&&!b.is_solitary&&w(b.keys))return c.push(b)});return c};X=function(a){var c,b,d,e;b=[];d=0;for(e=h.length;d<e;d++)c=h[d],c.is_sequence||0<=i.call(c.keys,a)&&w(c.keys)&&b.push(c);return b};Q=function(a){var c,b,d,e,f,g,h,l,k,m;g=!1;f=!0;d=!1;if(0<=i.call(j,a))return!0;if(j.length){e=0;for(k=j.length;0<=k?e<k:e>k;0<=k?e++:e--)if((c=j[e])&&c.is_exclusive&&a.is_exclusive){c=c.keys;if(!g){h=0;for(l=c.length;h<l;h++)if(b=c[h],g=!0,0>i.call(a.keys,b)){g=!1;break}}if(f&&
-!g){m=a.keys;h=0;for(l=m.length;h<l;h++)if(b=m[h],f=!1,0>i.call(c,b)){f=!0;break}}g&&(d?C(j.splice(e,1)):(C(j.splice(e,1,a)),d=!0),f=!1)}}f&&j.unshift(a);return g||f};N=function(a){var c,b,d;b=0;for(d=j.length;0<=d?b<d:b>d;0<=d?b++:b--)if(c=j[b],c===a){C(j.splice(b,1));break}};C=function(a){if(a)return a.count=null,a.keyup_fired=null};P=function(a,c){var b,d,e,f;n.push(a);d=W();if(d.length){e=0;for(f=d.length;e<f;e++)b=d[e],t(c,b.prevent_default);D&&clearTimeout(D);-1<keypress.sequence_delay&&(D=
-setTimeout(function(){return n=[]},keypress.sequence_delay))}else n=[]};W=function(){var a,c,b,d,e,f,g,j,l,k;e=[];g=0;for(j=h.length;g<j;g++){a=h[g];b=1;for(l=n.length;1<=l?b<=l:b>=l;1<=l?b++:b--)if(f=n.slice(-b),a.is_sequence){if(0>i.call(a.keys,"shift")&&(f=z(f,function(b){return"shift"!==b}),!f.length))continue;c=0;for(k=f.length;0<=k?c<k:c>k;0<=k?c++:c--)if(a.keys[c]===f[c])d=!0;else{d=!1;break}d&&e.push(a)}}return e};H=function(a){var c,b,d,e,f,g,j,l,k,m;j=0;for(l=h.length;j<l;j++)if(c=h[j],
-c.is_sequence){d=1;for(k=n.length;1<=k?d<=k:d>=k;1<=k?d++:d--)if(g=z(n,function(b){return 0<=i.call(c.keys,"shift")?!0:"shift"!==b}).slice(-d),c.keys.length===g.length){b=0;for(m=g.length;0<=m?b<m:b>m;0<=m?b++:b--)if(f=g[b],!(0>i.call(c.keys,"shift")&&"shift"===f)&&!("shift"===a&&0>i.call(c.keys,"shift")))if(c.keys[b]===f)e=!0;else{e=!1;break}}if(e)return c}return!1};G=function(a,c){var b;if(!c.shiftKey)return!1;b=q[a];return null!=b?b:!1};Y=function(a,c,b){if(0>i.call(a.keys,c))return!1;t(b,a&&a.prevent_default);
-if(0<=i.call(g,c)&&!R(a))return!1;c=Q(a,c);a.keyup_fired=!1;a.is_counting&&"function"===typeof a.on_keydown&&(a.count+=1);if(c)return o("keydown",a,b)};ba=function(a,c){var b,d,e,f;(d=G(a,c))&&(a=d);P(a,c);(d=H(a))&&o("keydown",d,c);for(b in s)d=s[b],c[d]&&(b===a||0<=i.call(g,b)||g.push(b));for(b in s)if(d=s[b],b!==a&&0<=i.call(g,b)&&!c[d]){d=0;for(e=g.length;0<=e?d<e:d>e;0<=e?d++:d--)g[d]===b&&g.splice(d,1)}d=V(a);e=0;for(f=d.length;e<f;e++)b=d[e],Y(b,a,c);d=X(a);if(d.length){e=0;for(f=d.length;e<
-f;e++)b=d[e],t(c,b.prevent_default)}0>i.call(g,a)&&g.push(a)};Z=function(a,c,b){var d,e;e=J(a);if(!a.keyup_fired&&(d=g.slice(),d.push(b),!a.is_solitary||y(d,a.keys)))o("keyup",a,c),a.is_counting&&("function"===typeof a.on_keyup&&"function"!==typeof a.on_keydown)&&(a.count+=1);e||(o("release",a,c),N(a))};I=function(a,c){var b,d,e,f,h;d=a;(e=G(a,c))&&(a=e);e=q[d];c.shiftKey?e&&0<=i.call(g,e)||(a=d):d&&0<=i.call(g,d)||(a=e);(f=H(a))&&o("keyup",f,c);if(0>i.call(g,a))return!1;f=0;for(h=g.length;0<=h?f<
-h:f>h;0<=h?f++:f--)if((b=g[f])===a||b===e||b===d){g.splice(f,1);break}d=j.length;e=[];f=0;for(h=j.length;f<h;f++)b=j[f],0<=i.call(b.keys,a)&&e.push(b);f=0;for(h=e.length;f<h;f++)b=e[f],Z(b,c,a);if(1<d){d=0;for(f=j.length;d<f;d++)b=j[d],void 0===b||0<=i.call(e,b)||J(b)||N(b)}};B=function(a,c){var b;if(A)g.length&&(g=[]);else if(c||g.length)if(b=F(a.keyCode))return c?ba(b,a):I(b,a)};O=function(a){var c,b,d;d=[];c=0;for(b=h.length;0<=b?c<b:c>b;0<=b?c++:c--)if(a===h[c]){h.splice(c,1);break}else d.push(void 0);
-return d};ea=function(a){var c,b,d,e,f;a.keys.length||r("You're trying to bind a combo with no keys.");b=0;for(e=a.keys.length;0<=e?b<e:b>e;0<=e?b++:b--)d=a.keys[b],(c=ca[d])&&(d=a.keys[b]=c),"meta"===d&&a.keys.splice(b,1,K),"cmd"===d&&r('Warning: use the "meta" key rather than "cmd" for Windows compatibility');f=a.keys;c=0;for(e=f.length;c<e;c++)if(d=f[c],0>i.call(E,d))return r('Do not recognize the key "'+d+'"'),!1;if(0<=i.call(a.keys,"meta")||0<=i.call(a.keys,"cmd")){c=a.keys.slice();e=0;for(f=
-L.length;e<f;e++)d=L[e],-1<(b=c.indexOf(d))&&c.splice(b,1);1<c.length&&r("META and CMD key combos cannot have more than 1 non-modifier keys",a,c)}return!0};S=function(a){var c;if(0<=i.call(g,"cmd")&&"cmd"!==(c=F(a.keyCode))&&"shift"!==c&&"alt"!==c&&"caps"!==c&&"tab"!==c)return B(a,!1)};window.keypress={};keypress.force_event_defaults=!1;keypress.suppress_event_defaults=!1;keypress.sequence_delay=800;keypress.get_registered_combos=function(){return h};keypress.reset=function(){h=[]};keypress.combo=
-function(a,c,b){null==b&&(b=!1);return keypress.register_combo({keys:a,on_keydown:c,prevent_default:b})};keypress.counting_combo=function(a,c,b){null==b&&(b=!1);return keypress.register_combo({keys:a,is_counting:!0,is_ordered:!0,on_keydown:c,prevent_default:b})};keypress.sequence_combo=function(a,c,b){null==b&&(b=!1);return keypress.register_combo({keys:a,on_keydown:c,is_sequence:!0,prevent_default:b})};keypress.register_combo=function(a){var c,b;"string"===typeof a.keys&&(a.keys=a.keys.split(" "));
-for(c in x)fa.call(x,c)&&(b=x[c],null==a[c]&&(a[c]=b));if(ea(a))return h.push(a),!0};keypress.register_many=function(a){var c,b,d,e;e=[];b=0;for(d=a.length;b<d;b++)c=a[b],e.push(keypress.register_combo(c));return e};keypress.unregister_combo=function(a){var c,b,d;if(!a)return!1;if(a.keys)return O(a);d=[];c=0;for(b=h.length;c<b;c++)(a=h[c])&&(y(keys,a.keys)?d.push(O(a)):d.push(void 0));return d};keypress.unregister_many=function(a){var c,b,d,e;e=[];b=0;for(d=a.length;b<d;b++)c=a[b],e.push(keypress.unregister_combo(c));
-return e};keypress.listen=function(){return A=!1};keypress.stop_listening=function(){return A=!0};F=function(a){return p[a]};s={cmd:"metaKey",ctrl:"ctrlKey",shift:"shiftKey",alt:"altKey"};ca={control:"ctrl",command:"cmd","break":"pause",windows:"cmd",option:"alt",caps_lock:"caps",apostrophe:"'",semicolon:";",tilde:"~",accent:"`",scroll_lock:"scroll",num_lock:"num"};q={"/":"?",".":">",",":"<","'":'"',";":":","[":"{","]":"}","\\":"|","`":"~","=":"+","-":"_",1:"!",2:"@",3:"#",4:"$",5:"%",6:"^",7:"&",
-8:"*",9:"(","0":")"};p={"0":"\\",8:"backspace",9:"tab",12:"num",13:"enter",16:"shift",17:"ctrl",18:"alt",19:"pause",20:"caps",27:"escape",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",44:"print",45:"insert",46:"delete",48:"0",49:"1",50:"2",51:"3",52:"4",53:"5",54:"6",55:"7",56:"8",57:"9",65:"a",66:"b",67:"c",68:"d",69:"e",70:"f",71:"g",72:"h",73:"i",74:"j",75:"k",76:"l",77:"m",78:"n",79:"o",80:"p",81:"q",82:"r",83:"s",84:"t",85:"u",86:"v",87:"w",88:"x",
-89:"y",90:"z",91:"cmd",92:"cmd",93:"cmd",96:"num_0",97:"num_1",98:"num_2",99:"num_3",100:"num_4",101:"num_5",102:"num_6",103:"num_7",104:"num_8",105:"num_9",106:"num_multiply",107:"num_add",108:"num_enter",109:"num_subtract",110:"num_decimal",111:"num_divide",124:"print",144:"num",145:"scroll",186:";",187:"=",188:",",189:"-",190:".",191:"/",192:"`",219:"[",220:"\\",221:"]",222:"'",223:"`",224:"cmd",57392:"ctrl",63289:"num"};for(v in p)u=p[v],E.push(u);for(v in q)u=q[v],E.push(u);-1!==navigator.userAgent.indexOf("Mac OS X")&&
-(K="cmd");-1!==navigator.userAgent.indexOf("Opera")&&(p["17"]="cmd");M=function(a){return(document.attachEvent?"complete"===document.readyState:"loading"!==document.readyState)?a():setTimeout(function(){return M(a)},9)};M(function(){var a;a=function(a,b,d){if(a.addEventListener)return a.addEventListener(b,d);if(a.attachEvent)return a.attachEvent("on"+b,d)};a(document.body,"keydown",function(a){a=a||window.event;B(a,!0);return S(a)});a(document.body,"keyup",function(a){a=a||window.event;return B(a,
-!1)});return a(window,"blur",function(){var a,b,d;b=0;for(d=g.length;b<d;b++)a=g[b],I(a,{});g=[];return[]})})}).call(this);
+// Generated by CoffeeScript 1.6.3
+/*
+Copyright 2013 David Mauro
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+Keypress is a robust keyboard input capturing Javascript utility
+focused on input for games.
+
+version 1.0.8
+*/
+
+
+/*
+Options available and defaults:
+    keys            : []            - An array of the keys pressed together to activate combo
+    count           : 0             - The number of times a counting combo has been pressed. Reset on release.
+    prevent_default : false         - Prevent default behavior for all component key keypresses.
+    is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
+    is_counting     : false         - Makes this a counting combo (see documentation)
+    is_exclusive    : false         - This combo will replace other exclusive combos when true
+    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down
+    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
+    prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
+    on_keyup        : null          - A function that is called when the combo is released
+    on_keydown      : null          - A function that is called when the combo is pressed.
+    on_release      : null          - A function that is called hen all keys are released.
+    this            : undefined     - The scope for this of your callback functions
+*/
+
+
+(function() {
+  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bind_key_events, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _filter, _fire, _fuzzy_match_combo_arrays, _get_active_combos, _get_possible_sequences, _get_potential_combos, _get_sequence, _handle_combo_down, _handle_combo_up, _init, _is_array_in_array, _is_array_in_array_sorted, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _reset_combo, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    __hasProp = {}.hasOwnProperty;
+
+  _registered_combos = [];
+
+  _sequence = [];
+
+  _sequence_timer = null;
+
+  _keys_down = [];
+
+  _active_combos = [];
+
+  _prevent_capture = false;
+
+  _metakey = "ctrl";
+
+  _modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"];
+
+  _valid_keys = [];
+
+  _combo_defaults = {
+    keys: [],
+    count: 0
+  };
+
+  _filter = function(array, callback) {
+    var element;
+    if (array.filter) {
+      return array.filter(callback);
+    } else {
+      return (function() {
+        var _i, _len, _results;
+        _results = [];
+        for (_i = 0, _len = array.length; _i < _len; _i++) {
+          element = array[_i];
+          if (callback(element)) {
+            _results.push(element);
+          }
+        }
+        return _results;
+      })();
+    }
+  };
+
+  _log_error = function() {
+    return console.log.apply(console, arguments);
+  };
+
+  _compare_arrays = function(a1, a2) {
+    var item, _i, _len;
+    if (a1.length !== a2.length) {
+      return false;
+    }
+    for (_i = 0, _len = a1.length; _i < _len; _i++) {
+      item = a1[_i];
+      if (__indexOf.call(a2, item) >= 0) {
+        continue;
+      }
+      return false;
+    }
+    return true;
+  };
+
+  _compare_arrays_sorted = function(a1, a2) {
+    var i, _i, _ref;
+    if (a1.length !== a2.length) {
+      return false;
+    }
+    for (i = _i = 0, _ref = a1.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      if (a1[i] !== a2[i]) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  _is_array_in_array = function(a1, a2) {
+    var item, _i, _len;
+    for (_i = 0, _len = a1.length; _i < _len; _i++) {
+      item = a1[_i];
+      if (__indexOf.call(a2, item) < 0) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  _is_array_in_array_sorted = function(a1, a2) {
+    var index, item, prev, _i, _len;
+    prev = 0;
+    for (_i = 0, _len = a1.length; _i < _len; _i++) {
+      item = a1[_i];
+      index = a2.indexOf(item);
+      if (index >= prev) {
+        prev = index;
+      } else {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  _prevent_default = function(e, should_prevent) {
+    if ((should_prevent || keypress.suppress_event_defaults) && !keypress.force_event_defaults) {
+      if (e.preventDefault) {
+        e.preventDefault();
+      } else {
+        e.returnValue = false;
+      }
+      if (e.stopPropagation) {
+        return e.stopPropagation();
+      }
+    }
+  };
+
+  _allow_key_repeat = function(combo) {
+    if (combo.prevent_repeat) {
+      return false;
+    }
+    if (typeof combo.on_keydown === "function") {
+      return true;
+    }
+  };
+
+  _keys_remain = function(combo) {
+    var key, keys_remain, _i, _len, _ref;
+    _ref = combo.keys;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      key = _ref[_i];
+      if (__indexOf.call(_keys_down, key) >= 0) {
+        keys_remain = true;
+        break;
+      }
+    }
+    return keys_remain;
+  };
+
+  _fire = function(event, combo, key_event) {
+    if (typeof combo["on_" + event] === "function") {
+      _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) === false);
+    }
+    if (event === "release") {
+      combo.count = 0;
+    }
+    if (event === "keyup") {
+      return combo.keyup_fired = true;
+    }
+  };
+
+  _match_combo_arrays = function(potential_match, match_handler) {
+    var source_combo, _i, _len;
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      source_combo = _registered_combos[_i];
+      if ((source_combo.is_ordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (!source_combo.is_ordered && _compare_arrays(potential_match, source_combo.keys))) {
+        match_handler(source_combo);
+      }
+    }
+  };
+
+  _fuzzy_match_combo_arrays = function(potential_match, match_handler) {
+    var source_combo, _i, _len;
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      source_combo = _registered_combos[_i];
+      if ((source_combo.is_ordered && _is_array_in_array_sorted(source_combo.keys, potential_match)) || (!source_combo.is_ordered && _is_array_in_array(source_combo.keys, potential_match))) {
+        match_handler(source_combo);
+      }
+    }
+  };
+
+  _cmd_bug_check = function(combo_keys) {
+    if (__indexOf.call(_keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
+      return false;
+    }
+    return true;
+  };
+
+  _get_active_combos = function(key) {
+    var active_combos, keys_down;
+    active_combos = [];
+    keys_down = _filter(_keys_down, function(down_key) {
+      return down_key !== key;
+    });
+    keys_down.push(key);
+    _match_combo_arrays(keys_down, function(match) {
+      if (_cmd_bug_check(match.keys)) {
+        return active_combos.push(match);
+      }
+    });
+    _fuzzy_match_combo_arrays(keys_down, function(match) {
+      if (__indexOf.call(active_combos, match) >= 0) {
+        return;
+      }
+      if (!(match.is_solitary || !_cmd_bug_check(match.keys))) {
+        return active_combos.push(match);
+      }
+    });
+    return active_combos;
+  };
+
+  _get_potential_combos = function(key) {
+    var combo, potentials, _i, _len;
+    potentials = [];
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      combo = _registered_combos[_i];
+      if (combo.is_sequence) {
+        continue;
+      }
+      if (__indexOf.call(combo.keys, key) >= 0 && _cmd_bug_check(combo.keys)) {
+        potentials.push(combo);
+      }
+    }
+    return potentials;
+  };
+
+  _add_to_active_combos = function(combo) {
+    var active_combo, active_key, active_keys, already_replaced, combo_key, i, should_prepend, should_replace, _i, _j, _k, _len, _len1, _ref, _ref1;
+    should_replace = false;
+    should_prepend = true;
+    already_replaced = false;
+    if (__indexOf.call(_active_combos, combo) >= 0) {
+      return true;
+    } else if (_active_combos.length) {
+      for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        active_combo = _active_combos[i];
+        if (!(active_combo && active_combo.is_exclusive && combo.is_exclusive)) {
+          continue;
+        }
+        active_keys = active_combo.keys;
+        if (!should_replace) {
+          for (_j = 0, _len = active_keys.length; _j < _len; _j++) {
+            active_key = active_keys[_j];
+            should_replace = true;
+            if (__indexOf.call(combo.keys, active_key) < 0) {
+              should_replace = false;
+              break;
+            }
+          }
+        }
+        if (should_prepend && !should_replace) {
+          _ref1 = combo.keys;
+          for (_k = 0, _len1 = _ref1.length; _k < _len1; _k++) {
+            combo_key = _ref1[_k];
+            should_prepend = false;
+            if (__indexOf.call(active_keys, combo_key) < 0) {
+              should_prepend = true;
+              break;
+            }
+          }
+        }
+        if (should_replace) {
+          if (already_replaced) {
+            _reset_combo(_active_combos.splice(i, 1));
+          } else {
+            _reset_combo(_active_combos.splice(i, 1, combo));
+            already_replaced = true;
+          }
+          should_prepend = false;
+        }
+      }
+    }
+    if (should_prepend) {
+      _active_combos.unshift(combo);
+    }
+    return should_replace || should_prepend;
+  };
+
+  _remove_from_active_combos = function(combo) {
+    var active_combo, i, _i, _ref;
+    for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      active_combo = _active_combos[i];
+      if (active_combo === combo) {
+        _reset_combo(_active_combos.splice(i, 1));
+        break;
+      }
+    }
+  };
+
+  _reset_combo = function(combo) {
+    if (!combo) {
+      return;
+    }
+    combo.count = null;
+    return combo.keyup_fired = null;
+  };
+
+  _add_key_to_sequence = function(key, e) {
+    var combo, sequence_combos, _i, _len;
+    _sequence.push(key);
+    sequence_combos = _get_possible_sequences();
+    if (sequence_combos.length) {
+      for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
+        combo = sequence_combos[_i];
+        _prevent_default(e, combo.prevent_default);
+      }
+      if (_sequence_timer) {
+        clearTimeout(_sequence_timer);
+      }
+      if (keypress.sequence_delay > -1) {
+        _sequence_timer = setTimeout(function() {
+          return _sequence = [];
+        }, keypress.sequence_delay);
+      }
+    } else {
+      _sequence = [];
+    }
+  };
+
+  _get_possible_sequences = function() {
+    var combo, i, j, match, matches, sequence, _i, _j, _k, _len, _ref, _ref1;
+    matches = [];
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      combo = _registered_combos[_i];
+      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
+        sequence = _sequence.slice(-j);
+        if (!combo.is_sequence) {
+          continue;
+        }
+        if (__indexOf.call(combo.keys, "shift") < 0) {
+          sequence = _filter(sequence, function(key) {
+            return key !== "shift";
+          });
+          if (!sequence.length) {
+            continue;
+          }
+        }
+        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+          if (combo.keys[i] === sequence[i]) {
+            match = true;
+          } else {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          matches.push(combo);
+        }
+      }
+    }
+    return matches;
+  };
+
+  _get_sequence = function(key) {
+    var combo, i, j, match, seq_key, sequence, _i, _j, _k, _len, _ref, _ref1;
+    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+      combo = _registered_combos[_i];
+      if (!combo.is_sequence) {
+        continue;
+      }
+      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
+        sequence = (_filter(_sequence, function(seq_key) {
+          if (__indexOf.call(combo.keys, "shift") >= 0) {
+            return true;
+          }
+          return seq_key !== "shift";
+        })).slice(-j);
+        if (combo.keys.length !== sequence.length) {
+          continue;
+        }
+        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
+          seq_key = sequence[i];
+          if (__indexOf.call(combo.keys, "shift") < 0 ? seq_key === "shift" : void 0) {
+            continue;
+          }
+          if (key === "shift" && __indexOf.call(combo.keys, "shift") < 0) {
+            continue;
+          }
+          if (combo.keys[i] === seq_key) {
+            match = true;
+          } else {
+            match = false;
+            break;
+          }
+        }
+      }
+      if (match) {
+        return combo;
+      }
+    }
+    return false;
+  };
+
+  _convert_to_shifted_key = function(key, e) {
+    var k;
+    if (!e.shiftKey) {
+      return false;
+    }
+    k = _keycode_shifted_keys[key];
+    if (k != null) {
+      return k;
+    }
+    return false;
+  };
+
+  _handle_combo_down = function(combo, key, e) {
+    var result;
+    if (__indexOf.call(combo.keys, key) < 0) {
+      return false;
+    }
+    _prevent_default(e, combo && combo.prevent_default);
+    if (__indexOf.call(_keys_down, key) >= 0) {
+      if (!_allow_key_repeat(combo)) {
+        return false;
+      }
+    }
+    result = _add_to_active_combos(combo, key);
+    combo.keyup_fired = false;
+    if (combo.is_counting && typeof combo.on_keydown === "function") {
+      combo.count += 1;
+    }
+    if (result) {
+      return _fire("keydown", combo, e);
+    }
+  };
+
+  _key_down = function(key, e) {
+    var combo, combos, event_mod, i, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _k, _len, _len1, _ref;
+    shifted_key = _convert_to_shifted_key(key, e);
+    if (shifted_key) {
+      key = shifted_key;
+    }
+    _add_key_to_sequence(key, e);
+    sequence_combo = _get_sequence(key);
+    if (sequence_combo) {
+      _fire("keydown", sequence_combo, e);
+    }
+    for (mod in _modifier_event_mapping) {
+      event_mod = _modifier_event_mapping[mod];
+      if (!e[event_mod]) {
+        continue;
+      }
+      if (mod === key || __indexOf.call(_keys_down, mod) >= 0) {
+        continue;
+      }
+      _keys_down.push(mod);
+    }
+    for (mod in _modifier_event_mapping) {
+      event_mod = _modifier_event_mapping[mod];
+      if (mod === key) {
+        continue;
+      }
+      if (__indexOf.call(_keys_down, mod) >= 0 && !e[event_mod]) {
+        for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+          if (_keys_down[i] === mod) {
+            _keys_down.splice(i, 1);
+          }
+        }
+      }
+    }
+    combos = _get_active_combos(key);
+    for (_j = 0, _len = combos.length; _j < _len; _j++) {
+      combo = combos[_j];
+      _handle_combo_down(combo, key, e);
+    }
+    potential_combos = _get_potential_combos(key);
+    if (potential_combos.length) {
+      for (_k = 0, _len1 = potential_combos.length; _k < _len1; _k++) {
+        potential = potential_combos[_k];
+        _prevent_default(e, potential.prevent_default);
+      }
+    }
+    if (__indexOf.call(_keys_down, key) < 0) {
+      _keys_down.push(key);
+    }
+  };
+
+  _handle_combo_up = function(combo, e, key) {
+    var keys_down, keys_remaining;
+    keys_remaining = _keys_remain(combo);
+    if (!combo.keyup_fired) {
+      keys_down = _keys_down.slice();
+      keys_down.push(key);
+      if (!combo.is_solitary || _compare_arrays(keys_down, combo.keys)) {
+        _fire("keyup", combo, e);
+        if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
+          combo.count += 1;
+        }
+      }
+    }
+    if (!keys_remaining) {
+      _fire("release", combo, e);
+      _remove_from_active_combos(combo);
+    }
+  };
+
+  _key_up = function(key, e) {
+    var active_combo, active_combos_length, combo, combos, i, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1;
+    unshifted_key = key;
+    shifted_key = _convert_to_shifted_key(key, e);
+    if (shifted_key) {
+      key = shifted_key;
+    }
+    shifted_key = _keycode_shifted_keys[unshifted_key];
+    if (e.shiftKey) {
+      if (!(shifted_key && __indexOf.call(_keys_down, shifted_key) >= 0)) {
+        key = unshifted_key;
+      }
+    } else {
+      if (!(unshifted_key && __indexOf.call(_keys_down, unshifted_key) >= 0)) {
+        key = shifted_key;
+      }
+    }
+    sequence_combo = _get_sequence(key);
+    if (sequence_combo) {
+      _fire("keyup", sequence_combo, e);
+    }
+    if (__indexOf.call(_keys_down, key) < 0) {
+      return false;
+    }
+    for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      if ((_ref1 = _keys_down[i]) === key || _ref1 === shifted_key || _ref1 === unshifted_key) {
+        _keys_down.splice(i, 1);
+        break;
+      }
+    }
+    active_combos_length = _active_combos.length;
+    combos = [];
+    for (_j = 0, _len = _active_combos.length; _j < _len; _j++) {
+      active_combo = _active_combos[_j];
+      if (__indexOf.call(active_combo.keys, key) >= 0) {
+        combos.push(active_combo);
+      }
+    }
+    for (_k = 0, _len1 = combos.length; _k < _len1; _k++) {
+      combo = combos[_k];
+      _handle_combo_up(combo, e, key);
+    }
+    if (active_combos_length > 1) {
+      for (_l = 0, _len2 = _active_combos.length; _l < _len2; _l++) {
+        active_combo = _active_combos[_l];
+        if (active_combo === void 0 || __indexOf.call(combos, active_combo) >= 0) {
+          continue;
+        }
+        if (!_keys_remain(active_combo)) {
+          _remove_from_active_combos(active_combo);
+        }
+      }
+    }
+  };
+
+  _receive_input = function(e, is_keydown) {
+    var key;
+    if (_prevent_capture) {
+      if (_keys_down.length) {
+        _keys_down = [];
+      }
+      return;
+    }
+    if (!is_keydown && !_keys_down.length) {
+      return;
+    }
+    key = _convert_key_to_readable(e.keyCode);
+    if (!key) {
+      return;
+    }
+    if (is_keydown) {
+      return _key_down(key, e);
+    } else {
+      return _key_up(key, e);
+    }
+  };
+
+  _unregister_combo = function(combo) {
+    var i, _i, _ref, _results;
+    _results = [];
+    for (i = _i = 0, _ref = _registered_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      if (combo === _registered_combos[i]) {
+        _registered_combos.splice(i, 1);
+        break;
+      } else {
+        _results.push(void 0);
+      }
+    }
+    return _results;
+  };
+
+  _validate_combo = function(combo) {
+    var alt_name, i, key, mod_key, non_modifier_keys, _i, _j, _k, _len, _len1, _ref, _ref1;
+    if (!combo.keys.length) {
+      _log_error("You're trying to bind a combo with no keys.");
+    }
+    for (i = _i = 0, _ref = combo.keys.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+      key = combo.keys[i];
+      alt_name = _keycode_alternate_names[key];
+      if (alt_name) {
+        key = combo.keys[i] = alt_name;
+      }
+      if (key === "meta") {
+        combo.keys.splice(i, 1, _metakey);
+      }
+      if (key === "cmd") {
+        _log_error("Warning: use the \"meta\" key rather than \"cmd\" for Windows compatibility");
+      }
+    }
+    _ref1 = combo.keys;
+    for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
+      key = _ref1[_j];
+      if (__indexOf.call(_valid_keys, key) < 0) {
+        _log_error("Do not recognize the key \"" + key + "\"");
+        return false;
+      }
+    }
+    if (__indexOf.call(combo.keys, "meta") >= 0 || __indexOf.call(combo.keys, "cmd") >= 0) {
+      non_modifier_keys = combo.keys.slice();
+      for (_k = 0, _len1 = _modifier_keys.length; _k < _len1; _k++) {
+        mod_key = _modifier_keys[_k];
+        if ((i = non_modifier_keys.indexOf(mod_key)) > -1) {
+          non_modifier_keys.splice(i, 1);
+        }
+      }
+      if (non_modifier_keys.length > 1) {
+        _log_error("META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys);
+        return true;
+      }
+    }
+    return true;
+  };
+
+  _decide_meta_key = function() {
+    if (navigator.userAgent.indexOf("Mac OS X") !== -1) {
+      _metakey = "cmd";
+    }
+  };
+
+  _bug_catcher = function(e) {
+    var _ref;
+    if (__indexOf.call(_keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
+      return _receive_input(e, false);
+    }
+  };
+
+  _change_keycodes_by_browser = function() {
+    if (navigator.userAgent.indexOf("Opera") !== -1) {
+      _keycode_dictionary["17"] = "cmd";
+    }
+  };
+
+  _bind_key_events = function() {
+    var attach_handler;
+    attach_handler = function(target, event, handler) {
+      if (target.addEventListener) {
+        return target.addEventListener(event, handler);
+      } else if (target.attachEvent) {
+        return target.attachEvent("on" + event, handler);
+      }
+    };
+    attach_handler(document.body, "keydown", function(e) {
+      e = e || window.event;
+      _receive_input(e, true);
+      return _bug_catcher(e);
+    });
+    attach_handler(document.body, "keyup", function(e) {
+      e = e || window.event;
+      return _receive_input(e, false);
+    });
+    return attach_handler(window, "blur", function() {
+      var key, _i, _len, _valid_combos;
+      for (_i = 0, _len = _keys_down.length; _i < _len; _i++) {
+        key = _keys_down[_i];
+        _key_up(key, {});
+      }
+      _keys_down = [];
+      return _valid_combos = [];
+    });
+  };
+
+  _init = function() {
+    _decide_meta_key();
+    return _change_keycodes_by_browser();
+  };
+
+  window.keypress = {};
+
+  keypress.force_event_defaults = false;
+
+  keypress.suppress_event_defaults = false;
+
+  keypress.sequence_delay = 800;
+
+  keypress.get_registered_combos = function() {
+    return _registered_combos;
+  };
+
+  keypress.reset = function() {
+    _registered_combos = [];
+  };
+
+  keypress.combo = function(keys, callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
+    }
+    return keypress.register_combo({
+      keys: keys,
+      on_keydown: callback,
+      prevent_default: prevent_default
+    });
+  };
+
+  keypress.counting_combo = function(keys, count_callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
+    }
+    return keypress.register_combo({
+      keys: keys,
+      is_counting: true,
+      is_ordered: true,
+      on_keydown: count_callback,
+      prevent_default: prevent_default
+    });
+  };
+
+  keypress.sequence_combo = function(keys, callback, prevent_default) {
+    if (prevent_default == null) {
+      prevent_default = false;
+    }
+    return keypress.register_combo({
+      keys: keys,
+      on_keydown: callback,
+      is_sequence: true,
+      prevent_default: prevent_default
+    });
+  };
+
+  keypress.register_combo = function(combo) {
+    var property, value;
+    if (typeof combo.keys === "string") {
+      combo.keys = combo.keys.split(" ");
+    }
+    for (property in _combo_defaults) {
+      if (!__hasProp.call(_combo_defaults, property)) continue;
+      value = _combo_defaults[property];
+      if (combo[property] == null) {
+        combo[property] = value;
+      }
+    }
+    if (_validate_combo(combo)) {
+      _registered_combos.push(combo);
+      return true;
+    }
+  };
+
+  keypress.register_many = function(combo_array) {
+    var combo, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+      combo = combo_array[_i];
+      _results.push(keypress.register_combo(combo));
+    }
+    return _results;
+  };
+
+  keypress.unregister_combo = function(keys_or_combo) {
+    var combo, _i, _len, _results;
+    if (!keys_or_combo) {
+      return false;
+    }
+    if (keys_or_combo.keys) {
+      return _unregister_combo(keys_or_combo);
+    } else {
+      _results = [];
+      for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
+        combo = _registered_combos[_i];
+        if (!combo) {
+          continue;
+        }
+        if (_compare_arrays(keys, combo.keys)) {
+          _results.push(_unregister_combo(combo));
+        } else {
+          _results.push(void 0);
+        }
+      }
+      return _results;
+    }
+  };
+
+  keypress.unregister_many = function(combo_array) {
+    var combo, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+      combo = combo_array[_i];
+      _results.push(keypress.unregister_combo(combo));
+    }
+    return _results;
+  };
+
+  keypress.listen = function() {
+    return _prevent_capture = false;
+  };
+
+  keypress.stop_listening = function() {
+    return _prevent_capture = true;
+  };
+
+  _convert_key_to_readable = function(k) {
+    return _keycode_dictionary[k];
+  };
+
+  _modifier_event_mapping = {
+    "cmd": "metaKey",
+    "ctrl": "ctrlKey",
+    "shift": "shiftKey",
+    "alt": "altKey"
+  };
+
+  _keycode_alternate_names = {
+    "control": "ctrl",
+    "command": "cmd",
+    "break": "pause",
+    "windows": "cmd",
+    "option": "alt",
+    "caps_lock": "caps",
+    "apostrophe": "\'",
+    "semicolon": ";",
+    "tilde": "~",
+    "accent": "`",
+    "scroll_lock": "scroll",
+    "num_lock": "num"
+  };
+
+  _keycode_shifted_keys = {
+    "/": "?",
+    ".": ">",
+    ",": "<",
+    "\'": "\"",
+    ";": ":",
+    "[": "{",
+    "]": "}",
+    "\\": "|",
+    "`": "~",
+    "=": "+",
+    "-": "_",
+    "1": "!",
+    "2": "@",
+    "3": "#",
+    "4": "$",
+    "5": "%",
+    "6": "^",
+    "7": "&",
+    "8": "*",
+    "9": "(",
+    "0": ")"
+  };
+
+  _keycode_dictionary = {
+    0: "\\",
+    8: "backspace",
+    9: "tab",
+    12: "num",
+    13: "enter",
+    16: "shift",
+    17: "ctrl",
+    18: "alt",
+    19: "pause",
+    20: "caps",
+    27: "escape",
+    32: "space",
+    33: "pageup",
+    34: "pagedown",
+    35: "end",
+    36: "home",
+    37: "left",
+    38: "up",
+    39: "right",
+    40: "down",
+    44: "print",
+    45: "insert",
+    46: "delete",
+    48: "0",
+    49: "1",
+    50: "2",
+    51: "3",
+    52: "4",
+    53: "5",
+    54: "6",
+    55: "7",
+    56: "8",
+    57: "9",
+    65: "a",
+    66: "b",
+    67: "c",
+    68: "d",
+    69: "e",
+    70: "f",
+    71: "g",
+    72: "h",
+    73: "i",
+    74: "j",
+    75: "k",
+    76: "l",
+    77: "m",
+    78: "n",
+    79: "o",
+    80: "p",
+    81: "q",
+    82: "r",
+    83: "s",
+    84: "t",
+    85: "u",
+    86: "v",
+    87: "w",
+    88: "x",
+    89: "y",
+    90: "z",
+    91: "cmd",
+    92: "cmd",
+    93: "cmd",
+    96: "num_0",
+    97: "num_1",
+    98: "num_2",
+    99: "num_3",
+    100: "num_4",
+    101: "num_5",
+    102: "num_6",
+    103: "num_7",
+    104: "num_8",
+    105: "num_9",
+    106: "num_multiply",
+    107: "num_add",
+    108: "num_enter",
+    109: "num_subtract",
+    110: "num_decimal",
+    111: "num_divide",
+    124: "print",
+    144: "num",
+    145: "scroll",
+    186: ";",
+    187: "=",
+    188: ",",
+    189: "-",
+    190: ".",
+    191: "/",
+    192: "`",
+    219: "[",
+    220: "\\",
+    221: "]",
+    222: "\'",
+    223: "`",
+    224: "cmd",
+    57392: "ctrl",
+    63289: "num"
+  };
+
+  for (_ in _keycode_dictionary) {
+    key = _keycode_dictionary[_];
+    _valid_keys.push(key);
+  }
+
+  for (_ in _keycode_shifted_keys) {
+    key = _keycode_shifted_keys[_];
+    _valid_keys.push(key);
+  }
+
+  _init();
+
+  _ready = function(callback) {
+    if ((document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading")) {
+      return callback();
+    } else {
+      return setTimeout(function() {
+        return _ready(callback);
+      }, 9);
+    }
+  };
+
+  _ready(_bind_key_events);
+
+}).call(this);

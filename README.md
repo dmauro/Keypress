@@ -35,5 +35,6 @@ TODO
 ----
 
 * Improve keypress.combo defaults: this should be geared towards stealing meta+keystroke shortcuts from the browser.
+* Make instance based so users can instantiate multiple Keypresses.
 * Put negative edge in sequences.
 * See if we can do away with keyup_fired and count properties.

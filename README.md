@@ -6,7 +6,7 @@ Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
 visit [http://dmauro.github.io/Keypress/](http://dmauro.github.io/Keypress/)
 
-Copyright 2012 David Mauro
+Copyright 2013 David Mauro
 released under the Apache License, version 2.0
 
 
@@ -34,5 +34,6 @@ released under the Apache License, version 2.0
 TODO
 ----
 
+* Improve keypress.combo defaults: this should be geared towards stealing meta+keystroke shortcuts from the browser.
 * Put negative edge in sequences.
 * See if we can do away with keyup_fired and count properties.

@@ -34,6 +34,7 @@ released under the Apache License, version 2.0
 TODO
 ----
 
+* Add debugging option to control errors that get logged.
 * Improve keypress.combo defaults: this should be geared towards stealing meta+keystroke shortcuts from the browser.
 * Make instance based so users can instantiate multiple Keypresses.
 * Put negative edge in sequences.

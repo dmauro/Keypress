@@ -1,3 +1,6 @@
+# Create listener
+listener = new window.keypress.Listener()
+
 demo_2 = {}
 
 demo_2.move_piece = (dir) ->
@@ -80,6 +83,7 @@ demo_2.combos = [
 ]
 for combo in demo_2.combos
     combo['is_exclusive'] = true
+    combo['is_ordered'] = false
 
 
 demo_3 = {}
@@ -828,7 +832,7 @@ bind_keyboard = ->
             on_keyup : ->
                 on_up key_nodes.num_9
     ]
-    keypress.register_many combos
+    listener.register_many combos
 
 demos =
     demo_1  :
@@ -838,7 +842,7 @@ demos =
             return
     demo_2  :
         wire    : ->
-            keypress.register_many demo_2.combos
+            listener.register_many demo_2.combos
             # Add the divs we need for the grid
             total_spots = 12*6
             total_spots += 1
@@ -850,23 +854,23 @@ demos =
             demo_2.piece = $('#movement_grid div:first-of-type')
             demo_2.unit_size = parseInt demo_2.piece.outerWidth(), 10
         unwire  : ->
-            keypress.unregister_many demo_2.combos
+            listener.unregister_many demo_2.combos
     demo_3  :
         wire    : ->
-            keypress.register_many demo_3.combos
+            listener.register_many demo_3.combos
             list = $('#counting_list li')
             list.bind("click", ->
                 list.removeClass "active"
                 $(this).addClass "active"
             )
         unwire  : ->
-            keypress.unregister_many demo_3.combos
+            listener.unregister_many demo_3.combos
             $('#counting_list li').unbind "click"
     demo_4  :
         wire    : ->
-            keypress.register_many demo_4.combos
+            listener.register_many demo_4.combos
         unwire  : ->
-            keypress.unregister_many demo_4.combos
+            listener.unregister_many demo_4.combos
 
 unwire_demo = (demo_node) ->
     wire_demo demo_node, false
@@ -924,25 +928,25 @@ bind_demos = ->
         demo = $(this).data "demo"
         activate_demo demo
     )
-    keypress.register_combo({
+    listener.register_combo({
         keys            : "`",
         is_exclusive    : true,
         prevent_default : true,
         on_keydown      : activate_next_demo,
     });
-    keypress.combo "1", ->
+    listener.combo "1", ->
         activate_demo "demo_1"
     , true
-    keypress.combo "2", ->
+    listener.combo "2", ->
         activate_demo "demo_2"
     , true
-    keypress.combo "3", ->
+    listener.combo "3", ->
         activate_demo "demo_3"
     , true
-    keypress.combo "4", ->
+    listener.combo "4", ->
         activate_demo "demo_4"
     , true
-    keypress.combo "5", ->
+    listener.combo "5", ->
         activate_demo "demo_5"
     , true
 

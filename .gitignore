@@ -4,3 +4,5 @@
 compiler.jar
 bower_components
 test
+js/main.js
+css/main.css

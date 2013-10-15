@@ -2,3 +2,5 @@
 *.scssc
 *.sh
 compiler.jar
+bower_components
+test

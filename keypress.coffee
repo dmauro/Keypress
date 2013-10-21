@@ -773,6 +773,7 @@ _keycode_dictionary =
     222 : "\'"
     223 : "`"
     224 : "cmd"
+    225 : "alt"
     # Opera weirdness
     57392   : "ctrl"
     63289   : "num"

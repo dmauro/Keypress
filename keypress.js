@@ -17,25 +17,25 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.8
+version 1.0.9
 */
 
 
 /*
-Options available and defaults:
-    keys            : []            - An array of the keys pressed together to activate combo
+Options available and their defaults:
+    keys            : []            - An array of the keys pressed together to activate combo.
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
     prevent_default : false         - Prevent default behavior for all component key keypresses.
-    is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order
-    is_counting     : false         - Makes this a counting combo (see documentation)
-    is_exclusive    : false         - This combo will replace other exclusive combos when true
-    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down
-    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence
+    is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order.
+    is_counting     : false         - Makes this a counting combo (see documentation).
+    is_exclusive    : false         - This combo will replace other exclusive combos when true.
+    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
+    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence.
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
-    on_keyup        : null          - A function that is called when the combo is released
+    on_keyup        : null          - A function that is called when the combo is released.
     on_keydown      : null          - A function that is called when the combo is pressed.
     on_release      : null          - A function that is called hen all keys are released.
-    this            : undefined     - The scope for this of your callback functions
+    this            : undefined     - The scope for this of your callback functions.
 */
 
 
@@ -806,7 +806,10 @@ Options available and defaults:
         if (!combo) {
           continue;
         }
-        if (_compare_arrays(keys, combo.keys)) {
+        if (typeof keys_or_combo === "string") {
+          keys_or_combo = keys_or_combo.split(" ");
+        }
+        if ((!combo.is_ordered && _compare_arrays(keys_or_combo, combo.keys)) || (combo.is_ordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
           _results.push(_unregister_combo(combo));
         } else {
           _results.push(void 0);
@@ -896,7 +899,7 @@ Options available and defaults:
     18: "alt",
     19: "pause",
     20: "caps",
-    27: "escape",
+    27: "esc",
     32: "space",
     33: "pageup",
     34: "pagedown",

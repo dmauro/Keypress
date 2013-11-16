@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.8
+version 1.0.9
 ###
 
 ###
@@ -618,7 +618,9 @@ keypress.unregister_combo = (keys_or_combo) ->
     else
         for combo in _registered_combos
             continue unless combo
-            if _compare_arrays keys, combo.keys
+            if typeof keys_or_combo == "string"
+                keys_or_combo = keys_or_combo.split " "
+            if (!combo.is_ordered and _compare_arrays(keys_or_combo, combo.keys)) || (combo.is_ordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
                 _unregister_combo combo
 
 keypress.unregister_many = (combo_array) ->
@@ -689,7 +691,7 @@ _keycode_dictionary =
     18  : "alt"
     19  : "pause"
     20  : "caps"
-    27  : "escape"
+    27  : "esc"
     32  : "space"
     33  : "pageup"
     34  : "pagedown"

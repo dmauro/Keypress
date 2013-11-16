@@ -550,6 +550,29 @@ describe "Keypress:", ->
                 on_keyup "b"
                 expect(key_handler).not.toHaveBeenCalled()
 
+    describe "Keyboard Shortcuts", ->
+        afterEach ->
+            keypress.reset()
+        describe "Escape", ->
+            it "works with 'escape' and 'esc'", ->
+                count = 0
+                handler = ->
+                    count += 1
+                keypress.register_combo(
+                    keys        : "escape"
+                    on_keydown  : handler     
+                )
+                on_keydown "esc"
+                expect(count).toEqual(1)
+                keypress.unregister_combo("esc")
+                expect(keypress.get_registered_combos().length).toEqual(0)
+                keypress.register_combo(
+                    keys        : "esc"
+                    on_keydown  : handler
+                )
+                on_keydown "esc"
+                expect(count).toEqual(2)
+
 
 describe "Keypress Functional components:", ->
     afterEach ->
@@ -603,4 +626,52 @@ describe "Keypress Functional components:", ->
             window._fuzzy_match_combo_arrays ["a", "x", "b"], ->
                 foo += 1
             expect(foo).toEqual(1)
+
+describe "APIs behave as expected:", ->
+    afterEach ->
+        keypress.reset()
+
+    describe "unregister_combo", ->
+
+        it "unregisters string", ->
+            keypress.register_combo(
+                keys : "shift s"
+            )
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(1)
+            keypress.unregister_combo("shift s")
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(0)
+
+        it "unregisters array", ->
+            keypress.register_combo(
+                keys : "shift s"
+            )
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(1)
+            keypress.unregister_combo(["shift", "s"])
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(0)
+
+        it "unregisters array out of order", ->
+            keypress.register_combo(
+                keys : "shift s"
+            )
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(1)
+            keypress.unregister_combo(["s", "shift"])
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(0)
+
+        it "does not unregister if the combo is ordered and not unregistered with the same ordering", ->
+            keypress.register_combo(
+                keys        : "shift s"
+                is_ordered  : true
+            )
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(1)
+            keypress.unregister_combo(["s", "shift"])
+            count = keypress.get_registered_combos().length
+            expect(count).toEqual(1)
+
 

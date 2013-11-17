@@ -19,6 +19,8 @@ released under the Apache License, version 2.0
 * Each instance of a Keypress listener can be bound to a DOM element.
 * Combos now default to being ordered (the property is now called is_unordered and is false by default).
 * Combos handlers preventDefault unless the handler returns true.
+* The "combo" public methos is now called "simple_combo".
+* The basic combo helpers for simple, counting and sequence combos no longer have a third prevent_default optional parameter.
 * Debugging console logs can be enabled by setting keypress.debug to true.
 
 1.0.9

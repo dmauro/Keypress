@@ -46,39 +46,33 @@ describe "Keypress:", ->
 
         it "just works", ->
             foo = 0
-            listener.combo ["a"], ->
+            listener.simple_combo ["a"], ->
                 foo = 1
             press_key "a"
             expect(foo).toEqual(1)
 
-        it "can prevent default", ->
-            listener.combo "a", null, true
-            event = on_keydown "a"
-            on_keyup "a"
-            expect(event.preventDefault).toHaveBeenCalled()
-
         it "defaults to not preventing default", ->
-            listener.combo "a", null
+            listener.simple_combo "a", null
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).not.toHaveBeenCalled()
 
         it "will prevent default keydown if we have an on_keydown function that doesn't return true", ->
-            listener.combo "a", ->
+            listener.simple_combo "a", ->
                 return
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).toHaveBeenCalled()
 
         it "will not prevent default keydown if we have an on_keydown function that does return true", ->
-            listener.combo "a", ->
+            listener.simple_combo "a", ->
                 return true
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).not.toHaveBeenCalled()
 
         it "will only prevent for the final event by default if we don't return true", ->
-            listener.combo "a b", ->
+            listener.simple_combo "a b", ->
                 return
             event = on_keydown "a"
             expect(event.preventDefault).not.toHaveBeenCalled()
@@ -95,7 +89,7 @@ describe "Keypress:", ->
             listener.reset()
 
         it "evaluates keys as shifted to match combos", ->
-            listener.combo "!", key_handler
+            listener.simple_combo "!", key_handler
             on_keydown "shift"
             on_keydown "1"
             expect(key_handler).toHaveBeenCalled()
@@ -148,7 +142,7 @@ describe "Keypress:", ->
 
             it "receives the event and combo count as arguments", ->
                 received_event = null
-                listener.combo "a", (event, count) ->
+                listener.simple_combo "a", (event, count) ->
                     expect(count).toEqual(0)
                     received_event = event
                 down_event = on_keydown "a"
@@ -156,7 +150,7 @@ describe "Keypress:", ->
                 expect(received_event).toEqual(down_event)
 
             it "only fires when all of the keys have been pressed", ->
-                listener.combo "a b c", key_handler
+                listener.simple_combo "a b c", key_handler
                 on_keydown "a"
                 expect(key_handler).not.toHaveBeenCalled()
                 on_keydown "b"
@@ -169,7 +163,7 @@ describe "Keypress:", ->
 
             it "will fire each time the final key is pressed", ->
                 foo = 0
-                listener.combo "a b", ->
+                listener.simple_combo "a b", ->
                     foo += 1
                 on_keydown "a"
                 on_keydown "b"
@@ -237,7 +231,7 @@ describe "Keypress:", ->
         describe "this keyword", ->
 
             it "defaults to window", ->
-                listener.combo "a", ->
+                listener.simple_combo "a", ->
                     expect(this).toEqual(window)
                 press_key "a"
 
@@ -330,7 +324,7 @@ describe "Keypress:", ->
         describe "prevent_repeat", ->
 
             it "allows multiple firings of the keydown event by default", ->
-                listener.combo "a", key_handler
+                listener.simple_combo "a", key_handler
                 on_keydown "a"
                 on_keydown "a"
                 expect(key_handler.calls.length).toEqual(2)

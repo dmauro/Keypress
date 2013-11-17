@@ -502,30 +502,27 @@ class keypress.Listener
 
     # Public Registration Methods
 
-    combo: (keys, callback, prevent_default=false) ->
+    simple_combo: (keys, callback) ->
         # Shortcut for simple combos.
         @register_combo(
             keys            : keys
             on_keydown      : callback
-            prevent_default : prevent_default
         )
 
-    counting_combo: (keys, count_callback, prevent_default=false) ->
+    counting_combo: (keys, count_callback) ->
         # Shortcut for counting combos
         @register_combo(
             keys            : keys
             is_counting     : true
             is_unordered    : false
             on_keydown      : count_callback
-            prevent_default : prevent_default
         )
 
-    sequence_combo: (keys, callback, prevent_default=false) ->
+    sequence_combo: (keys, callback) ->
         @register_combo(
             keys            : keys
             on_keydown      : callback
             is_sequence     : true
-            prevent_default : prevent_default
         )
 
     register_combo: (combo_dictionary) ->

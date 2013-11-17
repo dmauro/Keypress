@@ -659,9 +659,11 @@ _key_is_valid = (key) ->
     return valid
 
 _validate_combo = (combo) ->
+    validated = true
+
     # Warn for lack of keys
     unless combo.keys.length
-        _log_error "You're trying to bind a combo with no keys."
+        _log_error "You're trying to bind a combo with no keys:", combo
 
     # Convert "meta" to either "ctrl" or "cmd"
     # Don't explicity use the command key, it breaks
@@ -681,7 +683,7 @@ _validate_combo = (combo) ->
     for key in combo.keys
         unless _key_is_valid key
             _log_error "Do not recognize the key \"#{key}\""
-            return false
+            validated = false
 
     # We can only allow a single non-modifier key
     # in combos that include the command key (this
@@ -693,8 +695,16 @@ _validate_combo = (combo) ->
                 non_modifier_keys.splice(i, 1) 
         if non_modifier_keys.length > 1
             _log_error "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys
-            return true
-    return true
+            validated = false
+
+    # Tell the user if they are trying to use any
+    # combo properties that don't actually exist,
+    # but allow the combo
+    for property, value of combo
+        if _factory_defaults[property] is "undefined"
+            _log_error "The property #{property} is not a valid combo property. Your combo has still been registered."
+
+    return validated
 
 _convert_to_shifted_key = (key, e) ->
     return false unless e.shiftKey

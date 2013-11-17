@@ -70,6 +70,13 @@ describe "Keypress:", ->
             on_keyup "a"
             expect(event.preventDefault).toHaveBeenCalled()
 
+        it "will not prevent default keydown if we have an on_keydown function that does return true", ->
+            listener.combo "a", ->
+                return true
+            event = on_keydown "a"
+            on_keyup "a"
+            expect(event.preventDefault).not.toHaveBeenCalled()
+
         it "will only prevent for the final event by default if we don't return true", ->
             listener.combo "a b", ->
                 return

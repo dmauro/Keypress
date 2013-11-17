@@ -15,7 +15,7 @@ released under the Apache License, version 2.0
 
 2.0.0
 
-* Keypress is now a class rather than a single instance.
+* Keypress now has a listener class that must be instantiated.
 * Each instance of a Keypress listener can be bound to a DOM element.
 * Combos now default is_ordered to true.
 * Combos handlers preventDefault unless the handler returns true.

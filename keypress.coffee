@@ -23,17 +23,17 @@ version 2.0.0
 Combo options available and their defaults:
     keys            : []            - An array of the keys pressed together to activate combo.
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    prevent_default : false         - Prevent default behavior for all component key keypresses.
     is_ordered      : true          - Unless this is set to true, the keys can be pressed down in any order.
     is_counting     : false         - Makes this a counting combo (see documentation).
     is_exclusive    : false         - This combo will replace other exclusive combos when true.
     is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
     is_sequence     : false         - Rather than a key combo, this is an ordered key sequence.
+    prevent_default : false         - Prevent default behavior for all component key keypresses.
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
-    on_keyup        : null          - A function that is called when the combo is released.
     on_keydown      : null          - A function that is called when the combo is pressed.
-    on_release      : null          - A function that is called hen all keys are released.
-    this            : undefined     - The scope for this of your callback functions.
+    on_keyup        : null          - A function that is called when the combo is released.
+    on_release      : null          - A function that is called when all keys in the combo are released.
+    this            : undefined     - The scope for 'this' of your callback functions.
 ###
 
 ###########

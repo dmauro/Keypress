@@ -1,5 +1,5 @@
 #!/bin/bash
-VERSION="1.0.9"
+VERSION="2.0.0"
 YEAR="2013"
 cd "$( cd "$( dirname "$0" )" && pwd )"
 coffee -c keypress.coffee

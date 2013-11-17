@@ -17,7 +17,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 1.0.9
+version 2.0.0
 */
 
 
@@ -39,35 +39,730 @@ Options available and their defaults:
 */
 
 
+/*
+Notes to self
+Major changes so far:
+* Combos prevent default upon completion by default now. You have to
+  return true to allow the final keydown event to bubble up.
+* You have to first instantiate keypress.Listener and add combos
+  to that.
+* Defaults combos to being ordered.
+* Logging only in debug. Add more logs.
+*/
+
+
 (function() {
-  var key, _, _active_combos, _add_key_to_sequence, _add_to_active_combos, _allow_key_repeat, _bind_key_events, _bug_catcher, _change_keycodes_by_browser, _cmd_bug_check, _combo_defaults, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _filter, _fire, _fuzzy_match_combo_arrays, _get_active_combos, _get_possible_sequences, _get_potential_combos, _get_sequence, _handle_combo_down, _handle_combo_up, _init, _is_array_in_array, _is_array_in_array_sorted, _key_down, _key_up, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _keys_down, _keys_remain, _log_error, _match_combo_arrays, _metakey, _modifier_event_mapping, _modifier_keys, _prevent_capture, _prevent_default, _ready, _receive_input, _registered_combos, _remove_from_active_combos, _reset_combo, _sequence, _sequence_timer, _unregister_combo, _valid_keys, _validate_combo,
-    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    __hasProp = {}.hasOwnProperty;
+  var _change_keycodes_by_browser, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _factory_defaults, _filter_array, _is_array_in_array, _is_array_in_array_sorted, _key_is_valid, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _log_error, _metakey, _modifier_event_mapping, _modifier_keys, _validate_combo,
+    __hasProp = {}.hasOwnProperty,
+    __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
-  _registered_combos = [];
-
-  _sequence = [];
-
-  _sequence_timer = null;
-
-  _keys_down = [];
-
-  _active_combos = [];
-
-  _prevent_capture = false;
-
-  _metakey = "ctrl";
+  _factory_defaults = {
+    is_ordered: true,
+    is_counting: false,
+    is_exclusive: false,
+    is_solitary: false,
+    prevent_default: false,
+    prevent_repeat: false
+  };
 
   _modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"];
 
-  _valid_keys = [];
+  _metakey = "ctrl";
 
-  _combo_defaults = {
-    keys: [],
-    count: 0
+  window.keypress = {};
+
+  keypress.debug = false;
+
+  keypress.Combo = (function() {
+    function Combo(dictionary) {
+      var property, value;
+      for (property in dictionary) {
+        if (!__hasProp.call(dictionary, property)) continue;
+        value = dictionary[property];
+        if (value !== false) {
+          this[property] = value;
+        }
+      }
+      this.keys = this.keys || [];
+      this.count = this.count || 0;
+    }
+
+    Combo.prototype.allows_key_repeat = function() {
+      return !this.prevent_repeat && typeof this.on_keydown === "function";
+    };
+
+    Combo.prototype.reset = function() {
+      this.count = 0;
+      return this.keyup_fired = null;
+    };
+
+    return Combo;
+
+  })();
+
+  keypress.Listener = (function() {
+    function Listener(element, defaults) {
+      var attach_handler, property, value,
+        _this = this;
+      this.should_suppress_event_defaults = false;
+      this.should_force_event_defaults = false;
+      this.sequence_delay = 800;
+      this._registered_combos = [];
+      this._keys_down = [];
+      this._active_combos = [];
+      this._sequence = [];
+      this._sequence_timer = null;
+      this._prevent_capture = false;
+      this._defaults = defaults || {};
+      for (property in _factory_defaults) {
+        if (!__hasProp.call(_factory_defaults, property)) continue;
+        value = _factory_defaults[property];
+        this._defaults[property] = this._defaults[property] || value;
+      }
+      element = element || document.body;
+      attach_handler = function(target, event, handler) {
+        if (target.addEventListener) {
+          return target.addEventListener(event, handler);
+        } else if (target.attachEvent) {
+          return target.attachEvent("on" + event, handler);
+        }
+      };
+      attach_handler(element, "keydown", function(e) {
+        e = e || window.event;
+        _this._receive_input(e, true);
+        return _this._bug_catcher(e);
+      });
+      attach_handler(element, "keyup", function(e) {
+        e = e || window.event;
+        return _this._receive_input(e, false);
+      });
+      attach_handler(window, "blur", function() {
+        var key, _i, _len, _ref;
+        _ref = _this._keys_down;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          key = _ref[_i];
+          _this._key_up(key, {});
+        }
+        return _this._keys_down = [];
+      });
+    }
+
+    Listener.prototype._bug_catcher = function(e) {
+      var _ref;
+      if (__indexOf.call(this._keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
+        return _receive_input(e, false);
+      }
+    };
+
+    Listener.prototype._cmd_bug_check = function(combo_keys) {
+      if (__indexOf.call(this._keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
+        return false;
+      }
+      return true;
+    };
+
+    Listener.prototype._prevent_default = function(e, should_prevent) {
+      if ((should_prevent || this.should_suppress_event_defaults) && !this.should_force_event_defaults) {
+        if (e.preventDefault) {
+          e.preventDefault();
+        } else {
+          e.returnValue = false;
+        }
+        if (e.stopPropagation) {
+          return e.stopPropagation();
+        }
+      }
+    };
+
+    Listener.prototype._get_active_combos = function(key) {
+      var active_combos, keys_down,
+        _this = this;
+      active_combos = [];
+      keys_down = _filter_array(this._keys_down, function(down_key) {
+        return down_key !== key;
+      });
+      keys_down.push(key);
+      this._match_combo_arrays(keys_down, function(match) {
+        if (_this._cmd_bug_check(match.keys)) {
+          return active_combos.push(match);
+        }
+      });
+      this._fuzzy_match_combo_arrays(keys_down, function(match) {
+        if (__indexOf.call(active_combos, match) >= 0) {
+          return;
+        }
+        if (!(match.is_solitary || !_this._cmd_bug_check(match.keys))) {
+          return active_combos.push(match);
+        }
+      });
+      return active_combos;
+    };
+
+    Listener.prototype._get_potential_combos = function(key) {
+      var combo, potentials, _i, _len, _ref;
+      potentials = [];
+      _ref = this._registered_combos;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        combo = _ref[_i];
+        if (combo.is_sequence) {
+          continue;
+        }
+        if (__indexOf.call(combo.keys, key) >= 0 && this._cmd_bug_check(combo.keys)) {
+          potentials.push(combo);
+        }
+      }
+      return potentials;
+    };
+
+    Listener.prototype._add_to_active_combos = function(combo) {
+      var active_combo, active_key, active_keys, already_replaced, combo_key, i, should_prepend, should_replace, _i, _j, _k, _len, _len1, _ref, _ref1;
+      should_replace = false;
+      should_prepend = true;
+      already_replaced = false;
+      if (__indexOf.call(this._active_combos, combo) >= 0) {
+        return true;
+      } else if (this._active_combos.length) {
+        for (i = _i = 0, _ref = this._active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+          active_combo = this._active_combos[i];
+          if (!(active_combo && active_combo.is_exclusive && combo.is_exclusive)) {
+            continue;
+          }
+          active_keys = active_combo.keys;
+          if (!should_replace) {
+            for (_j = 0, _len = active_keys.length; _j < _len; _j++) {
+              active_key = active_keys[_j];
+              should_replace = true;
+              if (__indexOf.call(combo.keys, active_key) < 0) {
+                should_replace = false;
+                break;
+              }
+            }
+          }
+          if (should_prepend && !should_replace) {
+            _ref1 = combo.keys;
+            for (_k = 0, _len1 = _ref1.length; _k < _len1; _k++) {
+              combo_key = _ref1[_k];
+              should_prepend = false;
+              if (__indexOf.call(active_keys, combo_key) < 0) {
+                should_prepend = true;
+                break;
+              }
+            }
+          }
+          if (should_replace) {
+            if (already_replaced) {
+              active_combo = this._active_combos.splice(i, 1)[0];
+              if (active_combo != null) {
+                active_combo.reset();
+              }
+            } else {
+              active_combo = this._active_combos.splice(i, 1, combo)[0];
+              if (active_combo != null) {
+                active_combo.reset();
+              }
+              already_replaced = true;
+            }
+            should_prepend = false;
+          }
+        }
+      }
+      if (should_prepend) {
+        this._active_combos.unshift(combo);
+      }
+      return should_replace || should_prepend;
+    };
+
+    Listener.prototype._remove_from_active_combos = function(combo) {
+      var active_combo, i, _i, _ref;
+      for (i = _i = 0, _ref = this._active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        active_combo = this._active_combos[i];
+        if (active_combo === combo) {
+          combo = this._active_combos.splice(i, 1)[0];
+          combo.reset();
+          break;
+        }
+      }
+    };
+
+    Listener.prototype._get_possible_sequences = function() {
+      var combo, i, j, match, matches, sequence, _i, _j, _k, _len, _ref, _ref1, _ref2;
+      matches = [];
+      _ref = this._registered_combos;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        combo = _ref[_i];
+        for (j = _j = 1, _ref1 = this._sequence.length; 1 <= _ref1 ? _j <= _ref1 : _j >= _ref1; j = 1 <= _ref1 ? ++_j : --_j) {
+          sequence = this._sequence.slice(-j);
+          if (!combo.is_sequence) {
+            continue;
+          }
+          if (__indexOf.call(combo.keys, "shift") < 0) {
+            sequence = _filter_array(sequence, function(key) {
+              return key !== "shift";
+            });
+            if (!sequence.length) {
+              continue;
+            }
+          }
+          for (i = _k = 0, _ref2 = sequence.length; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; i = 0 <= _ref2 ? ++_k : --_k) {
+            if (combo.keys[i] === sequence[i]) {
+              match = true;
+            } else {
+              match = false;
+              break;
+            }
+          }
+          if (match) {
+            matches.push(combo);
+          }
+        }
+      }
+      return matches;
+    };
+
+    Listener.prototype._add_key_to_sequence = function(key, e) {
+      var combo, sequence_combos, _i, _len;
+      this._sequence.push(key);
+      sequence_combos = this._get_possible_sequences();
+      if (sequence_combos.length) {
+        for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
+          combo = sequence_combos[_i];
+          this._prevent_default(e, combo.prevent_default);
+        }
+        if (this._sequence_timer) {
+          clearTimeout(this._sequence_timer);
+        }
+        if (this.sequence_delay > -1) {
+          this._sequence_timer = setTimeout(function() {
+            return this._sequence = [];
+          }, this.sequence_delay);
+        }
+      } else {
+        this._sequence = [];
+      }
+    };
+
+    Listener.prototype._get_sequence = function(key) {
+      var combo, i, j, match, seq_key, sequence, _i, _j, _k, _len, _ref, _ref1, _ref2;
+      _ref = this._registered_combos;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        combo = _ref[_i];
+        if (!combo.is_sequence) {
+          continue;
+        }
+        for (j = _j = 1, _ref1 = this._sequence.length; 1 <= _ref1 ? _j <= _ref1 : _j >= _ref1; j = 1 <= _ref1 ? ++_j : --_j) {
+          sequence = (_filter_array(this._sequence, function(seq_key) {
+            if (__indexOf.call(combo.keys, "shift") >= 0) {
+              return true;
+            }
+            return seq_key !== "shift";
+          })).slice(-j);
+          if (combo.keys.length !== sequence.length) {
+            continue;
+          }
+          for (i = _k = 0, _ref2 = sequence.length; 0 <= _ref2 ? _k < _ref2 : _k > _ref2; i = 0 <= _ref2 ? ++_k : --_k) {
+            seq_key = sequence[i];
+            if (__indexOf.call(combo.keys, "shift") < 0 ? seq_key === "shift" : void 0) {
+              continue;
+            }
+            if (key === "shift" && __indexOf.call(combo.keys, "shift") < 0) {
+              continue;
+            }
+            if (combo.keys[i] === seq_key) {
+              match = true;
+            } else {
+              match = false;
+              break;
+            }
+          }
+        }
+        if (match) {
+          return combo;
+        }
+      }
+      return false;
+    };
+
+    Listener.prototype._receive_input = function(e, is_keydown) {
+      var key;
+      if (this._prevent_capture) {
+        if (this._keys_down.length) {
+          this._keys_down = [];
+        }
+        return;
+      }
+      if (!is_keydown && !this._keys_down.length) {
+        return;
+      }
+      key = _convert_key_to_readable(e.keyCode);
+      if (!key) {
+        return;
+      }
+      if (is_keydown) {
+        return this._key_down(key, e);
+      } else {
+        return this._key_up(key, e);
+      }
+    };
+
+    Listener.prototype._fire = function(event, combo, key_event) {
+      if (typeof combo["on_" + event] === "function") {
+        this._prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) !== true);
+      }
+      if (event === "release") {
+        combo.count = 0;
+      }
+      if (event === "keyup") {
+        return combo.keyup_fired = true;
+      }
+    };
+
+    Listener.prototype._match_combo_arrays = function(potential_match, match_handler) {
+      var source_combo, _i, _len, _ref;
+      _ref = this._registered_combos;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        source_combo = _ref[_i];
+        if ((source_combo.is_ordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (!source_combo.is_ordered && _compare_arrays(potential_match, source_combo.keys))) {
+          match_handler(source_combo);
+        }
+      }
+    };
+
+    Listener.prototype._fuzzy_match_combo_arrays = function(potential_match, match_handler) {
+      var source_combo, _i, _len, _ref;
+      _ref = this._registered_combos;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        source_combo = _ref[_i];
+        if ((source_combo.is_ordered && _is_array_in_array_sorted(source_combo.keys, potential_match)) || (!source_combo.is_ordered && _is_array_in_array(source_combo.keys, potential_match))) {
+          match_handler(source_combo);
+        }
+      }
+    };
+
+    Listener.prototype._keys_remain = function(combo) {
+      var key, keys_remain, _i, _len, _ref;
+      _ref = combo.keys;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        key = _ref[_i];
+        if (__indexOf.call(this._keys_down, key) >= 0) {
+          keys_remain = true;
+          break;
+        }
+      }
+      return keys_remain;
+    };
+
+    Listener.prototype._key_down = function(key, e) {
+      var combo, combos, event_mod, i, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _k, _len, _len1, _ref;
+      shifted_key = _convert_to_shifted_key(key, e);
+      if (shifted_key) {
+        key = shifted_key;
+      }
+      this._add_key_to_sequence(key, e);
+      sequence_combo = this._get_sequence(key);
+      if (sequence_combo) {
+        this._fire("keydown", sequence_combo, e);
+      }
+      for (mod in _modifier_event_mapping) {
+        event_mod = _modifier_event_mapping[mod];
+        if (!e[event_mod]) {
+          continue;
+        }
+        if (mod === key || __indexOf.call(this._keys_down, mod) >= 0) {
+          continue;
+        }
+        this._keys_down.push(mod);
+      }
+      for (mod in _modifier_event_mapping) {
+        event_mod = _modifier_event_mapping[mod];
+        if (mod === key) {
+          continue;
+        }
+        if (__indexOf.call(this._keys_down, mod) >= 0 && !e[event_mod]) {
+          for (i = _i = 0, _ref = this._keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+            if (this._keys_down[i] === mod) {
+              this._keys_down.splice(i, 1);
+            }
+          }
+        }
+      }
+      combos = this._get_active_combos(key);
+      potential_combos = this._get_potential_combos(key);
+      for (_j = 0, _len = combos.length; _j < _len; _j++) {
+        combo = combos[_j];
+        this._handle_combo_down(combo, potential_combos, key, e);
+      }
+      if (potential_combos.length) {
+        for (_k = 0, _len1 = potential_combos.length; _k < _len1; _k++) {
+          potential = potential_combos[_k];
+          this._prevent_default(e, potential.prevent_default);
+        }
+      }
+      if (__indexOf.call(this._keys_down, key) < 0) {
+        this._keys_down.push(key);
+      }
+    };
+
+    Listener.prototype._handle_combo_down = function(combo, potential_combos, key, e) {
+      var is_other_exclusive, potential_combo, result, _i, _len;
+      if (__indexOf.call(combo.keys, key) < 0) {
+        return false;
+      }
+      this._prevent_default(e, combo && combo.prevent_default);
+      if (__indexOf.call(this._keys_down, key) >= 0) {
+        if (!combo.allows_key_repeat()) {
+          return false;
+        }
+      }
+      is_other_exclusive = false;
+      if (combo.is_exclusive) {
+        for (_i = 0, _len = potential_combos.length; _i < _len; _i++) {
+          potential_combo = potential_combos[_i];
+          if (potential_combo.is_exclusive && potential_combo.keys.length > combo.keys.length) {
+            is_other_exclusive = true;
+            break;
+          }
+        }
+      }
+      if (!is_other_exclusive) {
+        result = this._add_to_active_combos(combo, key);
+      }
+      combo.keyup_fired = false;
+      if (combo.is_counting && typeof combo.on_keydown === "function") {
+        combo.count += 1;
+      }
+      if (result) {
+        return this._fire("keydown", combo, e);
+      }
+    };
+
+    Listener.prototype._key_up = function(key, e) {
+      var active_combo, active_combos_length, combo, combos, i, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1, _ref2, _ref3;
+      unshifted_key = key;
+      shifted_key = _convert_to_shifted_key(key, e);
+      if (shifted_key) {
+        key = shifted_key;
+      }
+      shifted_key = _keycode_shifted_keys[unshifted_key];
+      if (e.shiftKey) {
+        if (!(shifted_key && __indexOf.call(this._keys_down, shifted_key) >= 0)) {
+          key = unshifted_key;
+        }
+      } else {
+        if (!(unshifted_key && __indexOf.call(this._keys_down, unshifted_key) >= 0)) {
+          key = shifted_key;
+        }
+      }
+      sequence_combo = this._get_sequence(key);
+      if (sequence_combo) {
+        this._fire("keyup", sequence_combo, e);
+      }
+      if (__indexOf.call(this._keys_down, key) < 0) {
+        return false;
+      }
+      for (i = _i = 0, _ref = this._keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+        if ((_ref1 = this._keys_down[i]) === key || _ref1 === shifted_key || _ref1 === unshifted_key) {
+          this._keys_down.splice(i, 1);
+          break;
+        }
+      }
+      active_combos_length = this._active_combos.length;
+      combos = [];
+      _ref2 = this._active_combos;
+      for (_j = 0, _len = _ref2.length; _j < _len; _j++) {
+        active_combo = _ref2[_j];
+        if (__indexOf.call(active_combo.keys, key) >= 0) {
+          combos.push(active_combo);
+        }
+      }
+      for (_k = 0, _len1 = combos.length; _k < _len1; _k++) {
+        combo = combos[_k];
+        this._handle_combo_up(combo, e, key);
+      }
+      if (active_combos_length > 1) {
+        _ref3 = this._active_combos;
+        for (_l = 0, _len2 = _ref3.length; _l < _len2; _l++) {
+          active_combo = _ref3[_l];
+          if (active_combo === void 0 || __indexOf.call(combos, active_combo) >= 0) {
+            continue;
+          }
+          if (!this._keys_remain(active_combo)) {
+            this._remove_from_active_combos(active_combo);
+          }
+        }
+      }
+    };
+
+    Listener.prototype._handle_combo_up = function(combo, e, key) {
+      var keys_down, keys_remaining;
+      this._prevent_default(e, combo && combo.prevent_default);
+      keys_remaining = this._keys_remain(combo);
+      if (!combo.keyup_fired) {
+        keys_down = this._keys_down.slice();
+        keys_down.push(key);
+        if (!combo.is_solitary || _compare_arrays(keys_down, combo.keys)) {
+          this._fire("keyup", combo, e);
+          if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
+            combo.count += 1;
+          }
+        }
+      }
+      if (!keys_remaining) {
+        this._fire("release", combo, e);
+        this._remove_from_active_combos(combo);
+      }
+    };
+
+    Listener.prototype.combo = function(keys, callback, prevent_default) {
+      if (prevent_default == null) {
+        prevent_default = false;
+      }
+      return this.register_combo({
+        keys: keys,
+        on_keydown: callback,
+        prevent_default: prevent_default
+      });
+    };
+
+    Listener.prototype.counting_combo = function(keys, count_callback, prevent_default) {
+      if (prevent_default == null) {
+        prevent_default = false;
+      }
+      return this.register_combo({
+        keys: keys,
+        is_counting: true,
+        is_ordered: true,
+        on_keydown: count_callback,
+        prevent_default: prevent_default
+      });
+    };
+
+    Listener.prototype.sequence_combo = function(keys, callback, prevent_default) {
+      if (prevent_default == null) {
+        prevent_default = false;
+      }
+      return this.register_combo({
+        keys: keys,
+        on_keydown: callback,
+        is_sequence: true,
+        prevent_default: prevent_default
+      });
+    };
+
+    Listener.prototype.register_combo = function(combo_dictionary) {
+      var combo, property, value, _ref;
+      if (typeof combo_dictionary["keys"] === "string") {
+        combo_dictionary["keys"] = combo_dictionary["keys"].split(" ");
+      }
+      _ref = this._defaults;
+      for (property in _ref) {
+        if (!__hasProp.call(_ref, property)) continue;
+        value = _ref[property];
+        if (combo_dictionary[property] === void 0) {
+          combo_dictionary[property] = value;
+        }
+      }
+      combo = new keypress.Combo(combo_dictionary);
+      if (_validate_combo(combo)) {
+        this._registered_combos.push(combo);
+        return true;
+      }
+    };
+
+    Listener.prototype.register_many = function(combo_array) {
+      var combo, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+        combo = combo_array[_i];
+        _results.push(this.register_combo(combo));
+      }
+      return _results;
+    };
+
+    Listener.prototype.unregister_combo = function(keys_or_combo) {
+      var combo, unregister_combo, _i, _len, _ref,
+        _this = this;
+      if (!keys_or_combo) {
+        return false;
+      }
+      unregister_combo = function(combo) {
+        var i, _i, _ref, _results;
+        _results = [];
+        for (i = _i = 0, _ref = _this._registered_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+          if (combo === _this._registered_combos[i]) {
+            _this._registered_combos.splice(i, 1);
+            break;
+          } else {
+            _results.push(void 0);
+          }
+        }
+        return _results;
+      };
+      if (keys_or_combo.keys) {
+        return unregister_combo(keys_or_combo);
+      } else {
+        _ref = this._registered_combos;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          combo = _ref[_i];
+          if (!combo) {
+            continue;
+          }
+        }
+        if (typeof keys_or_combo === "string") {
+          keys_or_combo = keys_or_combo.split(" ");
+        }
+        if ((!combo.is_ordered && _compare_arrays(keys_or_combo, combo.keys)) || (combo.is_ordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
+          return unregister_combo(combo);
+        }
+      }
+    };
+
+    Listener.prototype.unregister_many = function(combo_array) {
+      var combo, _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
+        combo = combo_array[_i];
+        _results.push(this.unregister_combo(combo));
+      }
+      return _results;
+    };
+
+    Listener.prototype.get_registered_combos = function() {
+      return this._registered_combos;
+    };
+
+    Listener.prototype.reset = function() {
+      return this._registered_combos = [];
+    };
+
+    Listener.prototype.listen = function() {
+      return this._prevent_capture = false;
+    };
+
+    Listener.prototype.stop_listening = function() {
+      return this._prevent_capture = true;
+    };
+
+    return Listener;
+
+  })();
+
+  _decide_meta_key = function() {
+    if (navigator.userAgent.indexOf("Mac OS X") !== -1) {
+      _metakey = "cmd";
+    }
   };
 
-  _filter = function(array, callback) {
+  _change_keycodes_by_browser = function() {
+    if (navigator.userAgent.indexOf("Opera") !== -1) {
+      _keycode_dictionary["17"] = "cmd";
+    }
+  };
+
+  _convert_key_to_readable = function(k) {
+    return _keycode_dictionary[k];
+  };
+
+  _filter_array = function(array, callback) {
     var element;
     if (array.filter) {
       return array.filter(callback);
@@ -84,10 +779,6 @@ Options available and their defaults:
         return _results;
       })();
     }
-  };
-
-  _log_error = function() {
-    return console.log.apply(console, arguments);
   };
 
   _compare_arrays = function(a1, a2) {
@@ -144,477 +835,32 @@ Options available and their defaults:
     return true;
   };
 
-  _prevent_default = function(e, should_prevent) {
-    if ((should_prevent || keypress.suppress_event_defaults) && !keypress.force_event_defaults) {
-      if (e.preventDefault) {
-        e.preventDefault();
-      } else {
-        e.returnValue = false;
-      }
-      if (e.stopPropagation) {
-        return e.stopPropagation();
-      }
+  _log_error = function() {
+    if (keypress.debug) {
+      return console.log.apply(console, arguments);
     }
   };
 
-  _allow_key_repeat = function(combo) {
-    if (combo.prevent_repeat) {
-      return false;
-    }
-    if (typeof combo.on_keydown === "function") {
-      return true;
-    }
-  };
-
-  _keys_remain = function(combo) {
-    var key, keys_remain, _i, _len, _ref;
-    _ref = combo.keys;
-    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-      key = _ref[_i];
-      if (__indexOf.call(_keys_down, key) >= 0) {
-        keys_remain = true;
+  _key_is_valid = function(key) {
+    var valid, valid_key, _;
+    valid = false;
+    for (_ in _keycode_dictionary) {
+      valid_key = _keycode_dictionary[_];
+      if (key === valid_key) {
+        valid = true;
         break;
       }
     }
-    return keys_remain;
-  };
-
-  _fire = function(event, combo, key_event) {
-    if (typeof combo["on_" + event] === "function") {
-      _prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) === false);
-    }
-    if (event === "release") {
-      combo.count = 0;
-    }
-    if (event === "keyup") {
-      return combo.keyup_fired = true;
-    }
-  };
-
-  _match_combo_arrays = function(potential_match, match_handler) {
-    var source_combo, _i, _len;
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      source_combo = _registered_combos[_i];
-      if ((source_combo.is_ordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (!source_combo.is_ordered && _compare_arrays(potential_match, source_combo.keys))) {
-        match_handler(source_combo);
-      }
-    }
-  };
-
-  _fuzzy_match_combo_arrays = function(potential_match, match_handler) {
-    var source_combo, _i, _len;
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      source_combo = _registered_combos[_i];
-      if ((source_combo.is_ordered && _is_array_in_array_sorted(source_combo.keys, potential_match)) || (!source_combo.is_ordered && _is_array_in_array(source_combo.keys, potential_match))) {
-        match_handler(source_combo);
-      }
-    }
-  };
-
-  _cmd_bug_check = function(combo_keys) {
-    if (__indexOf.call(_keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
-      return false;
-    }
-    return true;
-  };
-
-  _get_active_combos = function(key) {
-    var active_combos, keys_down;
-    active_combos = [];
-    keys_down = _filter(_keys_down, function(down_key) {
-      return down_key !== key;
-    });
-    keys_down.push(key);
-    _match_combo_arrays(keys_down, function(match) {
-      if (_cmd_bug_check(match.keys)) {
-        return active_combos.push(match);
-      }
-    });
-    _fuzzy_match_combo_arrays(keys_down, function(match) {
-      if (__indexOf.call(active_combos, match) >= 0) {
-        return;
-      }
-      if (!(match.is_solitary || !_cmd_bug_check(match.keys))) {
-        return active_combos.push(match);
-      }
-    });
-    return active_combos;
-  };
-
-  _get_potential_combos = function(key) {
-    var combo, potentials, _i, _len;
-    potentials = [];
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      combo = _registered_combos[_i];
-      if (combo.is_sequence) {
-        continue;
-      }
-      if (__indexOf.call(combo.keys, key) >= 0 && _cmd_bug_check(combo.keys)) {
-        potentials.push(combo);
-      }
-    }
-    return potentials;
-  };
-
-  _add_to_active_combos = function(combo) {
-    var active_combo, active_key, active_keys, already_replaced, combo_key, i, should_prepend, should_replace, _i, _j, _k, _len, _len1, _ref, _ref1;
-    should_replace = false;
-    should_prepend = true;
-    already_replaced = false;
-    if (__indexOf.call(_active_combos, combo) >= 0) {
-      return true;
-    } else if (_active_combos.length) {
-      for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-        active_combo = _active_combos[i];
-        if (!(active_combo && active_combo.is_exclusive && combo.is_exclusive)) {
-          continue;
-        }
-        active_keys = active_combo.keys;
-        if (!should_replace) {
-          for (_j = 0, _len = active_keys.length; _j < _len; _j++) {
-            active_key = active_keys[_j];
-            should_replace = true;
-            if (__indexOf.call(combo.keys, active_key) < 0) {
-              should_replace = false;
-              break;
-            }
-          }
-        }
-        if (should_prepend && !should_replace) {
-          _ref1 = combo.keys;
-          for (_k = 0, _len1 = _ref1.length; _k < _len1; _k++) {
-            combo_key = _ref1[_k];
-            should_prepend = false;
-            if (__indexOf.call(active_keys, combo_key) < 0) {
-              should_prepend = true;
-              break;
-            }
-          }
-        }
-        if (should_replace) {
-          if (already_replaced) {
-            _reset_combo(_active_combos.splice(i, 1));
-          } else {
-            _reset_combo(_active_combos.splice(i, 1, combo));
-            already_replaced = true;
-          }
-          should_prepend = false;
+    if (!valid) {
+      for (_ in _keycode_shifted_keys) {
+        valid_key = _keycode_shifted_keys[_];
+        if (key === valid_key) {
+          valid = true;
+          break;
         }
       }
     }
-    if (should_prepend) {
-      _active_combos.unshift(combo);
-    }
-    return should_replace || should_prepend;
-  };
-
-  _remove_from_active_combos = function(combo) {
-    var active_combo, i, _i, _ref;
-    for (i = _i = 0, _ref = _active_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-      active_combo = _active_combos[i];
-      if (active_combo === combo) {
-        _reset_combo(_active_combos.splice(i, 1));
-        break;
-      }
-    }
-  };
-
-  _reset_combo = function(combo) {
-    if (!combo) {
-      return;
-    }
-    combo.count = null;
-    return combo.keyup_fired = null;
-  };
-
-  _add_key_to_sequence = function(key, e) {
-    var combo, sequence_combos, _i, _len;
-    _sequence.push(key);
-    sequence_combos = _get_possible_sequences();
-    if (sequence_combos.length) {
-      for (_i = 0, _len = sequence_combos.length; _i < _len; _i++) {
-        combo = sequence_combos[_i];
-        _prevent_default(e, combo.prevent_default);
-      }
-      if (_sequence_timer) {
-        clearTimeout(_sequence_timer);
-      }
-      if (keypress.sequence_delay > -1) {
-        _sequence_timer = setTimeout(function() {
-          return _sequence = [];
-        }, keypress.sequence_delay);
-      }
-    } else {
-      _sequence = [];
-    }
-  };
-
-  _get_possible_sequences = function() {
-    var combo, i, j, match, matches, sequence, _i, _j, _k, _len, _ref, _ref1;
-    matches = [];
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      combo = _registered_combos[_i];
-      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
-        sequence = _sequence.slice(-j);
-        if (!combo.is_sequence) {
-          continue;
-        }
-        if (__indexOf.call(combo.keys, "shift") < 0) {
-          sequence = _filter(sequence, function(key) {
-            return key !== "shift";
-          });
-          if (!sequence.length) {
-            continue;
-          }
-        }
-        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
-          if (combo.keys[i] === sequence[i]) {
-            match = true;
-          } else {
-            match = false;
-            break;
-          }
-        }
-        if (match) {
-          matches.push(combo);
-        }
-      }
-    }
-    return matches;
-  };
-
-  _get_sequence = function(key) {
-    var combo, i, j, match, seq_key, sequence, _i, _j, _k, _len, _ref, _ref1;
-    for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-      combo = _registered_combos[_i];
-      if (!combo.is_sequence) {
-        continue;
-      }
-      for (j = _j = 1, _ref = _sequence.length; 1 <= _ref ? _j <= _ref : _j >= _ref; j = 1 <= _ref ? ++_j : --_j) {
-        sequence = (_filter(_sequence, function(seq_key) {
-          if (__indexOf.call(combo.keys, "shift") >= 0) {
-            return true;
-          }
-          return seq_key !== "shift";
-        })).slice(-j);
-        if (combo.keys.length !== sequence.length) {
-          continue;
-        }
-        for (i = _k = 0, _ref1 = sequence.length; 0 <= _ref1 ? _k < _ref1 : _k > _ref1; i = 0 <= _ref1 ? ++_k : --_k) {
-          seq_key = sequence[i];
-          if (__indexOf.call(combo.keys, "shift") < 0 ? seq_key === "shift" : void 0) {
-            continue;
-          }
-          if (key === "shift" && __indexOf.call(combo.keys, "shift") < 0) {
-            continue;
-          }
-          if (combo.keys[i] === seq_key) {
-            match = true;
-          } else {
-            match = false;
-            break;
-          }
-        }
-      }
-      if (match) {
-        return combo;
-      }
-    }
-    return false;
-  };
-
-  _convert_to_shifted_key = function(key, e) {
-    var k;
-    if (!e.shiftKey) {
-      return false;
-    }
-    k = _keycode_shifted_keys[key];
-    if (k != null) {
-      return k;
-    }
-    return false;
-  };
-
-  _handle_combo_down = function(combo, key, e) {
-    var result;
-    if (__indexOf.call(combo.keys, key) < 0) {
-      return false;
-    }
-    _prevent_default(e, combo && combo.prevent_default);
-    if (__indexOf.call(_keys_down, key) >= 0) {
-      if (!_allow_key_repeat(combo)) {
-        return false;
-      }
-    }
-    result = _add_to_active_combos(combo, key);
-    combo.keyup_fired = false;
-    if (combo.is_counting && typeof combo.on_keydown === "function") {
-      combo.count += 1;
-    }
-    if (result) {
-      return _fire("keydown", combo, e);
-    }
-  };
-
-  _key_down = function(key, e) {
-    var combo, combos, event_mod, i, mod, potential, potential_combos, sequence_combo, shifted_key, _i, _j, _k, _len, _len1, _ref;
-    shifted_key = _convert_to_shifted_key(key, e);
-    if (shifted_key) {
-      key = shifted_key;
-    }
-    _add_key_to_sequence(key, e);
-    sequence_combo = _get_sequence(key);
-    if (sequence_combo) {
-      _fire("keydown", sequence_combo, e);
-    }
-    for (mod in _modifier_event_mapping) {
-      event_mod = _modifier_event_mapping[mod];
-      if (!e[event_mod]) {
-        continue;
-      }
-      if (mod === key || __indexOf.call(_keys_down, mod) >= 0) {
-        continue;
-      }
-      _keys_down.push(mod);
-    }
-    for (mod in _modifier_event_mapping) {
-      event_mod = _modifier_event_mapping[mod];
-      if (mod === key) {
-        continue;
-      }
-      if (__indexOf.call(_keys_down, mod) >= 0 && !e[event_mod]) {
-        for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-          if (_keys_down[i] === mod) {
-            _keys_down.splice(i, 1);
-          }
-        }
-      }
-    }
-    combos = _get_active_combos(key);
-    for (_j = 0, _len = combos.length; _j < _len; _j++) {
-      combo = combos[_j];
-      _handle_combo_down(combo, key, e);
-    }
-    potential_combos = _get_potential_combos(key);
-    if (potential_combos.length) {
-      for (_k = 0, _len1 = potential_combos.length; _k < _len1; _k++) {
-        potential = potential_combos[_k];
-        _prevent_default(e, potential.prevent_default);
-      }
-    }
-    if (__indexOf.call(_keys_down, key) < 0) {
-      _keys_down.push(key);
-    }
-  };
-
-  _handle_combo_up = function(combo, e, key) {
-    var keys_down, keys_remaining;
-    keys_remaining = _keys_remain(combo);
-    if (!combo.keyup_fired) {
-      keys_down = _keys_down.slice();
-      keys_down.push(key);
-      if (!combo.is_solitary || _compare_arrays(keys_down, combo.keys)) {
-        _fire("keyup", combo, e);
-        if (combo.is_counting && typeof combo.on_keyup === "function" && typeof combo.on_keydown !== "function") {
-          combo.count += 1;
-        }
-      }
-    }
-    if (!keys_remaining) {
-      _fire("release", combo, e);
-      _remove_from_active_combos(combo);
-    }
-  };
-
-  _key_up = function(key, e) {
-    var active_combo, active_combos_length, combo, combos, i, sequence_combo, shifted_key, unshifted_key, _i, _j, _k, _l, _len, _len1, _len2, _ref, _ref1;
-    unshifted_key = key;
-    shifted_key = _convert_to_shifted_key(key, e);
-    if (shifted_key) {
-      key = shifted_key;
-    }
-    shifted_key = _keycode_shifted_keys[unshifted_key];
-    if (e.shiftKey) {
-      if (!(shifted_key && __indexOf.call(_keys_down, shifted_key) >= 0)) {
-        key = unshifted_key;
-      }
-    } else {
-      if (!(unshifted_key && __indexOf.call(_keys_down, unshifted_key) >= 0)) {
-        key = shifted_key;
-      }
-    }
-    sequence_combo = _get_sequence(key);
-    if (sequence_combo) {
-      _fire("keyup", sequence_combo, e);
-    }
-    if (__indexOf.call(_keys_down, key) < 0) {
-      return false;
-    }
-    for (i = _i = 0, _ref = _keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-      if ((_ref1 = _keys_down[i]) === key || _ref1 === shifted_key || _ref1 === unshifted_key) {
-        _keys_down.splice(i, 1);
-        break;
-      }
-    }
-    active_combos_length = _active_combos.length;
-    combos = [];
-    for (_j = 0, _len = _active_combos.length; _j < _len; _j++) {
-      active_combo = _active_combos[_j];
-      if (__indexOf.call(active_combo.keys, key) >= 0) {
-        combos.push(active_combo);
-      }
-    }
-    for (_k = 0, _len1 = combos.length; _k < _len1; _k++) {
-      combo = combos[_k];
-      _handle_combo_up(combo, e, key);
-    }
-    if (active_combos_length > 1) {
-      for (_l = 0, _len2 = _active_combos.length; _l < _len2; _l++) {
-        active_combo = _active_combos[_l];
-        if (active_combo === void 0 || __indexOf.call(combos, active_combo) >= 0) {
-          continue;
-        }
-        if (!_keys_remain(active_combo)) {
-          _remove_from_active_combos(active_combo);
-        }
-      }
-    }
-  };
-
-  _receive_input = function(e, is_keydown) {
-    var key;
-    if (_prevent_capture) {
-      if (_keys_down.length) {
-        _keys_down = [];
-      }
-      return;
-    }
-    if (!is_keydown && !_keys_down.length) {
-      return;
-    }
-    key = _convert_key_to_readable(e.keyCode);
-    if (!key) {
-      return;
-    }
-    if (is_keydown) {
-      return _key_down(key, e);
-    } else {
-      return _key_up(key, e);
-    }
-  };
-
-  _unregister_combo = function(combo) {
-    var i, _i, _ref, _results;
-    _results = [];
-    for (i = _i = 0, _ref = _registered_combos.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
-      if (combo === _registered_combos[i]) {
-        _registered_combos.splice(i, 1);
-        break;
-      } else {
-        _results.push(void 0);
-      }
-    }
-    return _results;
+    return valid;
   };
 
   _validate_combo = function(combo) {
@@ -638,7 +884,7 @@ Options available and their defaults:
     _ref1 = combo.keys;
     for (_j = 0, _len = _ref1.length; _j < _len; _j++) {
       key = _ref1[_j];
-      if (__indexOf.call(_valid_keys, key) < 0) {
+      if (!_key_is_valid(key)) {
         _log_error("Do not recognize the key \"" + key + "\"");
         return false;
       }
@@ -659,186 +905,16 @@ Options available and their defaults:
     return true;
   };
 
-  _decide_meta_key = function() {
-    if (navigator.userAgent.indexOf("Mac OS X") !== -1) {
-      _metakey = "cmd";
-    }
-  };
-
-  _bug_catcher = function(e) {
-    var _ref;
-    if (__indexOf.call(_keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
-      return _receive_input(e, false);
-    }
-  };
-
-  _change_keycodes_by_browser = function() {
-    if (navigator.userAgent.indexOf("Opera") !== -1) {
-      _keycode_dictionary["17"] = "cmd";
-    }
-  };
-
-  _bind_key_events = function() {
-    var attach_handler;
-    attach_handler = function(target, event, handler) {
-      if (target.addEventListener) {
-        return target.addEventListener(event, handler);
-      } else if (target.attachEvent) {
-        return target.attachEvent("on" + event, handler);
-      }
-    };
-    attach_handler(document.body, "keydown", function(e) {
-      e = e || window.event;
-      _receive_input(e, true);
-      return _bug_catcher(e);
-    });
-    attach_handler(document.body, "keyup", function(e) {
-      e = e || window.event;
-      return _receive_input(e, false);
-    });
-    return attach_handler(window, "blur", function() {
-      var key, _i, _len, _valid_combos;
-      for (_i = 0, _len = _keys_down.length; _i < _len; _i++) {
-        key = _keys_down[_i];
-        _key_up(key, {});
-      }
-      _keys_down = [];
-      return _valid_combos = [];
-    });
-  };
-
-  _init = function() {
-    _decide_meta_key();
-    return _change_keycodes_by_browser();
-  };
-
-  window.keypress = {};
-
-  keypress.force_event_defaults = false;
-
-  keypress.suppress_event_defaults = false;
-
-  keypress.sequence_delay = 800;
-
-  keypress.get_registered_combos = function() {
-    return _registered_combos;
-  };
-
-  keypress.reset = function() {
-    _registered_combos = [];
-  };
-
-  keypress.combo = function(keys, callback, prevent_default) {
-    if (prevent_default == null) {
-      prevent_default = false;
-    }
-    return keypress.register_combo({
-      keys: keys,
-      on_keydown: callback,
-      prevent_default: prevent_default
-    });
-  };
-
-  keypress.counting_combo = function(keys, count_callback, prevent_default) {
-    if (prevent_default == null) {
-      prevent_default = false;
-    }
-    return keypress.register_combo({
-      keys: keys,
-      is_counting: true,
-      is_ordered: true,
-      on_keydown: count_callback,
-      prevent_default: prevent_default
-    });
-  };
-
-  keypress.sequence_combo = function(keys, callback, prevent_default) {
-    if (prevent_default == null) {
-      prevent_default = false;
-    }
-    return keypress.register_combo({
-      keys: keys,
-      on_keydown: callback,
-      is_sequence: true,
-      prevent_default: prevent_default
-    });
-  };
-
-  keypress.register_combo = function(combo) {
-    var property, value;
-    if (typeof combo.keys === "string") {
-      combo.keys = combo.keys.split(" ");
-    }
-    for (property in _combo_defaults) {
-      if (!__hasProp.call(_combo_defaults, property)) continue;
-      value = _combo_defaults[property];
-      if (combo[property] == null) {
-        combo[property] = value;
-      }
-    }
-    if (_validate_combo(combo)) {
-      _registered_combos.push(combo);
-      return true;
-    }
-  };
-
-  keypress.register_many = function(combo_array) {
-    var combo, _i, _len, _results;
-    _results = [];
-    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
-      combo = combo_array[_i];
-      _results.push(keypress.register_combo(combo));
-    }
-    return _results;
-  };
-
-  keypress.unregister_combo = function(keys_or_combo) {
-    var combo, _i, _len, _results;
-    if (!keys_or_combo) {
+  _convert_to_shifted_key = function(key, e) {
+    var k;
+    if (!e.shiftKey) {
       return false;
     }
-    if (keys_or_combo.keys) {
-      return _unregister_combo(keys_or_combo);
-    } else {
-      _results = [];
-      for (_i = 0, _len = _registered_combos.length; _i < _len; _i++) {
-        combo = _registered_combos[_i];
-        if (!combo) {
-          continue;
-        }
-        if (typeof keys_or_combo === "string") {
-          keys_or_combo = keys_or_combo.split(" ");
-        }
-        if ((!combo.is_ordered && _compare_arrays(keys_or_combo, combo.keys)) || (combo.is_ordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
-          _results.push(_unregister_combo(combo));
-        } else {
-          _results.push(void 0);
-        }
-      }
-      return _results;
+    k = _keycode_shifted_keys[key];
+    if (k != null) {
+      return k;
     }
-  };
-
-  keypress.unregister_many = function(combo_array) {
-    var combo, _i, _len, _results;
-    _results = [];
-    for (_i = 0, _len = combo_array.length; _i < _len; _i++) {
-      combo = combo_array[_i];
-      _results.push(keypress.unregister_combo(combo));
-    }
-    return _results;
-  };
-
-  keypress.listen = function() {
-    return _prevent_capture = false;
-  };
-
-  keypress.stop_listening = function() {
-    return _prevent_capture = true;
-  };
-
-  _convert_key_to_readable = function(k) {
-    return _keycode_dictionary[k];
+    return false;
   };
 
   _modifier_event_mapping = {
@@ -983,32 +1059,13 @@ Options available and their defaults:
     222: "\'",
     223: "`",
     224: "cmd",
+    225: "alt",
     57392: "ctrl",
     63289: "num"
   };
 
-  for (_ in _keycode_dictionary) {
-    key = _keycode_dictionary[_];
-    _valid_keys.push(key);
-  }
+  _decide_meta_key();
 
-  for (_ in _keycode_shifted_keys) {
-    key = _keycode_shifted_keys[_];
-    _valid_keys.push(key);
-  }
-
-  _init();
-
-  _ready = function(callback) {
-    if ((document.attachEvent ? document.readyState === "complete" : document.readyState !== "loading")) {
-      return callback();
-    } else {
-      return setTimeout(function() {
-        return _ready(callback);
-      }, 9);
-    }
-  };
-
-  _ready(_bind_key_events);
+  _change_keycodes_by_browser();
 
 }).call(this);

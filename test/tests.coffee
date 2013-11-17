@@ -1,6 +1,11 @@
 describe "Keypress:", ->
     SHIFT = false
 
+    listener = null
+
+    beforeEach ->
+        listener = new window.keypress.Listener()
+
     convert_readable_key_to_keycode = (keyname) ->
         for keycode, name of window._keycode_dictionary
             return keycode if name is keyname
@@ -20,15 +25,15 @@ describe "Keypress:", ->
         if key is "shift"
             SHIFT = true
         event = event_for_key key
-        window._receive_input event, true
-        window._bug_catcher event
+        listener._receive_input event, true
+        listener._bug_catcher event
         return event
 
     on_keyup = (key) ->
         if key is "shift"
             SHIFT = false
         event = event_for_key key
-        window._receive_input event, false
+        listener._receive_input event, false
         return event
 
     press_key = (key) ->
@@ -37,36 +42,53 @@ describe "Keypress:", ->
 
     describe "A simple single key basic combo", ->
         afterEach ->
-            keypress.reset()
+            listener.reset()
 
         it "just works", ->
             foo = 0
-            keypress.combo ["a"], ->
+            listener.combo ["a"], ->
                 foo = 1
             press_key "a"
             expect(foo).toEqual(1)
 
         it "can prevent default", ->
-            keypress.combo "a", null, true
+            listener.combo "a", null, true
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).toHaveBeenCalled()
 
         it "defaults to not preventing default", ->
-            keypress.combo "a", null
+            listener.combo "a", null
             event = on_keydown "a"
             on_keyup "a"
             expect(event.preventDefault).not.toHaveBeenCalled()
+
+        it "will prevent default keydown if we have an on_keydown function that doesn't return true", ->
+            listener.combo "a", ->
+                return
+            event = on_keydown "a"
+            on_keyup "a"
+            expect(event.preventDefault).toHaveBeenCalled()
+
+        it "will only prevent for the final event by default if we don't return true", ->
+            listener.combo "a b", ->
+                return
+            event = on_keydown "a"
+            expect(event.preventDefault).not.toHaveBeenCalled()
+            event = on_keydown "b"
+            expect(event.preventDefault).toHaveBeenCalled()
+            on_keyup "a"
+            on_keyup "b"
 
     describe "Shift key helpers", ->
         key_handler = null
         beforeEach ->
             key_handler = jasmine.createSpy()
         afterEach ->
-            keypress.reset()
+            listener.reset()
 
         it "evaluates keys as shifted to match combos", ->
-            keypress.combo "!", key_handler
+            listener.combo "!", key_handler
             on_keydown "shift"
             on_keydown "1"
             expect(key_handler).toHaveBeenCalled()
@@ -74,7 +96,7 @@ describe "Keypress:", ->
             on_keyup "1"
 
         it "still fires the correct keyup even if you let off shift first", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys        : "a !"
                 on_keydown  : key_handler
                 on_keyup    : key_handler
@@ -95,12 +117,12 @@ describe "Keypress:", ->
         beforeEach ->
             key_handler = jasmine.createSpy()
         afterEach ->
-            keypress.reset()
+            listener.reset()
 
         describe "keys", ->
 
             it "can take an array", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : ["a"]
                     on_keydown  : key_handler
                 )
@@ -108,7 +130,7 @@ describe "Keypress:", ->
                 expect(key_handler).toHaveBeenCalled()
 
             it "can take a string", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a"
                     on_keydown  : key_handler
                 )
@@ -119,7 +141,7 @@ describe "Keypress:", ->
 
             it "receives the event and combo count as arguments", ->
                 received_event = null
-                keypress.combo "a", (event, count) ->
+                listener.combo "a", (event, count) ->
                     expect(count).toEqual(0)
                     received_event = event
                 down_event = on_keydown "a"
@@ -127,7 +149,7 @@ describe "Keypress:", ->
                 expect(received_event).toEqual(down_event)
 
             it "only fires when all of the keys have been pressed", ->
-                keypress.combo "a b c", key_handler
+                listener.combo "a b c", key_handler
                 on_keydown "a"
                 expect(key_handler).not.toHaveBeenCalled()
                 on_keydown "b"
@@ -138,12 +160,22 @@ describe "Keypress:", ->
                 on_keyup "b"
                 on_keyup "c"
 
-            # DO A TEST FOR PRESSING THE LAST KEYDOWN MULTIPLE TIMES
+            it "will fire each time the final key is pressed", ->
+                foo = 0
+                listener.combo "a b", ->
+                    foo += 1
+                on_keydown "a"
+                on_keydown "b"
+                on_keyup "b"
+                on_keydown "b"
+                expect(foo).toEqual(2)
+                on_keyup "b"
+                on_keyup "a"
 
         describe "on_keyup", ->
 
             it "fires properly", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a"
                     on_keyup    : key_handler
                 )
@@ -152,7 +184,7 @@ describe "Keypress:", ->
 
             it "receives the event as its argument", ->
                 received_event = null
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a"
                     on_keyup    : (event) ->
                         received_event = event
@@ -162,7 +194,7 @@ describe "Keypress:", ->
                 expect(received_event).toEqual(up_event)
 
             it "fires only after all keys are down and the first has been released", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a b c"
                     on_keyup    : key_handler
                 )
@@ -180,7 +212,7 @@ describe "Keypress:", ->
         describe "on_release", ->
 
             it "only fires after all of the keys have been released", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a b c"
                     on_release  : key_handler
                 )
@@ -198,13 +230,13 @@ describe "Keypress:", ->
         describe "this keyword", ->
 
             it "defaults to window", ->
-                keypress.combo "a", ->
+                listener.combo "a", ->
                     expect(this).toEqual(window)
                 press_key "a"
 
             it "can be set to any arbitrary scope", ->
                 my_scope = {}
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a"
                     this        : my_scope
                     on_keydown  : ->
@@ -215,7 +247,7 @@ describe "Keypress:", ->
         describe "prevent_default", ->
 
             it "manual: only prevents on the key that activated the handler", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a b c"
                     on_keydown  : (event) ->
                         event.preventDefault()
@@ -238,8 +270,8 @@ describe "Keypress:", ->
                 c_up_event = on_keyup "c"
                 expect(c_up_event.preventDefault).toHaveBeenCalled()
 
-            it "return false: only prevents the key that activated the handler", ->
-                keypress.register_combo(
+            it "return any non-true value: only prevents the key that activated the handler", ->
+                listener.register_combo(
                     keys        : "a b c"
                     on_keydown  : (event) ->
                         return false
@@ -254,16 +286,16 @@ describe "Keypress:", ->
                 b_down_event = on_keydown "b"
                 expect(b_down_event.preventDefault).not.toHaveBeenCalled()
                 c_down_event = on_keydown "c"
-                expect(c_down_event.preventDefault).toHaveBeenCalled()
+                expect(c_down_event.preventDefault).toHaveBeenCalled() # on_keydown
                 a_up_event = on_keyup "a"
-                expect(a_up_event.preventDefault).toHaveBeenCalled()
+                expect(a_up_event.preventDefault).toHaveBeenCalled() # on_keyup
                 b_up_event = on_keyup "b"
                 expect(b_up_event.preventDefault).not.toHaveBeenCalled()
                 c_up_event = on_keyup "c"
-                expect(c_up_event.preventDefault).toHaveBeenCalled()
+                expect(c_up_event.preventDefault).toHaveBeenCalled() # on_release
 
             it "property: prevents on all events related and only those related", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b c"
                     prevent_default : true
                     on_keydown      : ->
@@ -283,24 +315,22 @@ describe "Keypress:", ->
                 x_up_event = on_keyup "x"
                 b_up_event = on_keyup "b"
                 c_up_event = on_keyup "c"
-                ### We don't prevent on keyup and release. Something to consider
                 expect(a_up_event.preventDefault).toHaveBeenCalled()
                 expect(x_up_event.preventDefault).not.toHaveBeenCalled()
                 expect(b_up_event.preventDefault).toHaveBeenCalled()
                 expect(c_up_event.preventDefault).toHaveBeenCalled()
-                ###
 
         describe "prevent_repeat", ->
 
             it "allows multiple firings of the keydown event by default", ->
-                keypress.combo "a", key_handler
+                listener.combo "a", key_handler
                 on_keydown "a"
                 on_keydown "a"
                 expect(key_handler.calls.length).toEqual(2)
                 on_keyup "a"
 
             it "only fires the first time it is pressed down when true", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a"
                     on_keydown      : key_handler
                     prevent_repeat  : true
@@ -312,19 +342,10 @@ describe "Keypress:", ->
 
         describe "is_ordered", ->
 
-            it "allows a user to press the keys in any order by default", ->
-                keypress.combo "a b", key_handler
-                on_keydown "b"
-                on_keydown "a"
-                on_keyup "b"
-                on_keyup "a"
-                expect(key_handler).toHaveBeenCalled()
-
-            it "forces the order described when set to true", ->
-                keypress.register_combo(
+            it "forces the order described by default", ->
+                listener.register_combo(
                     keys        : "a b"
                     on_keydown  : key_handler
-                    is_ordered  : true
                 )
                 on_keydown "b"
                 on_keydown "a"
@@ -337,11 +358,23 @@ describe "Keypress:", ->
                 on_keyup "b"
                 expect(key_handler).toHaveBeenCalled()
 
+            it "allows a user to press the keys in any order when false", ->
+                listener.register_combo(
+                    keys        : "a b"
+                    on_keydown  : key_handler
+                    is_ordered  : false
+                )
+                on_keydown "b"
+                on_keydown "a"
+                on_keyup "b"
+                on_keyup "a"
+                expect(key_handler).toHaveBeenCalled()
+
         describe "is_counting", ->
 
             it "calls the keydown handler with the count", ->
                 last_count = 0
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "tab x space"
                     is_counting : true
                     on_keydown  : (event, count) ->
@@ -360,7 +393,7 @@ describe "Keypress:", ->
 
             it "does not increment count on keyup if we have keydown handler", ->
                 last_count = 0
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "tab space"
                     is_counting : true
                     on_keydown  : (event, count) ->
@@ -377,13 +410,13 @@ describe "Keypress:", ->
 
             it "resets the count even if the combo gets dropped", ->
                 last_count = 0
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "tab space"
                     is_counting : true
                     on_keydown  : (event, count) ->
                         last_count = count
                 )
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "tab space a"
                     on_keydown  : key_handler
                 )
@@ -404,7 +437,7 @@ describe "Keypress:", ->
         describe "is_sequence", ->
 
             it "properly registers a sequence", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "h i"
                     is_sequence : true
                     on_keydown  : key_handler
@@ -413,8 +446,41 @@ describe "Keypress:", ->
                 press_key "i"
                 expect(key_handler).toHaveBeenCalled()
 
+            it "only calls the keydown handler after the last key has been pressed", ->
+                listener.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_keydown  : key_handler
+                )
+                press_key "h"
+                expect(key_handler).not.toHaveBeenCalled()
+                press_key "i"
+                expect(key_handler).toHaveBeenCalled()
+
+            it "only calls the keyup handler after the last key has been released", ->
+                listener.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_keyup    : key_handler
+                )
+                press_key "h"
+                expect(key_handler).not.toHaveBeenCalled()
+                press_key "i"
+                expect(key_handler).toHaveBeenCalled()
+
+            it "completely ignores the on_release block", ->
+                listener.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_release  : key_handler
+                )
+                press_key "h"
+                expect(key_handler).not.toHaveBeenCalled()
+                press_key "i"
+                expect(key_handler).not.toHaveBeenCalled()
+
             it "works with the prevent_default property", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "h i t"
                     is_sequence     : true
                     prevent_default : true
@@ -432,12 +498,12 @@ describe "Keypress:", ->
                 expect(t_keydown.preventDefault).toHaveBeenCalled()
 
             it "will trigger overlapping sequences", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "h i"
                     is_sequence : true
                     on_keydown  : key_handler
                 )
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "h i t"
                     is_sequence     : true
                     on_keydown      : key_handler
@@ -449,18 +515,18 @@ describe "Keypress:", ->
 
         describe "is_exclusive", ->
 
-            it "will fire both all combos by default", ->
-                keypress.register_combo(
+            it "will fire all combos by default", ->
+                listener.register_combo(
                     keys            : "a b"
                     on_keydown      : key_handler
                 )
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b c"
                     on_keydown      : key_handler
                 )
-                on_keydown "c"
                 on_keydown "a"
                 on_keydown "b"
+                on_keydown "c"
                 expect(key_handler.calls.length).toEqual(2)
                 on_keyup "a"
                 on_keyup "b"
@@ -468,23 +534,23 @@ describe "Keypress:", ->
 
             it "will not fire keydown for a less specific combo that is also exclusive", ->
                 fired = null
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b"
                     is_exclusive    : true
                     on_keydown      : ->
                         fired = "smaller"
                         key_handler()
                 )
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b c"
                     is_exclusive    : true
                     on_keydown      : ->
                         fired = "bigger"
                         key_handler()
                 )
-                on_keydown "c"
                 on_keydown "a"
                 on_keydown "b"
+                on_keydown "c"
                 expect(key_handler.calls.length).toEqual(1)
                 expect(fired).toEqual("bigger")
                 on_keyup "a"
@@ -493,23 +559,23 @@ describe "Keypress:", ->
 
             it "will not fire keyup for a less specific combo that is also exclusive", ->
                 fired = null
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b"
                     is_exclusive    : true
                     on_keyup        : ->
                         fired = "smaller"
                         key_handler()
                 )
-                keypress.register_combo(
+                listener.register_combo(
                     keys            : "a b c"
                     is_exclusive    : true
                     on_keyup        : ->
                         fired = "bigger"
                         key_handler()
                 )
-                on_keydown "c"
                 on_keydown "a"
                 on_keydown "b"
+                on_keydown "c"
                 on_keyup "c"
                 on_keyup "b"
                 on_keyup "a"
@@ -519,7 +585,7 @@ describe "Keypress:", ->
         describe "is_solitary", ->
 
             it "will not fire the combo if additional keys are pressed", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a b"
                     is_solitary : true
                     on_keydown  : key_handler
@@ -535,7 +601,7 @@ describe "Keypress:", ->
                 expect(key_handler).not.toHaveBeenCalled()
 
             it "will not fire up if down was not fired", ->
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "a b"
                     is_solitary : true
                     on_keydown  : key_handler
@@ -552,21 +618,22 @@ describe "Keypress:", ->
 
     describe "Keyboard Shortcuts", ->
         afterEach ->
-            keypress.reset()
+            listener.reset()
+
         describe "Escape", ->
             it "works with 'escape' and 'esc'", ->
                 count = 0
                 handler = ->
                     count += 1
-                keypress.register_combo(
+                listener.register_combo(
                     keys        : "escape"
                     on_keydown  : handler     
                 )
                 on_keydown "esc"
                 expect(count).toEqual(1)
-                keypress.unregister_combo("esc")
-                expect(keypress.get_registered_combos().length).toEqual(0)
-                keypress.register_combo(
+                listener.unregister_combo("esc")
+                expect(listener.get_registered_combos().length).toEqual(0)
+                listener.register_combo(
                     keys        : "esc"
                     on_keydown  : handler
                 )
@@ -575,8 +642,13 @@ describe "Keypress:", ->
 
 
 describe "Keypress Functional components:", ->
+    listener = null
+
+    beforeEach ->
+        listener = new window.keypress.Listener()
+
     afterEach ->
-        keypress.reset()
+        listener.reset()
 
     describe "_is_array_in_array_sorted", ->
 
@@ -599,79 +671,83 @@ describe "Keypress Functional components:", ->
     describe "_fuzzy_match_combo_arrays", ->
 
         it "properly matches even with something else in the array", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys        : "a b"
             )
             foo = 0
-            window._fuzzy_match_combo_arrays ["b", "x", "a"], ->
+            listener._fuzzy_match_combo_arrays ["a", "x", "b"], ->
                 foo += 1
             expect(foo).toEqual(1)
 
         it "won't match a sorted combo that isn't in the same order", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys        : "a b"
                 is_ordered  : true
             )
             foo = 0
-            window._fuzzy_match_combo_arrays ["b", "x", "a"], ->
+            listener._fuzzy_match_combo_arrays ["b", "x", "a"], ->
                 foo += 1
             expect(foo).toEqual(0)
 
         it "will match a sorted combo that is in the correct order", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys        : "a b"
                 is_ordered  : true
             )
             foo = 0
-            window._fuzzy_match_combo_arrays ["a", "x", "b"], ->
+            listener._fuzzy_match_combo_arrays ["a", "x", "b"], ->
                 foo += 1
             expect(foo).toEqual(1)
 
 describe "APIs behave as expected:", ->
+    listener = null
+
+    beforeEach ->
+        listener = new window.keypress.Listener()
+
     afterEach ->
-        keypress.reset()
+        listener.reset()
 
     describe "unregister_combo", ->
 
         it "unregisters string", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys : "shift s"
             )
-            count = keypress.get_registered_combos().length
+            count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            keypress.unregister_combo("shift s")
-            count = keypress.get_registered_combos().length
+            listener.unregister_combo("shift s")
+            count = listener.get_registered_combos().length
             expect(count).toEqual(0)
 
         it "unregisters array", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys : "shift s"
             )
-            count = keypress.get_registered_combos().length
+            count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            keypress.unregister_combo(["shift", "s"])
-            count = keypress.get_registered_combos().length
+            listener.unregister_combo(["shift", "s"])
+            count = listener.get_registered_combos().length
             expect(count).toEqual(0)
 
         it "unregisters array out of order", ->
-            keypress.register_combo(
-                keys : "shift s"
+            listener.register_combo(
+                keys        : "shift s"
+                is_ordered  : false
             )
-            count = keypress.get_registered_combos().length
+            count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            keypress.unregister_combo(["s", "shift"])
-            count = keypress.get_registered_combos().length
+            listener.unregister_combo(["s", "shift"])
+            count = listener.get_registered_combos().length
             expect(count).toEqual(0)
 
         it "does not unregister if the combo is ordered and not unregistered with the same ordering", ->
-            keypress.register_combo(
+            listener.register_combo(
                 keys        : "shift s"
                 is_ordered  : true
             )
-            count = keypress.get_registered_combos().length
+            count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            keypress.unregister_combo(["s", "shift"])
-            count = keypress.get_registered_combos().length
+            listener.unregister_combo(["s", "shift"])
+            count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-
-

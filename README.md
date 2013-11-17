@@ -1,6 +1,6 @@
 Keypress
 ========
-Version 1.0.9
+Version 2.0.0
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
@@ -12,6 +12,14 @@ released under the Apache License, version 2.0
 
 **What's new**
 ---------------
+
+2.0.0
+
+* Keypress is now a class rather than a single instance.
+* Each instance of a Keypress listener can be bound to a DOM element.
+* Combos now default is_ordered to true.
+* Combos handlers preventDefault unless the handler returns true.
+* Debugging console logs can be enabled by setting keypress.debug to true.
 
 1.0.9
 
@@ -39,8 +47,5 @@ released under the Apache License, version 2.0
 TODO
 ----
 
-* Add debugging option to control errors that get logged.
-* Improve keypress.combo defaults: this should be geared towards stealing meta+keystroke shortcuts from the browser.
-* Make instance based so users can instantiate multiple Keypresses.
 * Put negative edge in sequences.
 * See if we can do away with keyup_fired and count properties.

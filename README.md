@@ -17,7 +17,7 @@ released under the Apache License, version 2.0
 
 * Keypress now has a listener class that must be instantiated.
 * Each instance of a Keypress listener can be bound to a DOM element.
-* Combos now default is_ordered to true.
+* Combos now default to being ordered (the property is now called is_unordered and is false by default).
 * Combos handlers preventDefault unless the handler returns true.
 * Debugging console logs can be enabled by setting keypress.debug to true.
 

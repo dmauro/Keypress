@@ -347,7 +347,7 @@ describe "Keypress:", ->
                 expect(key_handler.calls.length).toEqual(1)
                 on_keyup "a"
 
-        describe "is_ordered", ->
+        describe "is_unordered", ->
 
             it "forces the order described by default", ->
                 listener.register_combo(
@@ -365,11 +365,11 @@ describe "Keypress:", ->
                 on_keyup "b"
                 expect(key_handler).toHaveBeenCalled()
 
-            it "allows a user to press the keys in any order when false", ->
+            it "allows a user to press the keys in any order when is_unordered", ->
                 listener.register_combo(
-                    keys        : "a b"
-                    on_keydown  : key_handler
-                    is_ordered  : false
+                    keys            : "a b"
+                    on_keydown      : key_handler
+                    is_unordered    : true
                 )
                 on_keydown "b"
                 on_keydown "a"
@@ -688,8 +688,8 @@ describe "Keypress Functional components:", ->
 
         it "won't match a sorted combo that isn't in the same order", ->
             listener.register_combo(
-                keys        : "a b"
-                is_ordered  : true
+                keys            : "a b"
+                is_unordered    : false
             )
             foo = 0
             listener._fuzzy_match_combo_arrays ["b", "x", "a"], ->
@@ -698,8 +698,8 @@ describe "Keypress Functional components:", ->
 
         it "will match a sorted combo that is in the correct order", ->
             listener.register_combo(
-                keys        : "a b"
-                is_ordered  : true
+                keys            : "a b"
+                is_unordered    : false
             )
             foo = 0
             listener._fuzzy_match_combo_arrays ["a", "x", "b"], ->
@@ -739,8 +739,8 @@ describe "APIs behave as expected:", ->
 
         it "unregisters array out of order", ->
             listener.register_combo(
-                keys        : "shift s"
-                is_ordered  : false
+                keys            : "shift s"
+                is_unordered    : true
             )
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
@@ -750,8 +750,8 @@ describe "APIs behave as expected:", ->
 
         it "does not unregister if the combo is ordered and not unregistered with the same ordering", ->
             listener.register_combo(
-                keys        : "shift s"
-                is_ordered  : true
+                keys            : "shift s"
+                is_unordered    : false
             )
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)

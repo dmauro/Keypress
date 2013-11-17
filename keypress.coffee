@@ -23,7 +23,7 @@ version 2.0.0
 Combo options available and their defaults:
     keys            : []            - An array of the keys pressed together to activate combo.
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    is_ordered      : true          - Unless this is set to true, the keys can be pressed down in any order.
+    is_unordered    : false         - Unless this is set to true, the keys can be pressed down in any order.
     is_counting     : false         - Makes this a counting combo (see documentation).
     is_exclusive    : false         - This combo will replace other exclusive combos when true.
     is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
@@ -41,7 +41,7 @@ Combo options available and their defaults:
 ###########
 
 _factory_defaults =
-    is_ordered      : true
+    is_unordered    : false
     is_counting     : false
     is_exclusive    : false
     is_solitary     : false
@@ -337,14 +337,14 @@ class keypress.Listener
     _match_combo_arrays: (potential_match, match_handler) ->
         # This will return all combos that match
         for source_combo in @_registered_combos
-            if (source_combo.is_ordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (not source_combo.is_ordered and _compare_arrays(potential_match, source_combo.keys))
+            if (not source_combo.is_unordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (source_combo.is_unordered and _compare_arrays(potential_match, source_combo.keys))
                 match_handler source_combo
         return
 
     _fuzzy_match_combo_arrays: (potential_match, match_handler) ->
         # This will return combos that match even if other keys are pressed
         for source_combo in @_registered_combos
-            if (source_combo.is_ordered and _is_array_in_array_sorted(source_combo.keys, potential_match)) or (not source_combo.is_ordered and _is_array_in_array(source_combo.keys, potential_match))
+            if (not source_combo.is_unordered and _is_array_in_array_sorted(source_combo.keys, potential_match)) or (source_combo.is_unordered and _is_array_in_array(source_combo.keys, potential_match))
                 match_handler source_combo
         return
 
@@ -515,7 +515,7 @@ class keypress.Listener
         @register_combo(
             keys            : keys
             is_counting     : true
-            is_ordered      : true
+            is_unordered    : false
             on_keydown      : count_callback
             prevent_default : prevent_default
         )
@@ -560,7 +560,7 @@ class keypress.Listener
                 continue unless combo
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
-            if (not combo.is_ordered and _compare_arrays(keys_or_combo, combo.keys)) or (combo.is_ordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
+            if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
                     unregister_combo combo
 
     unregister_many: (combo_array) ->

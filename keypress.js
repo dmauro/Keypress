@@ -22,32 +22,20 @@ version 2.0.0
 
 
 /*
-Options available and their defaults:
+Combo options available and their defaults:
     keys            : []            - An array of the keys pressed together to activate combo.
     count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    prevent_default : false         - Prevent default behavior for all component key keypresses.
-    is_ordered      : false         - Unless this is set to true, the keys can be pressed down in any order.
+    is_unordered    : false         - Unless this is set to true, the keys can be pressed down in any order.
     is_counting     : false         - Makes this a counting combo (see documentation).
     is_exclusive    : false         - This combo will replace other exclusive combos when true.
     is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
     is_sequence     : false         - Rather than a key combo, this is an ordered key sequence.
+    prevent_default : false         - Prevent default behavior for all component key keypresses.
     prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
-    on_keyup        : null          - A function that is called when the combo is released.
     on_keydown      : null          - A function that is called when the combo is pressed.
-    on_release      : null          - A function that is called hen all keys are released.
-    this            : undefined     - The scope for this of your callback functions.
-*/
-
-
-/*
-Notes to self
-Major changes so far:
-* Combos prevent default upon completion by default now. You have to
-  return true to allow the final keydown event to bubble up.
-* You have to first instantiate keypress.Listener and add combos
-  to that.
-* Defaults combos to being ordered.
-* Logging only in debug. Add more logs.
+    on_keyup        : null          - A function that is called when the combo is released.
+    on_release      : null          - A function that is called when all keys in the combo are released.
+    this            : undefined     - The scope for 'this' of your callback functions.
 */
 
 
@@ -57,7 +45,7 @@ Major changes so far:
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   _factory_defaults = {
-    is_ordered: true,
+    is_unordered: false,
     is_counting: false,
     is_exclusive: false,
     is_solitary: false,
@@ -421,7 +409,7 @@ Major changes so far:
       _ref = this._registered_combos;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         source_combo = _ref[_i];
-        if ((source_combo.is_ordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (!source_combo.is_ordered && _compare_arrays(potential_match, source_combo.keys))) {
+        if ((!source_combo.is_unordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (source_combo.is_unordered && _compare_arrays(potential_match, source_combo.keys))) {
           match_handler(source_combo);
         }
       }
@@ -432,7 +420,7 @@ Major changes so far:
       _ref = this._registered_combos;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         source_combo = _ref[_i];
-        if ((source_combo.is_ordered && _is_array_in_array_sorted(source_combo.keys, potential_match)) || (!source_combo.is_ordered && _is_array_in_array(source_combo.keys, potential_match))) {
+        if ((!source_combo.is_unordered && _is_array_in_array_sorted(source_combo.keys, potential_match)) || (source_combo.is_unordered && _is_array_in_array(source_combo.keys, potential_match))) {
           match_handler(source_combo);
         }
       }
@@ -612,39 +600,27 @@ Major changes so far:
       }
     };
 
-    Listener.prototype.combo = function(keys, callback, prevent_default) {
-      if (prevent_default == null) {
-        prevent_default = false;
-      }
+    Listener.prototype.simple_combo = function(keys, callback) {
       return this.register_combo({
         keys: keys,
-        on_keydown: callback,
-        prevent_default: prevent_default
+        on_keydown: callback
       });
     };
 
-    Listener.prototype.counting_combo = function(keys, count_callback, prevent_default) {
-      if (prevent_default == null) {
-        prevent_default = false;
-      }
+    Listener.prototype.counting_combo = function(keys, count_callback) {
       return this.register_combo({
         keys: keys,
         is_counting: true,
-        is_ordered: true,
-        on_keydown: count_callback,
-        prevent_default: prevent_default
+        is_unordered: false,
+        on_keydown: count_callback
       });
     };
 
-    Listener.prototype.sequence_combo = function(keys, callback, prevent_default) {
-      if (prevent_default == null) {
-        prevent_default = false;
-      }
+    Listener.prototype.sequence_combo = function(keys, callback) {
       return this.register_combo({
         keys: keys,
         on_keydown: callback,
-        is_sequence: true,
-        prevent_default: prevent_default
+        is_sequence: true
       });
     };
 
@@ -710,7 +686,7 @@ Major changes so far:
         if (typeof keys_or_combo === "string") {
           keys_or_combo = keys_or_combo.split(" ");
         }
-        if ((!combo.is_ordered && _compare_arrays(keys_or_combo, combo.keys)) || (combo.is_ordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
+        if ((combo.is_unordered && _compare_arrays(keys_or_combo, combo.keys)) || (!combo.is_unordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
           return unregister_combo(combo);
         }
       }
@@ -864,9 +840,10 @@ Major changes so far:
   };
 
   _validate_combo = function(combo) {
-    var alt_name, i, key, mod_key, non_modifier_keys, _i, _j, _k, _len, _len1, _ref, _ref1;
+    var alt_name, i, key, mod_key, non_modifier_keys, property, validated, value, _i, _j, _k, _len, _len1, _ref, _ref1;
+    validated = true;
     if (!combo.keys.length) {
-      _log_error("You're trying to bind a combo with no keys.");
+      _log_error("You're trying to bind a combo with no keys:", combo);
     }
     for (i = _i = 0, _ref = combo.keys.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
       key = combo.keys[i];
@@ -886,7 +863,7 @@ Major changes so far:
       key = _ref1[_j];
       if (!_key_is_valid(key)) {
         _log_error("Do not recognize the key \"" + key + "\"");
-        return false;
+        validated = false;
       }
     }
     if (__indexOf.call(combo.keys, "meta") >= 0 || __indexOf.call(combo.keys, "cmd") >= 0) {
@@ -899,10 +876,16 @@ Major changes so far:
       }
       if (non_modifier_keys.length > 1) {
         _log_error("META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys);
-        return true;
+        validated = false;
       }
     }
-    return true;
+    for (property in combo) {
+      value = combo[property];
+      if (_factory_defaults[property] === "undefined") {
+        _log_error("The property " + property + " is not a valid combo property. Your combo has still been registered.");
+      }
+    }
+    return validated;
   };
 
   _convert_to_shifted_key = function(key, e) {

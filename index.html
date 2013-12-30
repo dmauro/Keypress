@@ -4,7 +4,7 @@
     <title>Keypress: A Javascript library for capturing input</title>
     <link rel="stylesheet" href="css/main.css">
     <link rel="stylesheet" href="css/solarized_dark.css">
-    <script src="https://rawgithub.com/dmauro/Keypress/master/keypress.js"></script>
+    <script src="https://rawgithub.com/dmauro/Keypress/v2.0/keypress.js"></script>
 </head>
 <body>
     <header>
@@ -176,20 +176,10 @@
                     <li><a class="demo_link" data-demo="demo_4">Sequence combos</a></li>
                     <li><a class="demo_link" data-demo="demo_5">Other features...</a></li>
                 </ul>
-
-                <h1 class="lime">Why NOT use Keypress?</h1>
-                <p>
-                    I have tried to make this very easy to use even for simple
-                    keyboard shortcuts, but if you don't need the more advanced
-                    features, you might be better of with some of the
-                    simpler solutions out there. The API is subject to change as
-                    I get feedback, so if you're after stability, this might not be
-                    for you just yet.
-                </p>
             </div>
 
             <div class="get_keypress">
-                <h1 class="blue">Download Keypress</h1>
+                <h1 class="lime">Download Keypress</h1>
                 <div class="github_wrapper">
                     <img src="img/github_logo.png" width="77" height="34">
                     <a href="https://github.com/dmauro/Keypress/zipball/master">
@@ -386,16 +376,19 @@
         <div class="documentation">
             <h1 class="blue">Great! So how do I use it?</h1>
             <p>
-                Of course you'll need to include the js file in your HTML, but that's all you need
-                to do to get started. All that's left for you to do is describe all of your key combos.
+                The first thing to do is include the JavaScript file in your page. Once you've got that
+                loaded in, you'll want to start by instantiating a listener:
             </p>
+<pre><code class="javascript">var listener = window.keypress.Listener();
+</code></pre>
             <p>
-                The simplest way to register a combo is to use 'keypress.combo()'. The first parameter
-                is a string or array of key names that describe the combo. The second parameter is
-                the on_keydown callback, and the third optional parameter is the prevent_default
-                option which defaults to false.
+                Once you've done that you can register combos with that listener you've created.
+                The simplest way to do that is using the simple_combo API. It takes a space dilineated
+                string or an array of strings of key names that describe your combo. The second
+                parameter is the callback function that will get called every time the combo is
+                entered by your users.
             </p>
-<pre><code class="javascript">keypress.combo("shift s", function() {
+<pre><code class="javascript">listener.combo("shift s", function() {
     console.log("You pressed shift and s");
 });
 
@@ -413,26 +406,28 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
 </code></pre>
             <p>
                 If you only want to use Keypress for some very simple keyboard shortcuts,
-                that's all you need to know, and you can stop reading.
+                that's all you need to know!
+            </p>
+        <h1 class="pink">Advanced Options</h1>
             <p>
                 If you want to use some of the more advanced features of Keypress, you can use
-                'keypress.register_combo()' and supply an object with any number of options
+                the register_combo API and supply an object with any number of options
                 described below. All of the options are listed below with their default settings.
             </p>
 
-<pre><code class="javascript">keypress.register_combo({
+<pre><code class="javascript">listener.register_combo({
     "keys"              : null,
     "on_keydown"        : null,
     "on_keyup"          : null,
     "on_release"        : null,
-    "this"              : window,
+    "this"              : undefined,
     "prevent_default"   : false,
     "prevent_repeat"    : false,
-    "is_ordered"        : false,
+    "is_unordered"      : false,
     "is_counting"       : false,
-    "is_sequence"       : false,
-    "is_exclusive"      : false
-    "is_solitary"       : false
+    "is_exclusive"      : false,
+    "is_solitary"       : false,
+    "is_sequence"       : false
 });</code></pre>
             <ul>
                 <li>
@@ -475,19 +470,14 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     option to true, the on_keydown callback will only be called the first time.
                 </li>
                 <li>
-                    <strong class="group_4">is_ordered:</strong> This option allows us to force the order in
-                    which the user presses the keys to activate the combo. The combo
-                    "shift s" will normally activate even if the user presses 's' first, then
-                    presses 'shift' while still holding down 's'. Setting this option to true
-                    will force the user to press the keys in the order described in the keys option.
+                    <strong class="group_4">is_unordered:</strong> By default we require that the
+                    user pressed the keys down in the same order that they are listed. As an example,
+                    a combo of "shift s" will only fire if shift is pressed before s is pressed. This
+                    order can be arbitrary by specifying true for this setting.
                 </li>
                 <li>
                     <strong class="group_4">is_counting:</strong> Setting this to true will make the combo a
                     counting combo as described above.
-                </li>
-                <li>
-                    <strong class="group_4">is_sequence:</strong> Setting this to true will make the combo a
-                    sequence combo as described above.
                 </li>
                 <li>
                     <strong class="group_4">is_exclusive:</strong> Normally when pressing a key, any and all combos
@@ -495,6 +485,10 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     then 's' would activate the following combos if they existed: "shift", "shift s"
                     and "s". When we set is_exclusive to true, we will not call the callbacks for
                     any combos that are also exclusive and less specific.
+                </li>
+                <li>
+                    <strong class="group_4">is_sequence:</strong> Setting this to true will make the combo a
+                    sequence combo as described above.
                 </li>
                 <li>
                     <strong class="group_4">is_solitary:</strong> This option will check that ONLY the
@@ -509,8 +503,8 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                 them all at once using 'keypress.register_many()'. That might look something like
                 this:
             </p>
-<pre><code class="javascript">my_scope = this;
-my_combos = [
+<pre><code class="javascript">var my_scope = this;
+var my_combos = [
     {
         "keys"          : "shift s",
         "is_exclusive"  : true,
@@ -532,35 +526,35 @@ my_combos = [
         "this"          : my_scope
     }
 ];
-keypress.register_many(my_combos);</code></pre>
+listener.register_many(my_combos);</code></pre>
 
             <p>
                 You can then also unregister your combos either specifying the keys (beware that
                 this will clear ALL combos that match the keys), or you can unregister by passing
                 in the object you passed in to register_combo (another reason to manually create
-                the combo objects yourself instead of using the 'keypress.combo()' shortcut method).
-                Or you can simply remove all registered combos using 'keypress.reset()'.
+                the combo objects yourself instead of using the simple_combo shortcut method).
+                Or you can simply remove all registered combos using 'listener.reset()'.
             </p>
 
 <pre><code class="javascript">// Remove all "shift s" combos we've registered
-keypress.unregister_combo("shift s");
+listener.unregister_combo("shift s");
 
 // Or only these specific combos
-keypress.unregister_many(my_combos);
+listener.unregister_many(my_combos);
 
 // Or remove ALL combos that have been registered
-keypress.reset();</code></pre>
+listener.reset();</code></pre>
 
             <p>
-                If we simply want keypress to stop listening (for instance when focusing on a 
+                If we simply want our listener to stop listening (for instance when focusing on a 
                 text input field or textarea). We could use keypress.stop_listening() like so:
             </p>
 <pre><code class="javascript">$('input[type=text]')
-    .bind("focus", keypress.stop_listening)
-    .bind("blur", keypress.listen);</code></pre>
+    .bind("focus", listener.stop_listening)
+    .bind("blur", listener.listen);</code></pre>
 
             <br>
-            <h1 class="pink">A few notes on usage</h1>
+            <h1 class="lime">A few important bits of info</h1>
             <p>
                 If you want to make a shortcut to override default behavior such as saving, you should
                 use the "meta" key instead of specifically using "ctrl" or "cmd". This "meta" key
@@ -589,11 +583,16 @@ keypress.reset();</code></pre>
                 For a full list of the key names, you should refer to the
                 <a href="https://github.com/dmauro/Keypress/blob/master/keypress.coffee#L584-717">source code</a>.
             </p>
-            <h1 class="lime">Thanks!</h1>
+            <h1 class="blue">Support & Contact</h1>
+            <p>
+                This library has been tested with all major browsers and operating systems, but has
+                not been thoroughly tested on non-English keyboards. If you run into any issues,
+                please open an <a href="http://github.com/dmauro/Keypress/issues">issue on GitHub</a>.
+            </p>
+            <h1 class="lime">Thank you</h1>
             <p>
                 Any feedback is appreciated, and if you are using this library, I'd love to hear
-                about it so I can brag about it and give a shout out here on this page. Contact me
-                on twitter as <a href="http://twitter.com/dmaurolizer">@dmaurolizer</a>.
+                about it. Contact me on twitter as <a href="http://twitter.com/dmaurolizer">@dmaurolizer</a>.
             </p>
         </div>
     </div>

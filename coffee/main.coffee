@@ -950,9 +950,15 @@ bind_demos = ->
         activate_demo "demo_5"
     , true
 
+konami_egg = ->
+    listener.sequence_combo("up up down down left right left right b a enter", ->
+        alert "You might know that as the 'Contra code', but the Konami code was first used in Gradius for the NES in 1986."
+    );
+
 bind_keyboard()
 bind_demos()
 activate_demo "demo_1"
+konami_egg()
 
 # Fade out some keys on Mac
 if navigator.userAgent.indexOf("Mac OS X") != -1

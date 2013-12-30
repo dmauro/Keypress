@@ -57,7 +57,7 @@ body {
     margin:0;
     border:0;
     padding:0;
-    background:#f5f5f5 url(../img/bg_noise.png);
+    background:#fff url(../img/bg_noise.png);
 
     > header {
         height:10em;
@@ -292,7 +292,6 @@ body {
 
         &.pink { border-bottom:3px solid #FF0089; }
         &.lime { border-bottom:3px solid #aade00; }
-        &.orange { border-bottom:3px solid #ff7914; }
         &.blue { border-bottom:3px solid #63B3E0; }
     }
 

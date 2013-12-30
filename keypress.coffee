@@ -60,7 +60,7 @@ window.keypress = {}
 
 keypress.debug = false
 
-class keypress.Combo
+class Combo
     constructor: (dictionary) ->
         # Copy over any non-false values
         for own property, value of dictionary
@@ -532,7 +532,7 @@ class keypress.Listener
         for own property, value of @_defaults
             if combo_dictionary[property] == undefined
                 combo_dictionary[property] = value
-        combo = new keypress.Combo combo_dictionary
+        combo = new Combo combo_dictionary
         
         if _validate_combo combo
             @_registered_combos.push combo

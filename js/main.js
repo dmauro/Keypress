@@ -103,7 +103,7 @@
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     combo = _ref[_i];
     combo['is_exclusive'] = true;
-    combo['is_ordered'] = false;
+    combo['is_unordered'] = true;
   }
 
   demo_3 = {};
@@ -117,7 +117,7 @@
     {
       keys: "tab space",
       is_counting: true,
-      is_ordered: true,
+      is_unordered: false,
       prevent_default: true,
       is_exclusive: true,
       on_keydown: function(e, count) {

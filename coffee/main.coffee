@@ -83,7 +83,7 @@ demo_2.combos = [
 ]
 for combo in demo_2.combos
     combo['is_exclusive'] = true
-    combo['is_ordered'] = false
+    combo['is_unordered'] = true
 
 
 demo_3 = {}
@@ -95,7 +95,7 @@ demo_3.select_option = (index) ->
 demo_3.combos = [
     keys            : "tab space"
     is_counting     : true
-    is_ordered      : true
+    is_unordered    : false
     prevent_default : true
     is_exclusive    : true
     on_keydown      : (e, count) ->

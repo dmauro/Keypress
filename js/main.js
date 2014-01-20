@@ -1221,19 +1221,19 @@
       prevent_default: true,
       on_keydown: activate_next_demo
     });
-    listener.combo("1", function() {
+    listener.simple_combo("1", function() {
       return activate_demo("demo_1");
     }, true);
-    listener.combo("2", function() {
+    listener.simple_combo("2", function() {
       return activate_demo("demo_2");
     }, true);
-    listener.combo("3", function() {
+    listener.simple_combo("3", function() {
       return activate_demo("demo_3");
     }, true);
-    listener.combo("4", function() {
+    listener.simple_combo("4", function() {
       return activate_demo("demo_4");
     }, true);
-    return listener.combo("5", function() {
+    return listener.simple_combo("5", function() {
       return activate_demo("demo_5");
     }, true);
   };

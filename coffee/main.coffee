@@ -932,19 +932,19 @@ bind_demos = ->
         prevent_default : true,
         on_keydown      : activate_next_demo,
     });
-    listener.combo "1", ->
+    listener.simple_combo "1", ->
         activate_demo "demo_1"
     , true
-    listener.combo "2", ->
+    listener.simple_combo "2", ->
         activate_demo "demo_2"
     , true
-    listener.combo "3", ->
+    listener.simple_combo "3", ->
         activate_demo "demo_3"
     , true
-    listener.combo "4", ->
+    listener.simple_combo "4", ->
         activate_demo "demo_4"
     , true
-    listener.combo "5", ->
+    listener.simple_combo "5", ->
         activate_demo "demo_5"
     , true
 

@@ -97,15 +97,13 @@ demo_3.combos = [
     is_counting     : true
     is_unordered    : false
     prevent_default : true
-    is_exclusive    : true
     on_keydown      : (e, count) ->
         count = count%6
         demo_3.select_option count
 ,
     keys            : "tab"
     prevent_default : true
-    is_exclusive    : true
-    on_keyup        : ->
+    on_keydown      : ->
         demo_3.select_option 0
 ]
 

@@ -173,6 +173,18 @@ describe "Keypress:", ->
                 on_keyup "b"
                 on_keyup "a"
 
+            it "properly receives is_autorepeat", ->
+                did_repeat = false
+                listener.simple_combo "a", (event, count, is_autorepeat) ->
+                    did_repeat = is_autorepeat
+                on_keydown "a"
+                expect(did_repeat).toBe(false)
+                on_keydown "a"
+                expect(did_repeat).toBe(true)
+                on_keydown "a"
+                expect(did_repeat).toBe(true)
+                on_keyup "a"
+
         describe "on_keyup", ->
 
             it "fires properly", ->

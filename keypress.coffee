@@ -324,10 +324,10 @@ class keypress.Listener
         else
             @_key_up key, e
         
-    _fire: (event, combo, key_event) ->
+    _fire: (event, combo, key_event, is_autorepeat) ->
         # Only fire this event if the function is defined
         if typeof combo["on_" + event] is "function"
-            @_prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count) isnt true)
+            @_prevent_default key_event, (combo["on_" + event].call(combo.this, key_event, combo.count, is_autorepeat) isnt true)
         # We need to mark that keyup has already happened
         if event is "release"
             combo.count = 0
@@ -400,9 +400,11 @@ class keypress.Listener
 
         @_prevent_default e, (combo and combo.prevent_default)
 
+        is_autorepeat = false
         # If we've already pressed this key, check that we want to fire
         # again, otherwise just add it to the keys_down list.
         if key in @_keys_down
+            is_autorepeat = true
             return false unless combo.allows_key_repeat()
 
         # Now we add this combo or replace it in _active_combos
@@ -429,7 +431,7 @@ class keypress.Listener
 
         # Only fire keydown if we added it
         if result
-            @_fire "keydown", combo, e
+            @_fire "keydown", combo, e, is_autorepeat
 
     _key_up: (key, e) ->
         # Check if we're holding shift

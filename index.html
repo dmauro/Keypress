@@ -233,7 +233,8 @@
                             This allows for a very intuitive wasd tile-based movement system that allows
                             for things like holding down one key of a component vector and tapping
                             the other to repeatedly trigger the diagonal movement, rather than
-                            having to repeatedly press them both.
+                            having to repeatedly press them both. We're using a combination of the
+                            is_exclusive property and the on_keyup events to achieve this.
                         </p>
                     </div>
                     <div class="demo" data-demo="demo_3">
@@ -337,9 +338,10 @@
                             in a fighting game. Try making Ryu do a hadoken ("down", "right" then "x").
                         </p>
                         <p>
-                            The combos will not register if the user takes to long to enter the combo. By default
+                            The combos will not register if the user takes too long to enter the combo. By default
                             the user is given 800ms between each keypress for the combo to activate, but you can
-                            change that number to any ms value by setting keypress.sequence_delay directly.
+                            change that number to any ms value by setting the sequence_delay property of your
+                            Keypress Listener.
                         </p>
                         <div class="ryu standing"></div>
                     </div>
@@ -356,11 +358,6 @@
                             combo is pressed.
                         </p>
                         <p>
-                            You can use the is_ordered option to force your combos to be pressed in a particular
-                            order. By default, all combos can be pressed in an arbitrary order (except for
-                            sequence combos which of course are always ordered).
-                        </p>
-                        <p>
                             The prevent_repeat option makes sure your callback is only called once instead of
                             being called every time the keydown event is fired.
                         </p>
@@ -369,11 +366,16 @@
                             (eg. !, @, #, $, etc.) as part of your combo and Keypress will seamlessly handle
                             that for you.
                         </p>
+                        <p>
+                            You can bind your Keypress Listener to a particular DOM element if you only want
+                            to watch for combos when a particular element is active. Read more about that
+                            below in the advanced options.
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
-        <div class="documentation">
+        <div class="documentation advanced_documentation">
             <h1 class="blue">Great! So how do I use it?</h1>
             <p>
                 The first thing to do is include the JavaScript file in your page. Once you've got that
@@ -437,15 +439,13 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                 </li>
                 <li>
                     <strong class="group_2">on_keydown:</strong> This is a function that gets called everytime
-                    the keydown event for our combo is fired. We pass this two arguments: the
-                    keydown event that triggered it, and an integer representing the number of
+                    the keydown event for our combo is fired. We pass all event handlers three arguments:
+                    the key event that triggered it, and an integer representing the number of
                     times the combo has been pressed (this will be 0 unless it is a counting
-                    combo).
+                    combo), and whether or not the event was autorepeated from holding the keydown.
                 </li>
                 <li>
-                    <strong class="group_2">on_keyup:</strong> Same as above but for keyup. This only receives
-                    the keyup event and does not receive the second 'count' argument. This will
-                    only be called the first time you release one of the component keys of the combo.
+                    <strong class="group_2">on_keyup:</strong> Same as above but for keyup events.
                 </li>
                 <li>
                     <strong class="group_2">on_release:</strong> This is similar to keyup, but will fire
@@ -453,8 +453,8 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     want to ignore this and use on_keyup.
                 </li>
                 <li>
-                    <strong class="group_2">this:</strong> By default our callbacks will be called with 'this'
-                    set to window, but we can specify the scope with this option.
+                    <strong class="group_2">this:</strong> By default our key event callbacks will be called
+                    with their scope set to window, but we can specify the scope with this option.
                 </li>
                 <li>
                     <strong class="group_3">prevent_default:</strong> While you can either return false in
@@ -484,7 +484,9 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
                     that match will have their callbacks called. For instance, pressing 'shift' and
                     then 's' would activate the following combos if they existed: "shift", "shift s"
                     and "s". When we set is_exclusive to true, we will not call the callbacks for
-                    any combos that are also exclusive and less specific.
+                    any combos that are also exclusive and less specific. This property is used to great
+                    effect in the arbitrary modifiers demo above to make sure that when you press diagonal
+                    combos, the component direction combos are not also fired.
                 </li>
                 <li>
                     <strong class="group_4">is_sequence:</strong> Setting this to true will make the combo a
@@ -500,7 +502,7 @@ keypress.sequence_combo("up up down down left right left right b a enter", funct
             <p>
                 If you are registering a lot of combos at once, you'll probably want to describe
                 combo objects as described above, store them all in an array, and then register
-                them all at once using 'keypress.register_many()'. That might look something like
+                them all at once using the register_many API. That might look something like
                 this:
             </p>
 <pre><code class="javascript">var my_scope = this;
@@ -533,7 +535,7 @@ listener.register_many(my_combos);</code></pre>
                 this will clear ALL combos that match the keys), or you can unregister by passing
                 in the object you passed in to register_combo (another reason to manually create
                 the combo objects yourself instead of using the simple_combo shortcut method).
-                Or you can simply remove all registered combos using 'listener.reset()'.
+                Or you can simply remove all registered combos by calling 'reset' on your listener.
             </p>
 
 <pre><code class="javascript">// Remove all "shift s" combos we've registered
@@ -553,6 +555,34 @@ listener.reset();</code></pre>
     .bind("focus", listener.stop_listening)
     .bind("blur", listener.listen);</code></pre>
 
+            <p>
+                Alternatively we might ONLY want to be listening when a particular DOM element is
+                active. In that case, you'll probably want to bind your listener to a particular
+                element. You can simply pass any element in as the first argument when creating
+                a Keypress Listener. The second argument it takes is a defaults dictionary in case
+                you want to completely override the defaults. That might look something like this:
+            </p>
+<pre><code class="javascript">var game_ele = document.getElementById("my_game_element_id");
+var my_defaults = {
+    is_unordered    : true,
+    prevent_repeat  : true  
+};
+var listener = window.keypress.Listener(game_ele, my_defaults);</code></pre>
+            <p>
+                And here's a complete look at the Listener class' complete public API:
+            </p>
+<pre><code class="javascript">simple_combo(keys, on_keydown_callback); // Registers a very basic combo;
+counting_combo(keys, on_count_callback); // Registers a counting combo
+sequence_combo(keys, callback); // Registers a sequence combo
+register_combo(combo_dictionary); // Registers a combo from a dictionary
+register_many(combo_dictionary_array); // Registers an array of dictionaries
+unregister_combo(keys_or_combo_dictionary); // Unregisters a single combo
+unregister_many(array_of_keys_or_combo_dictionaries); // Unregisters many combos
+get_registered_combos(); // Get a list of the combos registered with this listener
+reset(); // Unregister all combos
+listen(); // Begin listening. Listener is listening by default
+stop_listening(); // Stop listening for combos until listen() is called again</code></pre>
+
             <br>
             <h1 class="lime">A few important bits of info</h1>
             <p>
@@ -563,9 +593,10 @@ listener.reset();</code></pre>
             <p>
                 Non-modifier keys do not ever fire a keyup event when the command key is
                 held down, so we manually force a keyup event immediately after keydown is received.
-                This means that if your combo includes the meta key, it can contain any number of
+                This means that if your combo includes the meta or command key, it can contain any number of
                 modifier keys, but only one non-modifier key. Modifier keys are: "meta", "alt",
-                "option", "ctrl", "shift", and "cmd".
+                "option", "ctrl", "shift", and "cmd". That means, for example, "meta shift s" is okay
+                but "meta s p" is not.
             </p>
             <p>
                 Some keys have unreliable support and should mostly be avoided. Print, Scroll Lock,
@@ -576,12 +607,12 @@ listener.reset();</code></pre>
                 The numpad keys should also be used with caution since you can't always count on the user
                 having a numpad, and browser support for the numpad keys is not standardized. The numpad
                 keys have to be specified manually with "num_" preceeding the key name. If you used a "."
-                in your combo, for instance, it would assume a period and not a decimal (which would be 
-                "num_decimal").
+                in your combo, for instance, it would assume a period and not a decimal (which can be used
+                with the name "num_decimal").
             </p>
             <p>
                 For a full list of the key names, you should refer to the
-                <a href="https://github.com/dmauro/Keypress/blob/master/keypress.coffee#L584-717">source code</a>.
+                <a href="https://github.com/dmauro/Keypress/blob/v2.0/keypress.coffee#L724-860">source code</a>.
             </p>
             <h1 class="blue">Support & Contact</h1>
             <p>

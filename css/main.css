@@ -594,6 +594,15 @@ body {
     float: left;
     margin-right: 1em; }
 
+.advanced_documentation {
+  background: #fff;
+  -webkit-box-shadow: 0 0 0 15px white;
+  -moz-box-shadow: 0 0 0 15px white;
+  box-shadow: 0 0 0 15px white;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  border-radius: 2px; }
+
 .get_keypress {
   float: right;
   width: 512px; }

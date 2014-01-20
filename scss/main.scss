@@ -306,6 +306,12 @@ body {
     }
 }
 
+.advanced_documentation {
+    background:#fff;
+    @include box-shadow(0 0 0 15px #fff);
+    @include border-radius(2px);
+}
+
 .get_keypress {
     float:right;
     width:512px;

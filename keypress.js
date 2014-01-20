@@ -35,12 +35,12 @@ Combo options available and their defaults:
     on_keydown      : null          - A function that is called when the combo is pressed.
     on_keyup        : null          - A function that is called when the combo is released.
     on_release      : null          - A function that is called when all keys in the combo are released.
-    this            : undefined     - The scope for 'this' of your callback functions.
+    this            : undefined     - Defines the scope for your callback functions.
 */
 
 
 (function() {
-  var _change_keycodes_by_browser, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _factory_defaults, _filter_array, _is_array_in_array, _is_array_in_array_sorted, _key_is_valid, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _log_error, _metakey, _modifier_event_mapping, _modifier_keys, _validate_combo,
+  var Combo, _change_keycodes_by_browser, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _factory_defaults, _filter_array, _is_array_in_array, _is_array_in_array_sorted, _key_is_valid, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _log_error, _metakey, _modifier_event_mapping, _modifier_keys, _validate_combo,
     __hasProp = {}.hasOwnProperty,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -61,7 +61,7 @@ Combo options available and their defaults:
 
   keypress.debug = false;
 
-  keypress.Combo = (function() {
+  Combo = (function() {
     function Combo(dictionary) {
       var property, value;
       for (property in dictionary) {
@@ -392,9 +392,9 @@ Combo options available and their defaults:
       }
     };
 
-    Listener.prototype._fire = function(event, combo, key_event) {
+    Listener.prototype._fire = function(event, combo, key_event, is_autorepeat) {
       if (typeof combo["on_" + event] === "function") {
-        this._prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count) !== true);
+        this._prevent_default(key_event, combo["on_" + event].call(combo["this"], key_event, combo.count, is_autorepeat) !== true);
       }
       if (event === "release") {
         combo.count = 0;
@@ -491,16 +491,20 @@ Combo options available and their defaults:
     };
 
     Listener.prototype._handle_combo_down = function(combo, potential_combos, key, e) {
-      var is_other_exclusive, potential_combo, result, _i, _len;
+      var is_autorepeat, is_other_exclusive, potential_combo, result, _i, _len;
       if (__indexOf.call(combo.keys, key) < 0) {
         return false;
       }
       this._prevent_default(e, combo && combo.prevent_default);
+      is_autorepeat = false;
       if (__indexOf.call(this._keys_down, key) >= 0) {
+        is_autorepeat = true;
         if (!combo.allows_key_repeat()) {
           return false;
         }
       }
+      result = this._add_to_active_combos(combo, key);
+      combo.keyup_fired = false;
       is_other_exclusive = false;
       if (combo.is_exclusive) {
         for (_i = 0, _len = potential_combos.length; _i < _len; _i++) {
@@ -512,14 +516,12 @@ Combo options available and their defaults:
         }
       }
       if (!is_other_exclusive) {
-        result = this._add_to_active_combos(combo, key);
-      }
-      combo.keyup_fired = false;
-      if (combo.is_counting && typeof combo.on_keydown === "function") {
-        combo.count += 1;
-      }
-      if (result) {
-        return this._fire("keydown", combo, e);
+        if (combo.is_counting && typeof combo.on_keydown === "function") {
+          combo.count += 1;
+        }
+        if (result) {
+          return this._fire("keydown", combo, e, is_autorepeat);
+        }
       }
     };
 
@@ -637,7 +639,7 @@ Combo options available and their defaults:
           combo_dictionary[property] = value;
         }
       }
-      combo = new keypress.Combo(combo_dictionary);
+      combo = new Combo(combo_dictionary);
       if (_validate_combo(combo)) {
         this._registered_combos.push(combo);
         return true;

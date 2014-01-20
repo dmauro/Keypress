@@ -33,7 +33,7 @@ Combo options available and their defaults:
     on_keydown      : null          - A function that is called when the combo is pressed.
     on_keyup        : null          - A function that is called when the combo is released.
     on_release      : null          - A function that is called when all keys in the combo are released.
-    this            : undefined     - The scope for 'this' of your callback functions.
+    this            : undefined     - Defines the scope for your callback functions.
 ###
 
 ###########

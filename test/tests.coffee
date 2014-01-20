@@ -545,7 +545,7 @@ describe "Keypress:", ->
                 on_keyup "b"
                 on_keyup "c"
 
-            it "will not fire keydown for a less specific combo that is also exclusive", ->
+            it "will not fire keydown for a less specific combo", ->
                 fired = null
                 listener.register_combo(
                     keys            : "a b"
@@ -570,7 +570,7 @@ describe "Keypress:", ->
                 on_keyup "b"
                 on_keyup "c"
 
-            it "will not fire keyup for a less specific combo that is also exclusive", ->
+            it "will not fire keyup for a less specific combo", ->
                 fired = null
                 listener.register_combo(
                     keys            : "a b"
@@ -594,6 +594,29 @@ describe "Keypress:", ->
                 on_keyup "a"
                 expect(key_handler.calls.length).toEqual(1)
                 expect(fired).toEqual("bigger")
+
+            it "will fire a less specific combo if the bigger did NOT fire", ->
+                fired = null
+                listener.register_combo(
+                    keys            : "a b"
+                    is_exclusive    : true
+                    on_keyup        : ->
+                        fired = "smaller"
+                        key_handler()
+                )
+                listener.register_combo(
+                    keys            : "a b c"
+                    is_exclusive    : true
+                    on_keyup        : ->
+                        fired = "bigger"
+                        key_handler()
+                )
+                on_keydown "a"
+                on_keydown "b"
+                on_keyup "b"
+                on_keyup "a"
+                expect(key_handler.calls.length).toEqual(1)
+                expect(fired).toEqual("smaller")
 
         describe "is_solitary", ->
 
@@ -628,6 +651,7 @@ describe "Keypress:", ->
                 on_keyup "a"
                 on_keyup "b"
                 expect(key_handler).not.toHaveBeenCalled()
+
 
     describe "Keyboard Shortcuts", ->
         afterEach ->

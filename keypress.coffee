@@ -408,30 +408,27 @@ class keypress.Listener
             return false unless combo.allows_key_repeat()
 
         # Now we add this combo or replace it in _active_combos
-        # But only if there isn't another more specific exclusive combo in potential combos
+        result = @_add_to_active_combos combo, key
 
-        # NOTE TO SELF: This block is new and could use some testing
-        # This might be breaking the WASD stuff in the demo?
+        # We reset the keyup_fired property because you should be
+        # able to fire that again, if you've pressed the key down again
+        combo.keyup_fired = false
 
+        # Now we fire the keydown event unless there is a larger exclusive potential combo
         is_other_exclusive = false
         if combo.is_exclusive
             for potential_combo in potential_combos
                 if potential_combo.is_exclusive and potential_combo.keys.length > combo.keys.length
                     is_other_exclusive = true
                     break
-        result = @_add_to_active_combos combo, key unless is_other_exclusive
 
-        # We reset the keyup_fired property because you should be
-        # able to fire that again, if you've pressed the key down again
-        combo.keyup_fired = false
+        unless is_other_exclusive
+            if combo.is_counting and typeof combo.on_keydown is "function"
+                combo.count += 1
 
-        # Now we fire the keydown event
-        if combo.is_counting and typeof combo.on_keydown is "function"
-            combo.count += 1
-
-        # Only fire keydown if we added it
-        if result
-            @_fire "keydown", combo, e, is_autorepeat
+            # Only fire keydown if we added it
+            if result
+                @_fire "keydown", combo, e, is_autorepeat
 
     _key_up: (key, e) ->
         # Check if we're holding shift

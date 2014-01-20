@@ -128,7 +128,7 @@
       keys: "tab",
       prevent_default: true,
       is_exclusive: true,
-      on_keydown: function() {
+      on_keyup: function() {
         return demo_3.select_option(0);
       }
     }

@@ -105,7 +105,7 @@ demo_3.combos = [
     keys            : "tab"
     prevent_default : true
     is_exclusive    : true
-    on_keydown      : ->
+    on_keyup        : ->
         demo_3.select_option 0
 ]
 

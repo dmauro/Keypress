@@ -1,6 +1,6 @@
 #!/bin/bash
 VERSION="2.0.0"
-YEAR="2013"
+YEAR="2014"
 cd "$( cd "$( dirname "$0" )" && pwd )"
 coffee -c keypress.coffee
 java -jar compiler.jar --js keypress.js --js_output_file keypress-$VERSION.min.js

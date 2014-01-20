@@ -6,7 +6,7 @@ Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
 visit [http://dmauro.github.io/Keypress/](http://dmauro.github.io/Keypress/)
 
-Copyright 2013 David Mauro
+Copyright 2014 David Mauro
 released under the Apache License, version 2.0
 
 
@@ -15,13 +15,14 @@ released under the Apache License, version 2.0
 
 2.0.0
 
-* Keypress now has a listener class that must be instantiated.
-* Each instance of a Keypress listener can be bound to a DOM element.
+* Keypress now has a listener class that must be instantiated. The functions that were previously in the global window.keypress object are now public methods of the window.keypress.Listener class.
+* Each instance of a Keypress listener can be bound to a DOM element by passing in the element to the listener's constructor.
 * Combos now default to being ordered (the property is now called is_unordered and is false by default).
 * Combos' handlers preventDefault unless the handler returns true.
 * The "combo" public method is now called "simple_combo".
 * The basic combo helpers for simple, counting and sequence combos no longer have a third prevent_default optional parameter.
 * Debugging console logs can be enabled by setting keypress.debug to true.
+* All key event callbacks send a third argument specifying whether the event is firing again automatically because the key has remained pressed down.
 
 1.0.9
 

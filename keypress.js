@@ -137,7 +137,7 @@ Combo options available and their defaults:
 
     Listener.prototype._bug_catcher = function(e) {
       var _ref;
-      if (__indexOf.call(this._keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
+      if (_metakey === "cmd" && __indexOf.call(this._keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
         return this._receive_input(e, false);
       }
     };
@@ -378,10 +378,10 @@ Combo options available and their defaults:
         }
         return;
       }
-      if (!is_keydown && !this._keys_down.length) {
+      key = _convert_key_to_readable(e.keyCode);
+      if (!is_keydown && !this._keys_down.length && (key === "alt" || key === _metakey)) {
         return;
       }
-      key = _convert_key_to_readable(e.keyCode);
       if (!key) {
         return;
       }

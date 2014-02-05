@@ -132,6 +132,27 @@ describe "Keypress:", ->
             on_keyup "v"
             on_keyup "cmd"
 
+    describe "Keyup events with no relevant keydown event", ->
+        key_handler = null
+        beforeEach ->
+            key_handler = jasmine.createSpy()
+        afterEach ->
+            listener.reset()
+
+        it "won't fire the keyup when we alt-tab/cmd-tab in", ->
+            listener.register_combo(
+                keys        : "cmd"
+                on_keyup    : key_handler
+            )
+            listener.register_combo(
+                keys        : "alt"
+                on_keyup    : key_handler
+            )
+            on_keyup "cmd"
+            expect(key_handler).not.toHaveBeenCalled()
+            on_keyup "alt"
+            expect(key_handler).not.toHaveBeenCalled()
+
     describe "Explicit combo options", ->
         key_handler = null
         beforeEach ->

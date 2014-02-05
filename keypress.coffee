@@ -132,14 +132,11 @@ class keypress.Listener
         # Perhaps we should fire keyup on all active combos when we press cmd?
 
     _cmd_bug_check: (combo_keys) ->
-
-        # TODO: Document this properly
-
         # We don't want to allow combos to activate if the cmd key
         # is pressed, but cmd isn't in them. This is so they don't
         # accidentally rapid fire due to our hack-around for the cmd
         # key bug and having to fake keyups.
-        if "cmd" in @_keys_down and "cmd" not in combo_keys
+        if _metakey is "cmd" and "cmd" in @_keys_down and "cmd" not in combo_keys
             return false
         return true
 
@@ -379,6 +376,8 @@ class keypress.Listener
         for mod, event_mod of _modifier_event_mapping
             continue if mod is key
             if mod in @_keys_down and not e[event_mod]
+                # The Windows key will think it is the cmd key, but won't trigger the event mod 
+                continue if mod is "cmd" and _metakey isnt "cmd"
                 for i in [0...@_keys_down.length]
                     @_keys_down.splice(i, 1) if @_keys_down[i] is mod
 

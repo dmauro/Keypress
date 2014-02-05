@@ -143,7 +143,7 @@ Combo options available and their defaults:
     };
 
     Listener.prototype._cmd_bug_check = function(combo_keys) {
-      if (__indexOf.call(this._keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
+      if (_metakey === "cmd" && __indexOf.call(this._keys_down, "cmd") >= 0 && __indexOf.call(combo_keys, "cmd") < 0) {
         return false;
       }
       return true;
@@ -466,6 +466,9 @@ Combo options available and their defaults:
           continue;
         }
         if (__indexOf.call(this._keys_down, mod) >= 0 && !e[event_mod]) {
+          if (mod === "cmd" && _metakey !== "cmd") {
+            continue;
+          }
           for (i = _i = 0, _ref = this._keys_down.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
             if (this._keys_down[i] === mod) {
               this._keys_down.splice(i, 1);

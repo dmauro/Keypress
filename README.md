@@ -15,7 +15,8 @@ released under the Apache License, version 2.0
 
 2.0.1
 
-* Fixed a big ole bug with meta/cmd combos. Thanks to [lexey111](https://github.com/lexey111). Issue #29.
+* Fixed a big ole bug with meta/cmd combos. Thanks to [lexey111](https://github.com/lexey111). [Issue #29](https://github.com/dmauro/Keypress/issues/29).
+* Fixed a bug with the Windows key being released on Windows systems. [Issue #27](https://github.com/dmauro/Keypress/issues/27).
 
 2.0.0
 

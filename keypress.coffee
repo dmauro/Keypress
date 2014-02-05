@@ -366,7 +366,7 @@ class keypress.Listener
         @_fire("keydown", sequence_combo, e) if sequence_combo
 
         # We might have modifier keys down when coming back to
-        # this window and they might now be in _keys_down, so
+        # this window and they might not be in _keys_down, so
         # we're doing a check to make sure we put it back in.
         # This only works for explicit modifier keys.
         for mod, event_mod of _modifier_event_mapping

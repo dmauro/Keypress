@@ -17,7 +17,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.0
+version 2.0.1
 */
 
 
@@ -138,7 +138,7 @@ Combo options available and their defaults:
     Listener.prototype._bug_catcher = function(e) {
       var _ref;
       if (__indexOf.call(this._keys_down, "cmd") >= 0 && ((_ref = _convert_key_to_readable(e.keyCode)) !== "cmd" && _ref !== "shift" && _ref !== "alt" && _ref !== "caps" && _ref !== "tab")) {
-        return _receive_input(e, false);
+        return this._receive_input(e, false);
       }
     };
 
@@ -718,6 +718,10 @@ Combo options available and their defaults:
 
     Listener.prototype.stop_listening = function() {
       return this._prevent_capture = true;
+    };
+
+    Listener.prototype.get_meta_key = function() {
+      return _metakey;
     };
 
     return Listener;

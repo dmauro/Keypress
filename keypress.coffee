@@ -125,7 +125,7 @@ class keypress.Listener
     _bug_catcher: (e) ->
         # Force a keyup for non-modifier keys when command is held because they don't fire
         if "cmd" in @_keys_down and _convert_key_to_readable(e.keyCode) not in ["cmd", "shift", "alt", "caps", "tab"]
-            _receive_input e, false
+            @_receive_input e, false
         # Note: we're currently ignoring the fact that this doesn't catch the bug that a keyup
         # will not fire if you keydown a combo, then press and hold cmd, then keyup the combo.
         # Perhaps we should fire keyup on all active combos when we press cmd?
@@ -576,6 +576,10 @@ class keypress.Listener
 
     stop_listening: ->
         @_prevent_capture = true
+
+    get_meta_key: ->
+        # Helpful for debugging purposes
+        return _metakey
 
 ##################
 # Helper Functions

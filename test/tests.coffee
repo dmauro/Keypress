@@ -25,6 +25,7 @@ describe "Keypress:", ->
         if key is "shift"
             SHIFT = true
         event = event_for_key key
+        event.metaKey = "meta" in listener._keys_down or listener.get_meta_key() in listener._keys_down
         listener._receive_input event, true
         listener._bug_catcher event
         return event
@@ -112,6 +113,24 @@ describe "Keypress:", ->
             on_keyup "a"
             expect(key_handler.calls.length).toEqual(2)
 
+    describe "Bug catcher", ->
+        key_handler = null
+        beforeEach ->
+            key_handler = jasmine.createSpy()
+        afterEach ->
+            listener.reset()
+
+        it "forces keyup on keys when cmd is held down", ->
+            listener.register_combo(
+                keys        : "cmd v"
+                on_keydown  : key_handler
+                on_keyup    : key_handler
+            )
+            on_keydown "cmd"
+            on_keydown "v"
+            expect(key_handler.calls.length).toEqual(2)
+            on_keyup "v"
+            on_keyup "cmd"
 
     describe "Explicit combo options", ->
         key_handler = null

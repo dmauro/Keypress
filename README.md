@@ -1,6 +1,6 @@
 Keypress
 ========
-Version 2.0.0
+Version 2.0.1
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
@@ -12,6 +12,10 @@ released under the Apache License, version 2.0
 
 **What's new**
 ---------------
+
+2.0.1
+
+* Fixed a big ole bug with meta/cmd combos. Thanks to [lexey111](https://github.com/lexey111). Issue #29.
 
 2.0.0
 

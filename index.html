@@ -397,12 +397,12 @@
 // There are also a few other shortcut methods:
 
 // If we want to register a counting combo
-keypress.counting_combo("tab space", function(e, count) {
+listener.counting_combo("tab space", function(e, count) {
     console.log("You've pressed this " + count + " times.");
 });
 
 // If you want to register a sequence combo
-keypress.sequence_combo("up up down down left right left right b a enter", function() {
+listener.sequence_combo("up up down down left right left right b a enter", function() {
     lives = 30;
 }, true);
 </code></pre>
@@ -549,7 +549,7 @@ listener.reset();</code></pre>
 
             <p>
                 If we simply want our listener to stop listening (for instance when focusing on a 
-                text input field or textarea). We could use keypress.stop_listening() like so:
+                text input field or textarea). We could use listener.stop_listening() like so:
             </p>
 <pre><code class="javascript">$('input[type=text]')
     .bind("focus", listener.stop_listening)

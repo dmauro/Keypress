@@ -522,8 +522,10 @@ var my_combos = [
         "keys"          : "s",
         "is_exclusive"  : true,
         "on_keyup"      : function(event) {
-            console.log("Normally the keyup event would automatically have preventDefault() called.");
-            console.log("But because we're returning true, preventDefault() will not be called on the event.");
+            // Normally because we have a keyup event handler,
+            // event.preventDefault() would automatically be called.
+            // But because we're returning true in this handler,
+            // event.preventDefault() will not be called.
             return true
         },
         "this"          : my_scope

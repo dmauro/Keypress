@@ -457,12 +457,12 @@ listener.sequence_combo("up up down down left right left right b a enter", funct
                     with their scope set to window, but we can specify the scope with this option.
                 </li>
                 <li>
-                    <strong class="group_3">prevent_default:</strong> While you can either return false in
-                    your callback or use event.preventDefault() to prevent the default
-                    browser behavior for a combo, this option will prevent the default
-                    browser behavior for all keypresses that are part of a combo. What this
-                    means is that if you have, for example, a combo "shift s", both 'shift'
-                    and 's' will independently preventDefault when pressed.
+                    <strong class="group_3">prevent_default:</strong> Any handlers for your combos
+                    will event.preventDefault() for the relevant event by default (you can return
+                    true in the handler to prevent this). But there is additionally a prevent_default
+                    property which will preventDefault() for events of keypresses of all constituent
+                    keys of the combo. What this means is that if you have a combo "shift s", both
+                    'shift' and 's' keypresses will independently preventDefault() when pressed.
                 </li>
                 <li>
                     <strong class="group_3">prevent_repeat:</strong> Normally the on_keydown callback will be
@@ -522,8 +522,9 @@ var my_combos = [
         "keys"          : "s",
         "is_exclusive"  : true,
         "on_keyup"      : function(event) {
-            event.preventDefault();
-            console.log("We've prevented the s key from doing anything!");
+            console.log("Normally the keyup event would automatically have preventDefault() called.");
+            console.log("But because we're returning true, preventDefault() will not be called on the event.");
+            return true
         },
         "this"          : my_scope
     }

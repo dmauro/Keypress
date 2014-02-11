@@ -785,6 +785,29 @@ describe "APIs behave as expected:", ->
     afterEach ->
         listener.reset()
 
+    describe "unregister_many", ->
+        it "unregisters the combos registered by register_many", () ->
+            combos1 = [ {
+                keys : "shift s",
+            }, {
+                keys : "shift r",
+            }]
+            combos2 = [ {
+                keys : "alt s"
+            }, {
+                keys : "alt r"
+            }]
+
+            registered1 = listener.register_many(combos1)
+            registered2 = listener.register_many(combos2)
+            expect(listener.get_registered_combos().length).toEqual(4)
+            listener.unregister_many(registered2)
+            expect(listener.get_registered_combos().length).toEqual(2)
+            expect(listener.get_registered_combos()[0].keys).toEqual(["shift", "s"])
+            expect(listener.get_registered_combos()[1].keys).toEqual(["shift", "r"])
+
+
+
     describe "unregister_combo", ->
 
         it "unregisters string", ->

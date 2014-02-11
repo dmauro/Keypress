@@ -535,9 +535,10 @@ class keypress.Listener
         
         if _validate_combo combo
             @_registered_combos.push combo
-            combo
+            return combo
 
     register_many: (combo_array) ->
+        # Will return an array of the combos actually registered
         @register_combo(combo) for combo in combo_array
 
     unregister_combo: (keys_or_combo) ->

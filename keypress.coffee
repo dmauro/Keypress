@@ -56,7 +56,7 @@ _metakey = "ctrl"
 # Public object and Classes
 ###########################
 
-window.keypress = {}
+keypress = {}
 
 keypress.debug = false
 
@@ -529,15 +529,16 @@ class keypress.Listener
         if typeof combo_dictionary["keys"] is "string"
             combo_dictionary["keys"] = combo_dictionary["keys"].split " "
         for own property, value of @_defaults
-            if combo_dictionary[property] == undefined
+            if combo_dictionary[property] is undefined
                 combo_dictionary[property] = value
         combo = new Combo combo_dictionary
         
         if _validate_combo combo
             @_registered_combos.push combo
-            return true
+            return combo
 
     register_many: (combo_array) ->
+        # Will return an array of the combos actually registered
         @register_combo(combo) for combo in combo_array
 
     unregister_combo: (keys_or_combo) ->
@@ -869,3 +870,10 @@ _keycode_dictionary =
 
 _decide_meta_key()
 _change_keycodes_by_browser()
+
+# Anonymous Module Definition
+if typeof define is "function" and define.amd
+    define [], ->
+        return keypress
+else
+    window.keypress = keypress

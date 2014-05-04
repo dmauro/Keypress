@@ -1096,7 +1096,7 @@
     demo_2: {
       wire: function() {
         var dom_string, i, total_spots, _j;
-        listener.register_many(demo_2.combos);
+        demo_2.registered_combos = listener.register_many(demo_2.combos);
         total_spots = 12 * 6;
         total_spots += 1;
         dom_string = "";
@@ -1108,13 +1108,13 @@
         return demo_2.unit_size = parseInt(demo_2.piece.outerWidth(), 10);
       },
       unwire: function() {
-        return listener.unregister_many(demo_2.combos);
+        return listener.unregister_many(demo_2.registered_combos);
       }
     },
     demo_3: {
       wire: function() {
         var list;
-        listener.register_many(demo_3.combos);
+        demo_3.registered_combos = listener.register_many(demo_3.combos);
         list = $('#counting_list li');
         return list.bind("click", function() {
           list.removeClass("active");
@@ -1122,16 +1122,16 @@
         });
       },
       unwire: function() {
-        listener.unregister_many(demo_3.combos);
+        listener.unregister_many(demo_3.registered_combos);
         return $('#counting_list li').unbind("click");
       }
     },
     demo_4: {
       wire: function() {
-        return listener.register_many(demo_4.combos);
+        return demo_4.registered_combos = listener.register_many(demo_4.combos);
       },
       unwire: function() {
-        return listener.unregister_many(demo_4.combos);
+        return listener.unregister_many(demo_4.registered_combos);
       }
     }
   };

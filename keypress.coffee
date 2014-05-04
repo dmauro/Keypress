@@ -56,7 +56,7 @@ _metakey = "ctrl"
 # Public object and Classes
 ###########################
 
-window.keypress = {}
+keypress = {}
 
 keypress.debug = false
 
@@ -870,3 +870,10 @@ _keycode_dictionary =
 
 _decide_meta_key()
 _change_keycodes_by_browser()
+
+# Anonymous Module Definition
+if typeof define is "function" and define.amd
+    define [], ->
+        return keypress
+else
+    window.keypress = keypress

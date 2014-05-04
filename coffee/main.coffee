@@ -1,5 +1,6 @@
 # Create listener
 listener = new window.keypress.Listener()
+listener.should_force_event_defaults = true
 
 demo_2 = {}
 
@@ -100,11 +101,13 @@ demo_3.combos = [
     on_keydown      : (e, count) ->
         count = count%6
         demo_3.select_option count
+        e.preventDefault()
 ,
     keys            : "tab"
     prevent_default : true
-    on_keydown      : ->
+    on_keydown      : (e) ->
         demo_3.select_option 0
+        e.preventDefault()
 ]
 
 

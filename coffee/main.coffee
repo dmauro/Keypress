@@ -1,5 +1,6 @@
 # Create listener
 listener = new window.keypress.Listener()
+listener.should_force_event_defaults = true
 
 demo_2 = {}
 
@@ -100,11 +101,13 @@ demo_3.combos = [
     on_keydown      : (e, count) ->
         count = count%6
         demo_3.select_option count
+        e.preventDefault()
 ,
     keys            : "tab"
     prevent_default : true
-    on_keydown      : ->
+    on_keydown      : (e) ->
         demo_3.select_option 0
+        e.preventDefault()
 ]
 
 
@@ -840,7 +843,7 @@ demos =
             return
     demo_2  :
         wire    : ->
-            listener.register_many demo_2.combos
+            demo_2.registered_combos = listener.register_many demo_2.combos
             # Add the divs we need for the grid
             total_spots = 12*6
             total_spots += 1
@@ -852,23 +855,23 @@ demos =
             demo_2.piece = $('#movement_grid div:first-of-type')
             demo_2.unit_size = parseInt demo_2.piece.outerWidth(), 10
         unwire  : ->
-            listener.unregister_many demo_2.combos
+            listener.unregister_many demo_2.registered_combos
     demo_3  :
         wire    : ->
-            listener.register_many demo_3.combos
+            demo_3.registered_combos = listener.register_many demo_3.combos
             list = $('#counting_list li')
             list.bind("click", ->
                 list.removeClass "active"
                 $(this).addClass "active"
             )
         unwire  : ->
-            listener.unregister_many demo_3.combos
+            listener.unregister_many demo_3.registered_combos
             $('#counting_list li').unbind "click"
     demo_4  :
         wire    : ->
-            listener.register_many demo_4.combos
+            demo_4.registered_combos = listener.register_many demo_4.combos
         unwire  : ->
-            listener.unregister_many demo_4.combos
+            listener.unregister_many demo_4.registered_combos
 
 unwire_demo = (demo_node) ->
     wire_demo demo_node, false

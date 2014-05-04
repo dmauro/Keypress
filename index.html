@@ -506,7 +506,7 @@ listener.sequence_combo("up up down down left right left right b a enter", funct
                 this:
             </p>
 <pre><code class="javascript">var my_scope = this;
-var my_combos = [
+var my_combos = listener.register_many([
     {
         "keys"          : "shift s",
         "is_exclusive"  : true,
@@ -530,14 +530,12 @@ var my_combos = [
         },
         "this"          : my_scope
     }
-];
-listener.register_many(my_combos);</code></pre>
+]);</code></pre>
 
             <p>
                 You can then also unregister your combos either specifying the keys (beware that
                 this will clear ALL combos that match the keys), or you can unregister by passing
-                in the object you passed in to register_combo (another reason to manually create
-                the combo objects yourself instead of using the simple_combo shortcut method).
+                in the object or array of objects that were returned when registered with the listener.
                 Or you can simply remove all registered combos by calling 'reset' on your listener.
             </p>
 
@@ -545,7 +543,7 @@ listener.register_many(my_combos);</code></pre>
 listener.unregister_combo("shift s");
 
 // Or only these specific combos
-listener.unregister_many(my_combos);
+listener.unregister_many(my_registered_combos);
 
 // Or remove ALL combos that have been registered
 listener.reset();</code></pre>

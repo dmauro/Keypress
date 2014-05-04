@@ -529,7 +529,7 @@ class keypress.Listener
         if typeof combo_dictionary["keys"] is "string"
             combo_dictionary["keys"] = combo_dictionary["keys"].split " "
         for own property, value of @_defaults
-            if combo_dictionary[property] == undefined
+            if combo_dictionary[property] is undefined
                 combo_dictionary[property] = value
         combo = new Combo combo_dictionary
         

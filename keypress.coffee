@@ -633,13 +633,19 @@ _is_array_in_array = (a1, a2) ->
         return false unless item in a2
     return true
 
+_index_of_in_array = Array.prototype.indexOf || ((arr, el) ->
+    for i in [0..arr.length]
+        return i if arr[i] is el
+    return -1
+)
+
 _is_array_in_array_sorted = (a1, a2) ->
     # Return true only if all of the contents of
     # a1 are include in a2 and they appear in the
     # same order in both.
     prev = 0
     for item in a1
-        index = a2.indexOf item
+        index = _index_of_in_array.call(a2, item)
         if index >= prev
             prev = index
         else
@@ -695,7 +701,7 @@ _validate_combo = (combo) ->
     if "meta" in combo.keys or "cmd" in combo.keys
         non_modifier_keys = combo.keys.slice()
         for mod_key in _modifier_keys
-            if (i = non_modifier_keys.indexOf(mod_key)) > -1
+            if (i = _index_of_in_array.call(non_modifier_keys, mod_key)) > -1
                 non_modifier_keys.splice(i, 1) 
         if non_modifier_keys.length > 1
             _log_error "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys

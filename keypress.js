@@ -1064,7 +1064,8 @@ Combo options available and their defaults:
     224: "cmd",
     225: "alt",
     57392: "ctrl",
-    63289: "num"
+    63289: "num",
+    59: ";"
   };
 
   _decide_meta_key();

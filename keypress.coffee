@@ -863,6 +863,8 @@ _keycode_dictionary =
     # Opera weirdness
     57392   : "ctrl"
     63289   : "num"
+    # Firefox weirdness
+    59 : ";"
 
 ############
 # Initialize

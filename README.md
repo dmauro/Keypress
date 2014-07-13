@@ -13,6 +13,13 @@ released under the Apache License, version 2.0
 **What's new**
 ---------------
 
+2.03
+
+* Fixed a bug unregistering combos using arrays of keys
+* Added ie8 compatibility shim. Thanks to [barrkel](https://github.com/barrkel). [Issue #41](https://github.com/dmauro/Keypress/issues/41)
+* Fixed a bug targetting the semicolon key in Firefox. Thanks to [mikekuehn](https://github.com/mikekuehn).
+* Added commonJS module support. [Issue #45](https://github.com/dmauro/Keypress/issues/45)
+
 2.0.2
 
 * Fixed a bug that prevented combos from unregistering, and updated the docs for how to unregister properly. Thanks to [pelly](https://github.com/pelly) and [g00fy-](https://github.com/g00fy-). [Issue # 34](https://github.com/dmauro/Keypress/issues/34).

@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.1
+version 2.0.3
 ###
 
 ###
@@ -550,14 +550,14 @@ class keypress.Listener
                     @_registered_combos.splice i, 1
                     break
 
-        if keys_or_combo.keys
+        if keys_or_combo.keys?
             unregister_combo keys_or_combo
         else
-            for combo in @_registered_combos
-                continue unless combo
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
-            if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
+            for combo in @_registered_combos
+                continue unless combo?
+                if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
                     unregister_combo combo
 
     unregister_many: (combo_array) ->
@@ -633,13 +633,18 @@ _is_array_in_array = (a1, a2) ->
         return false unless item in a2
     return true
 
+_index_of_in_array = Array.prototype.indexOf or (a, item) ->
+    for i in [0..a.length]
+        return i if a[i] is item
+    return -1
+
 _is_array_in_array_sorted = (a1, a2) ->
     # Return true only if all of the contents of
     # a1 are include in a2 and they appear in the
     # same order in both.
     prev = 0
     for item in a1
-        index = a2.indexOf item
+        index = _index_of_in_array.call a2, item
         if index >= prev
             prev = index
         else
@@ -695,7 +700,7 @@ _validate_combo = (combo) ->
     if "meta" in combo.keys or "cmd" in combo.keys
         non_modifier_keys = combo.keys.slice()
         for mod_key in _modifier_keys
-            if (i = non_modifier_keys.indexOf(mod_key)) > -1
+            if (i = _index_of_in_array.call(non_modifier_keys, mod_key)) > -1
                 non_modifier_keys.splice(i, 1) 
         if non_modifier_keys.length > 1
             _log_error "META and CMD key combos cannot have more than 1 non-modifier keys", combo, non_modifier_keys
@@ -863,6 +868,8 @@ _keycode_dictionary =
     # Opera weirdness
     57392   : "ctrl"
     63289   : "num"
+    # Firefox weirdness
+    59 : ";"
 
 ############
 # Initialize
@@ -875,5 +882,7 @@ _change_keycodes_by_browser()
 if typeof define is "function" and define.amd
     define [], ->
         return keypress
+else if exports?
+    exports.keypress = keypress
 else
     window.keypress = keypress

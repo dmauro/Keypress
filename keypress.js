@@ -18,7 +18,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.1
+version 2.0.3
  */
 
 
@@ -40,7 +40,7 @@ Combo options available and their defaults:
  */
 
 (function() {
-  var Combo, keypress, _change_keycodes_by_browser, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _factory_defaults, _filter_array, _is_array_in_array, _is_array_in_array_sorted, _key_is_valid, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _log_error, _metakey, _modifier_event_mapping, _modifier_keys, _validate_combo,
+  var Combo, keypress, _change_keycodes_by_browser, _compare_arrays, _compare_arrays_sorted, _convert_key_to_readable, _convert_to_shifted_key, _decide_meta_key, _factory_defaults, _filter_array, _index_of_in_array, _is_array_in_array, _is_array_in_array_sorted, _key_is_valid, _keycode_alternate_names, _keycode_dictionary, _keycode_shifted_keys, _log_error, _metakey, _modifier_event_mapping, _modifier_keys, _validate_combo,
     __hasProp = {}.hasOwnProperty,
     __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -670,7 +670,7 @@ Combo options available and their defaults:
     };
 
     Listener.prototype.unregister_combo = function(keys_or_combo) {
-      var combo, unregister_combo, _i, _len, _ref;
+      var combo, unregister_combo, _i, _len, _ref, _results;
       if (!keys_or_combo) {
         return false;
       }
@@ -689,22 +689,23 @@ Combo options available and their defaults:
           return _results;
         };
       })(this);
-      if (keys_or_combo.keys) {
+      if (keys_or_combo.keys != null) {
         return unregister_combo(keys_or_combo);
       } else {
-        _ref = this._registered_combos;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          combo = _ref[_i];
-          if (!combo) {
-            continue;
-          }
-        }
         if (typeof keys_or_combo === "string") {
           keys_or_combo = keys_or_combo.split(" ");
         }
-        if ((combo.is_unordered && _compare_arrays(keys_or_combo, combo.keys)) || (!combo.is_unordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
-          return unregister_combo(combo);
+        _ref = this._registered_combos;
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          combo = _ref[_i];
+          if ((combo.is_unordered && _compare_arrays(keys_or_combo, combo.keys)) || (!combo.is_unordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
+            _results.push(unregister_combo(combo));
+          } else {
+            _results.push(void 0);
+          }
         }
+        return _results;
       }
     };
 
@@ -816,12 +817,22 @@ Combo options available and their defaults:
     return true;
   };
 
+  _index_of_in_array = Array.prototype.indexOf || function(a, item) {
+    var i, _i, _ref;
+    for (i = _i = 0, _ref = a.length; 0 <= _ref ? _i <= _ref : _i >= _ref; i = 0 <= _ref ? ++_i : --_i) {
+      if (a[i] === item) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
   _is_array_in_array_sorted = function(a1, a2) {
     var index, item, prev, _i, _len;
     prev = 0;
     for (_i = 0, _len = a1.length; _i < _len; _i++) {
       item = a1[_i];
-      index = a2.indexOf(item);
+      index = _index_of_in_array.call(a2, item);
       if (index >= prev) {
         prev = index;
       } else {
@@ -890,7 +901,7 @@ Combo options available and their defaults:
       non_modifier_keys = combo.keys.slice();
       for (_k = 0, _len1 = _modifier_keys.length; _k < _len1; _k++) {
         mod_key = _modifier_keys[_k];
-        if ((i = non_modifier_keys.indexOf(mod_key)) > -1) {
+        if ((i = _index_of_in_array.call(non_modifier_keys, mod_key)) > -1) {
           non_modifier_keys.splice(i, 1);
         }
       }
@@ -1076,6 +1087,8 @@ Combo options available and their defaults:
     define([], function() {
       return keypress;
     });
+  } else if (typeof exports !== "undefined" && exports !== null) {
+    exports.keypress = keypress;
   } else {
     window.keypress = keypress;
   }

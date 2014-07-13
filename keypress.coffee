@@ -633,11 +633,10 @@ _is_array_in_array = (a1, a2) ->
         return false unless item in a2
     return true
 
-_index_of_in_array = Array.prototype.indexOf || ((arr, el) ->
-    for i in [0..arr.length]
-        return i if arr[i] is el
+_index_of_in_array = Array.prototype.indexOf or (a, item) ->
+    for i in [0..a.length]
+        return i if a[i] is item
     return -1
-)
 
 _is_array_in_array_sorted = (a1, a2) ->
     # Return true only if all of the contents of
@@ -645,7 +644,7 @@ _is_array_in_array_sorted = (a1, a2) ->
     # same order in both.
     prev = 0
     for item in a1
-        index = _index_of_in_array.call(a2, item)
+        index = _index_of_in_array.call a2, item
         if index >= prev
             prev = index
         else

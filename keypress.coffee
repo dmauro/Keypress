@@ -882,5 +882,7 @@ _change_keycodes_by_browser()
 if typeof define is "function" and define.amd
     define [], ->
         return keypress
+else if exports?
+    exports.keypress = keypress
 else
     window.keypress = keypress

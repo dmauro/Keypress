@@ -556,6 +556,7 @@ class keypress.Listener
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
             for combo in @_registered_combos
+                continue unless combo?
                 if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
                     unregister_combo combo
 

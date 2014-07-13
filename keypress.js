@@ -699,6 +699,9 @@ Combo options available and their defaults:
         _results = [];
         for (_i = 0, _len = _ref.length; _i < _len; _i++) {
           combo = _ref[_i];
+          if (combo == null) {
+            continue;
+          }
           if ((combo.is_unordered && _compare_arrays(keys_or_combo, combo.keys)) || (!combo.is_unordered && _compare_arrays_sorted(keys_or_combo, combo.keys))) {
             _results.push(unregister_combo(combo));
           } else {

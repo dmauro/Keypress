@@ -550,14 +550,13 @@ class keypress.Listener
                     @_registered_combos.splice i, 1
                     break
 
-        if keys_or_combo.keys
+        if keys_or_combo.keys?
             unregister_combo keys_or_combo
         else
-            for combo in @_registered_combos
-                continue unless combo
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
-            if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
+            for combo in @_registered_combos
+                if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))
                     unregister_combo combo
 
     unregister_many: (combo_array) ->

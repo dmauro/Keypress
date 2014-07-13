@@ -848,6 +848,17 @@ describe "APIs behave as expected:", ->
             )
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            listener.unregister_combo(["s", "shift"])
+            listener.unregister_combo("s shift")
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
+
+        it "unregisters if the combo is unordered and not unregistered with the same ordering", ->
+            listener.register_combo(
+                keys            : "shift s"
+                is_unordered    : true
+            )
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(1)
+            listener.unregister_combo("shift s")
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(0)

@@ -870,6 +870,8 @@ _keycode_dictionary =
     63289   : "num"
     # Firefox weirdness
     59 : ";"
+    61 : "-"
+    173 : "="
 
 ############
 # Initialize

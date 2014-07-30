@@ -13,6 +13,10 @@ released under the Apache License, version 2.0
 **What's new**
 ---------------
 
+2.0.4
+
+* Fixed compatibility for '-'/'_' and '='/'+' keys in FireFox. Thanks to [simonsarris](https://github.com/simonsarris) for spotting the bug. [Issue #50](https://github.com/dmauro/Keypress/issues/50)
+
 2.03
 
 * Fixed a bug unregistering combos using arrays of keys

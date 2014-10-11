@@ -98,7 +98,7 @@ class keypress.Listener
             @_defaults[property] = @_defaults[property] or value
 
         # Attach handlers to element
-        element = element or document.body
+        @element = element or document.body
 
         attach_handler = (target, event, handler) ->
             if target.addEventListener
@@ -106,19 +106,34 @@ class keypress.Listener
             else if target.attachEvent
                 target.attachEvent "on#{event}", handler
 
-        attach_handler element, "keydown", (e) =>
+            handler
+
+        @keydown_event = attach_handler @element, "keydown", (e) =>
             e = e or window.event
             @_receive_input e, true
             @_bug_catcher e
-        attach_handler element, "keyup", (e) =>
+
+        @keyup_event = attach_handler @element, "keyup", (e) =>
             e = e or window.event
             @_receive_input e, false
-        attach_handler window, "blur", =>
+
+        @blur_event = attach_handler window, "blur", =>
             # Assume all keys are released when we can't catch key events
             # This prevents alt+tab conflicts
             for key in @_keys_down
                 @_key_up key, {}
             @_keys_down = []
+
+    destroy: () ->
+        remove_handler = (target, event, handler) ->
+            if target.removeEventListener
+                target.removeEventListener event, handler
+            else if target.removeEvent
+                target.removeEvent "on#{event}", handler
+
+        remove_handler @element, "keydown", @keydown_event
+        remove_handler @element, "keyup", @keyup_event
+        remove_handler window, "blur", @blur_event
 
     # Helper Methods
 

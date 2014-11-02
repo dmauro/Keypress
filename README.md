@@ -16,6 +16,7 @@ released under the Apache License, version 2.0
 2.0.4
 
 * Fixed compatibility for '-'/'_' and '='/'+' keys in FireFox. Thanks to [simonsarris](https://github.com/simonsarris) for spotting the bug. [Issue #50](https://github.com/dmauro/Keypress/issues/50)
+* Added []spm support](http://spmjs.io/package/keypress). Thanks to [sorrycc](https://github.com/sorrycc). [Pull request #52](https://github.com/dmauro/Keypress/pull/52)
 
 2.0.3
 

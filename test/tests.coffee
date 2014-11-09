@@ -7,7 +7,7 @@ describe "Keypress:", ->
         listener = new window.keypress.Listener()
 
     convert_readable_key_to_keycode = (keyname) ->
-        for keycode, name of window._keycode_dictionary
+        for keycode, name of window.keypress._keycode_dictionary
             return keycode if name is keyname
         return
 
@@ -730,19 +730,19 @@ describe "Keypress Functional components:", ->
     describe "_is_array_in_array_sorted", ->
 
         it "case 1", ->
-            result = window._is_array_in_array_sorted ["a", "b"], ["a", "b", "c"] 
+            result = window.keypress._is_array_in_array_sorted ["a", "b"], ["a", "b", "c"] 
             expect(result).toBe(true)
 
         it "case 2", ->
-            result = window._is_array_in_array_sorted ["a", "b", "c"], ["a", "b"] 
+            result = window.keypress._is_array_in_array_sorted ["a", "b", "c"], ["a", "b"] 
             expect(result).toBe(false)
 
         it "case 3", ->
-            result = window._is_array_in_array_sorted ["a", "b"], ["a", "x", "b"]
+            result = window.keypress._is_array_in_array_sorted ["a", "b"], ["a", "x", "b"]
             expect(result).toBe(true)
 
         it "case 4", ->
-            result = window._is_array_in_array_sorted ["b", "a"], ["a", "x", "b"]
+            result = window.keypress._is_array_in_array_sorted ["b", "a"], ["a", "x", "b"]
             expect(result).toBe(false)
 
     describe "_fuzzy_match_combo_arrays", ->
@@ -826,6 +826,7 @@ describe "APIs behave as expected:", ->
             )
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
+            debugger
             listener.unregister_combo(["shift", "s"])
             count = listener.get_registered_combos().length
             expect(count).toEqual(0)
@@ -860,5 +861,17 @@ describe "APIs behave as expected:", ->
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
             listener.unregister_combo("shift s")
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(0)
+
+        it "unregisters a combo passed in directly", ->
+            debugger
+            combo = listener.register_combo(
+                keys            : "shift s"
+                is_unordered    : true
+            )
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(1)
+            listener.unregister_combo(combo)
             count = listener.get_registered_combos().length
             expect(count).toEqual(0)

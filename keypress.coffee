@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.3
+version 2.1.0
 ###
 
 ###
@@ -98,7 +98,7 @@ class keypress.Listener
             @_defaults[property] = @_defaults[property] or value
 
         # Attach handlers to element
-        element = element or document.body
+        @element = element or document.body
 
         attach_handler = (target, event, handler) ->
             if target.addEventListener
@@ -106,19 +106,34 @@ class keypress.Listener
             else if target.attachEvent
                 target.attachEvent "on#{event}", handler
 
-        attach_handler element, "keydown", (e) =>
+            return handler
+
+        @keydown_event = attach_handler @element, "keydown", (e) =>
             e = e or window.event
             @_receive_input e, true
             @_bug_catcher e
-        attach_handler element, "keyup", (e) =>
+
+        @keyup_event = attach_handler @element, "keyup", (e) =>
             e = e or window.event
             @_receive_input e, false
-        attach_handler window, "blur", =>
+
+        @blur_event = attach_handler window, "blur", =>
             # Assume all keys are released when we can't catch key events
             # This prevents alt+tab conflicts
             for key in @_keys_down
                 @_key_up key, {}
             @_keys_down = []
+
+    destroy: () ->
+        remove_handler = (target, event, handler) ->
+            if target.removeEventListener?
+                target.removeEventListener event, handler
+            else if target.removeEvent?
+                target.removeEvent "on#{event}", handler
+
+        remove_handler @element, "keydown", @keydown_event
+        remove_handler @element, "keyup", @keyup_event
+        remove_handler window, "blur", @blur_event
 
     # Helper Methods
 
@@ -550,7 +565,7 @@ class keypress.Listener
                     @_registered_combos.splice i, 1
                     break
 
-        if keys_or_combo.keys?
+        if keys_or_combo instanceof Combo
             unregister_combo keys_or_combo
         else
             if typeof keys_or_combo is "string"
@@ -847,7 +862,19 @@ _keycode_dictionary =
     108 : "num_enter"
     109 : "num_subtract"
     110 : "num_decimal"
-    111 : "num_divide"
+    111 : "num_divide" 
+    112 : "f1"
+    113 : "f2"
+    114 : "f3"
+    115 : "f4"
+    116 : "f5"
+    117 : "f6"
+    118 : "f7"
+    119 : "f8"
+    120 : "f9"
+    121 : "f10"
+    122 : "f11"
+    123 : "f12"
     124 : "print"
     144 : "num"
     145 : "scroll"
@@ -870,6 +897,12 @@ _keycode_dictionary =
     63289   : "num"
     # Firefox weirdness
     59 : ";"
+    61 : "-"
+    173 : "="
+
+# For testing only:
+keypress._keycode_dictionary = _keycode_dictionary
+keypress._is_array_in_array_sorted = _is_array_in_array_sorted
 
 ############
 # Initialize

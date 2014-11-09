@@ -1,6 +1,6 @@
 Keypress
 ========
-Version 2.0.3
+Version 2.1.0
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
@@ -13,7 +13,14 @@ released under the Apache License, version 2.0
 **What's new**
 ---------------
 
-2.03
+2.1.0
+
+* Another fix for unregistering combos using an array of keys
+* Added a destroy method to cleanup a listener. Thanks to [smerickson](https://github.com/smerickson) for submitting. [Pull request #51](https://github.com/dmauro/Keypress/pull/51)
+* Fixed compatibility for '-'/'_' and '='/'+' keys in FireFox. Thanks to [simonsarris](https://github.com/simonsarris) for spotting the bug. [Issue #50](https://github.com/dmauro/Keypress/issues/50)
+* Added []spm support](http://spmjs.io/package/keypress). Thanks to [sorrycc](https://github.com/sorrycc). [Pull request #52](https://github.com/dmauro/Keypress/pull/52)
+
+2.0.3
 
 * Fixed a bug unregistering combos using arrays of keys
 * Added ie8 compatibility shim. Thanks to [barrkel](https://github.com/barrkel). [Issue #41](https://github.com/dmauro/Keypress/issues/41)

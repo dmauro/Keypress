@@ -106,7 +106,7 @@ class keypress.Listener
             else if target.attachEvent
                 target.attachEvent "on#{event}", handler
 
-            handler
+            return handler
 
         @keydown_event = attach_handler @element, "keydown", (e) =>
             e = e or window.event
@@ -126,9 +126,9 @@ class keypress.Listener
 
     destroy: () ->
         remove_handler = (target, event, handler) ->
-            if target.removeEventListener
+            if target.removeEventListener?
                 target.removeEventListener event, handler
-            else if target.removeEvent
+            else if target.removeEvent?
                 target.removeEvent "on#{event}", handler
 
         remove_handler @element, "keydown", @keydown_event

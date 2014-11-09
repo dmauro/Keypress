@@ -704,7 +704,7 @@ Combo options available and their defaults:
           return _results;
         };
       })(this);
-      if (keys_or_combo.keys != null) {
+      if (keys_or_combo instanceof Combo) {
         return unregister_combo(keys_or_combo);
       } else {
         if (typeof keys_or_combo === "string") {
@@ -1110,6 +1110,10 @@ Combo options available and their defaults:
     61: "-",
     173: "="
   };
+
+  keypress._keycode_dictionary = _keycode_dictionary;
+
+  keypress._is_array_in_array_sorted = _is_array_in_array_sorted;
 
   _decide_meta_key();
 

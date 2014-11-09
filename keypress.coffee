@@ -565,7 +565,7 @@ class keypress.Listener
                     @_registered_combos.splice i, 1
                     break
 
-        if keys_or_combo.keys?
+        if keys_or_combo instanceof Combo
             unregister_combo keys_or_combo
         else
             if typeof keys_or_combo is "string"
@@ -899,6 +899,10 @@ _keycode_dictionary =
     59 : ";"
     61 : "-"
     173 : "="
+
+# For testing only:
+keypress._keycode_dictionary = _keycode_dictionary
+keypress._is_array_in_array_sorted = _is_array_in_array_sorted
 
 ############
 # Initialize

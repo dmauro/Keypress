@@ -18,7 +18,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.3
+version 2.1.0
  */
 
 
@@ -106,28 +106,29 @@ Combo options available and their defaults:
         value = _factory_defaults[property];
         this._defaults[property] = this._defaults[property] || value;
       }
-      element = element || document.body;
+      this.element = element || document.body;
       attach_handler = function(target, event, handler) {
         if (target.addEventListener) {
-          return target.addEventListener(event, handler);
+          target.addEventListener(event, handler);
         } else if (target.attachEvent) {
-          return target.attachEvent("on" + event, handler);
+          target.attachEvent("on" + event, handler);
         }
+        return handler;
       };
-      attach_handler(element, "keydown", (function(_this) {
+      this.keydown_event = attach_handler(this.element, "keydown", (function(_this) {
         return function(e) {
           e = e || window.event;
           _this._receive_input(e, true);
           return _this._bug_catcher(e);
         };
       })(this));
-      attach_handler(element, "keyup", (function(_this) {
+      this.keyup_event = attach_handler(this.element, "keyup", (function(_this) {
         return function(e) {
           e = e || window.event;
           return _this._receive_input(e, false);
         };
       })(this));
-      attach_handler(window, "blur", (function(_this) {
+      this.blur_event = attach_handler(window, "blur", (function(_this) {
         return function() {
           var key, _i, _len, _ref;
           _ref = _this._keys_down;
@@ -139,6 +140,20 @@ Combo options available and their defaults:
         };
       })(this));
     }
+
+    Listener.prototype.destroy = function() {
+      var remove_handler;
+      remove_handler = function(target, event, handler) {
+        if (target.removeEventListener != null) {
+          return target.removeEventListener(event, handler);
+        } else if (target.removeEvent != null) {
+          return target.removeEvent("on" + event, handler);
+        }
+      };
+      remove_handler(this.element, "keydown", this.keydown_event);
+      remove_handler(this.element, "keyup", this.keyup_event);
+      return remove_handler(window, "blur", this.blur_event);
+    };
 
     Listener.prototype._bug_catcher = function(e) {
       var _ref;

@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.0.3
+version 2.1.0
 ###
 
 ###

@@ -6,7 +6,9 @@ Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
 visit [http://dmauro.github.io/Keypress/](http://dmauro.github.io/Keypress/)
 
-Copyright 2014 David Mauro
+If you're using Keypress with Meteor, see the [Meteor notes](meteor/README.md).
+
+Copyright 2014 David Mauro  
 released under the Apache License, version 2.0
 
 

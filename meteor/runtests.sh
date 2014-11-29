@@ -1,3 +1,4 @@
+#!/bin/sh
 # Test Meteor package before publishing to Atmospherejs.com
 
 # Make sure Meteor is installed, per https://www.meteor.com/install. The curl'ed script is totally safe; takes 2 minutes to read its source and check.

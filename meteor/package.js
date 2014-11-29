@@ -1,7 +1,8 @@
 // package metadata file for Meteor.js
+'use strict';
 
 var packageName = 'keypress:keypress';  // http://atmospherejs.com/keypress/keypress
-var where = 'client';  // where to install: 'client', 'server', or ['client', 'server']
+var where = 'client';  // where to install: 'client' or 'server'. For both, pass nothing.
 
 var packageJson = JSON.parse(Npm.require("fs").readFileSync('package.json'));
 
@@ -13,12 +14,13 @@ Package.describe({
 });
 
 Package.onUse(function (api) {
-  api.versionsFrom('METEOR@0.9.0');
+  api.versionsFrom('METEOR@1.0');
   api.export('Keypress');
   api.addFiles([
     'keypress.js',
     'meteor/export.js'
-  ], where);
+  ], where
+  );
 });
 
 Package.onTest(function (api) {

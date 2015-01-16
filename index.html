@@ -553,8 +553,8 @@ listener.reset();</code></pre>
                 text input field or textarea). We could use listener.stop_listening() like so:
             </p>
 <pre><code class="javascript">$('input[type=text]')
-    .bind("focus", listener.stop_listening)
-    .bind("blur", listener.listen);</code></pre>
+    .bind("focus", function() { listener.stop_listening(); })
+    .bind("blur", function() { listener.listen(); });</code></pre>
 
             <p>
                 Alternatively we might ONLY want to be listening when a particular DOM element is

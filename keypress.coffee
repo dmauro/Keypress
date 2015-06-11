@@ -897,8 +897,8 @@ _keycode_dictionary =
     63289   : "num"
     # Firefox weirdness
     59 : ";"
-    61 : "-"
-    173 : "="
+    61 : "="
+    173 : "-"
 
 # For testing only:
 keypress._keycode_dictionary = _keycode_dictionary

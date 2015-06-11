@@ -1107,8 +1107,8 @@ Combo options available and their defaults:
     57392: "ctrl",
     63289: "num",
     59: ";",
-    61: "-",
-    173: "="
+    61: "=",
+    173: "-"
   };
 
   keypress._keycode_dictionary = _keycode_dictionary;

@@ -14,6 +14,13 @@ released under the Apache License, version 2.0
 
 **What's new**
 ---------------
+2.1.2
+
+* Added some simple jQuery proofing so you can pass in the result of a jQuery selector into the Listener's constructor. Thanks to [mallocator](https://github.com/mallocator) for the request. [Issue #89](https://github.com/dmauro/Keypress/issues/89)
+* Changed the default behavior of how sequence combos behavior. Most people probably would have considered this a bug, so I'm not considering this API breaking. Thanks to [ronnyek](https://github.com/ronnyek) for pointing the problem out in [Issue #68](https://github.com/dmauro/Keypress/issues/68).
+* Bower file cleaned up thanks to [kkirsche](https://github.com/kkirsche). [Pull request #97](https://github.com/dmauro/Keypress/pull/97)
+* Keys in FF/Gecko - and = fixed thanks to [deanputney](https://github.com/deanputney). [Pull request #95](https://github.com/dmauro/Keypress/pull/95)
+* 
 
 2.1.1
 

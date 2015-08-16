@@ -550,7 +550,7 @@ describe "Keypress:", ->
                 expect(i_keydown.preventDefault).toHaveBeenCalled()
                 expect(t_keydown.preventDefault).toHaveBeenCalled()
 
-            it "will trigger overlapping sequences", ->
+            it "will trigger overlapping sequences which are not exclusive", ->
                 listener.register_combo(
                     keys        : "h i"
                     is_sequence : true
@@ -565,6 +565,49 @@ describe "Keypress:", ->
                 press_key "i"
                 press_key "t"
                 expect(key_handler.calls.length).toEqual(2)
+
+            it "will not trigger overlapping exclusive sequences", ->
+                listener.register_combo(
+                    keys            : "h i"
+                    is_sequence     : true
+                    is_exclusive    : true
+                    on_keydown      : key_handler
+                )
+                listener.register_combo(
+                    keys            : "h i t"
+                    is_sequence     : true
+                    is_exclusive    : true
+                    on_keydown      : key_handler
+                )
+                press_key "h"
+                press_key "i"
+                press_key "t"
+                expect(key_handler.calls.length).toEqual(1)
+
+            it "clears out sequence keys after matching an exclusive combo", ->
+                listener.register_combo(
+                    keys            : "h i"
+                    is_sequence     : true
+                    is_exclusive    : true
+                    on_keydown      : key_handler
+                )
+                press_key "h"
+                press_key "i"
+                expect(listener._sequence.length).toEqual(0)
+
+            it "does not clears out sequence keys for non-exclusives", ->
+                listener.register_combo(
+                    keys        : "h i"
+                    is_sequence : true
+                    on_keydown  : key_handler
+                )
+                press_key "h"
+                press_key "i"
+                expect(listener._sequence.length).toEqual(2)
+
+            it "will default sequences to exclusive", ->
+                combo = listener.sequence_combo("h i")
+                expect(combo.is_exclusive).toBe(true)
 
         describe "is_exclusive", ->
 
@@ -826,7 +869,6 @@ describe "APIs behave as expected:", ->
             )
             count = listener.get_registered_combos().length
             expect(count).toEqual(1)
-            debugger
             listener.unregister_combo(["shift", "s"])
             count = listener.get_registered_combos().length
             expect(count).toEqual(0)
@@ -865,7 +907,6 @@ describe "APIs behave as expected:", ->
             expect(count).toEqual(0)
 
         it "unregisters a combo passed in directly", ->
-            debugger
             combo = listener.register_combo(
                 keys            : "shift s"
                 is_unordered    : true

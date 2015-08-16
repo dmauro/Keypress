@@ -316,7 +316,11 @@ class keypress.Listener
                     else
                         match = false
                         break
-            return combo if match
+            if match
+                debugger
+                if combo.is_exclusive
+                    @_sequence = []
+                return combo
         return false
 
     # Catching Combos
@@ -537,6 +541,7 @@ class keypress.Listener
             keys            : keys
             on_keydown      : callback
             is_sequence     : true
+            is_exclusive    : true
         )
 
     register_combo: (combo_dictionary) ->

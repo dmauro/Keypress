@@ -81,6 +81,12 @@ class Combo
 
 class keypress.Listener
     constructor:(element, defaults) ->
+        # jQuery proofing
+        if jQuery? and element instanceof jQuery
+            if element.length != 1
+                _log_error "Warning: your jQuery selector should have exactly one object."
+            element = element[0]
+
         # Public properties
         @should_suppress_event_defaults = false
         @should_force_event_defaults = false

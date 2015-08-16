@@ -88,6 +88,12 @@ Combo = (function() {
 keypress.Listener = (function() {
   function Listener(element, defaults) {
     var attach_handler, property, value;
+    if ((typeof jQuery !== "undefined" && jQuery !== null) && element instanceof jQuery) {
+      if (element.length !== 1) {
+        _log_error("Warning: your jQuery selector should have exactly one object.");
+      }
+      element = element[0];
+    }
     this.should_suppress_event_defaults = false;
     this.should_force_event_defaults = false;
     this.sequence_delay = 800;

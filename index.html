@@ -487,6 +487,12 @@ listener.sequence_combo("up up down down left right left right b a enter", funct
                     any combos that are also exclusive and less specific. This property is used to great
                     effect in the arbitrary modifiers demo above to make sure that when you press diagonal
                     combos, the component direction combos are not also fired.
+
+                    This can also be used with sequence combos. The default when using the sequence_combo()
+                    method is to make them exclusive. What this will do is reset what is evaluated for matching
+                    sequence combos. So for instance if you had two sequences, one for "key" and one for "keypress",
+                    if the "key" combo were exclusive, the "keypress" sequence would not be triggered because
+                    the "key" combo would trigger and reset the evaluated keys.
                 </li>
                 <li>
                     <strong class="group_4">is_sequence:</strong> Setting this to true will make the combo a

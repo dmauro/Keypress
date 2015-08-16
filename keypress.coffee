@@ -16,7 +16,7 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.1.0
+version 2.1.2
 ###
 
 ###
@@ -81,6 +81,12 @@ class Combo
 
 class keypress.Listener
     constructor:(element, defaults) ->
+        # jQuery proofing
+        if jQuery? and element instanceof jQuery
+            if element.length != 1
+                _log_error "Warning: your jQuery selector should have exactly one object."
+            element = element[0]
+
         # Public properties
         @should_suppress_event_defaults = false
         @should_force_event_defaults = false
@@ -316,7 +322,11 @@ class keypress.Listener
                     else
                         match = false
                         break
-            return combo if match
+            if match
+                debugger
+                if combo.is_exclusive
+                    @_sequence = []
+                return combo
         return false
 
     # Catching Combos
@@ -537,6 +547,7 @@ class keypress.Listener
             keys            : keys
             on_keydown      : callback
             is_sequence     : true
+            is_exclusive    : true
         )
 
     register_combo: (combo_dictionary) ->
@@ -897,8 +908,8 @@ _keycode_dictionary =
     63289   : "num"
     # Firefox weirdness
     59 : ";"
-    61 : "-"
-    173 : "="
+    61 : "="
+    173 : "-"
 
 # For testing only:
 keypress._keycode_dictionary = _keycode_dictionary

@@ -1,24 +1,37 @@
 Keypress
 ========
-Version 2.1.0
+Version 2.1.2
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
 visit [http://dmauro.github.io/Keypress/](http://dmauro.github.io/Keypress/)
 
-Copyright 2014 David Mauro
+If you're using Keypress with Meteor, see the [Meteor notes](meteor/README.md).
+
+Copyright 2014 David Mauro  
 released under the Apache License, version 2.0
 
 
 **What's new**
 ---------------
+2.1.2
+
+* Added some simple jQuery proofing so you can pass in the result of a jQuery selector into the Listener's constructor. Thanks to [mallocator](https://github.com/mallocator) for the request. [Issue #89](https://github.com/dmauro/Keypress/issues/89)
+* Changed the default behavior of how sequence combos behavior. Most people probably would have considered this a bug, so I'm not considering this API breaking. Thanks to [ronnyek](https://github.com/ronnyek) for pointing the problem out in [Issue #68](https://github.com/dmauro/Keypress/issues/68).
+* Bower file cleaned up thanks to [kkirsche](https://github.com/kkirsche). [Pull request #97](https://github.com/dmauro/Keypress/pull/97)
+* Keys in FF/Gecko - and = fixed thanks to [deanputney](https://github.com/deanputney). [Pull request #95](https://github.com/dmauro/Keypress/pull/95)
+* 
+
+2.1.1
+
+* Added [Meteor](https://www.meteor.com/) support. Thanks to [dandv](https://github.com/dandv). [Pull request #63](https://github.com/dmauro/Keypress/pull/63)
 
 2.1.0
 
 * Another fix for unregistering combos using an array of keys
 * Added a destroy method to cleanup a listener. Thanks to [smerickson](https://github.com/smerickson) for submitting. [Pull request #51](https://github.com/dmauro/Keypress/pull/51)
 * Fixed compatibility for '-'/'_' and '='/'+' keys in FireFox. Thanks to [simonsarris](https://github.com/simonsarris) for spotting the bug. [Issue #50](https://github.com/dmauro/Keypress/issues/50)
-* Added []spm support](http://spmjs.io/package/keypress). Thanks to [sorrycc](https://github.com/sorrycc). [Pull request #52](https://github.com/dmauro/Keypress/pull/52)
+* Added [spm support](http://spmjs.io/package/keypress). Thanks to [sorrycc](https://github.com/sorrycc). [Pull request #52](https://github.com/dmauro/Keypress/pull/52)
 
 2.0.3
 

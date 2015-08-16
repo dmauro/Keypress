@@ -1,7 +1,6 @@
 {
   "name": "Keypress",
   "main": "keypress-2.1.0.min.js",
-  "version": "2.1.0",
   "homepage": "https://github.com/dmauro/Keypress",
   "authors": [
     "David Mauro <email@dmauro.com>"

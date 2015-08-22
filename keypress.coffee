@@ -323,7 +323,6 @@ class keypress.Listener
                         match = false
                         break
             if match
-                debugger
                 if combo.is_exclusive
                     @_sequence = []
                 return combo

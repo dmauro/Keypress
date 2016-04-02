@@ -146,7 +146,7 @@ class keypress.Listener
     _bug_catcher: (e) ->
         # This seems to be Mac specific weirdness, so we'll target "cmd" as metaKey
         # Force a keyup for non-modifier keys when command is held because they don't fire
-        if _metakey is "cmd" and "cmd" in @_keys_down and _convert_key_to_readable(e.keyCode || e.key) not in ["cmd", "shift", "alt", "caps", "tab"]
+        if _metakey is "cmd" and "cmd" in @_keys_down and _convert_key_to_readable(e.keyCode ? e.key) not in ["cmd", "shift", "alt", "caps", "tab"]
             @_receive_input e, false
         # Note: we're currently ignoring the fact that this doesn't catch the bug that a keyup
         # will not fire if you keydown a combo, then press and hold cmd, then keyup the combo.
@@ -336,7 +336,7 @@ class keypress.Listener
         if @_prevent_capture
             @_keys_down = [] if @_keys_down.length
             return
-        key = _convert_key_to_readable (e.keyCode || e.key)
+        key = _convert_key_to_readable (e.keyCode ? e.key)
         # Catch tabbing out of a non-capturing state
         if !is_keydown and !@_keys_down.length and key in ["alt", _metakey]
             return

@@ -1,6 +1,6 @@
 Keypress
 ========
-Version 2.1.3
+Version 2.1.4
 
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games. For details and documentation, please
@@ -8,12 +8,18 @@ visit [http://dmauro.github.io/Keypress/](http://dmauro.github.io/Keypress/)
 
 If you're using Keypress with Meteor, see the [Meteor notes](meteor/README.md).
 
-Copyright 2015 David Mauro  
+Copyright 2016 David Mauro  
 released under the Apache License, version 2.0
 
 
 **What's new**
 ---------------
+
+2.1.4
+
+* Remove unexpected debugger
+* Backup to e.key if there is no e.keyCode. Thanks [kvantetore](https://github.com/kvantetore). [Pull request #107](https://github.com/dmauro/Keypress/pull/107)
+
 2.1.3
 
 * Just fixing the bower JSON. Thanks [OleCordsen](https://github.com/OleCordsen). [Issue #101](https://github.com/dmauro/Keypress/issues/101)

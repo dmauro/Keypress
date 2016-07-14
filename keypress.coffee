@@ -293,7 +293,7 @@ class keypress.Listener
             # If we're working towards one, give them more time to keep going
             clearTimeout(@_sequence_timer) if @_sequence_timer
             if @sequence_delay > -1
-                @_sequence_timer = setTimeout ->
+                @_sequence_timer = setTimeout =>
                     @_sequence = []
                 , @sequence_delay
         else

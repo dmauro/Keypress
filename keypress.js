@@ -24,19 +24,20 @@ version 2.1.3
 
 /*
 Combo options available and their defaults:
-    keys            : []            - An array of the keys pressed together to activate combo.
-    count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    is_unordered    : false         - Unless this is set to true, the keys can be pressed down in any order.
-    is_counting     : false         - Makes this a counting combo (see documentation).
-    is_exclusive    : false         - This combo will replace other exclusive combos when true.
-    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
-    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence.
-    prevent_default : false         - Prevent default behavior for all component key keypresses.
-    prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
-    on_keydown      : null          - A function that is called when the combo is pressed.
-    on_keyup        : null          - A function that is called when the combo is released.
-    on_release      : null          - A function that is called when all keys in the combo are released.
-    this            : undefined     - Defines the scope for your callback functions.
+    keys                  : []            - An array of the keys pressed together to activate combo.
+    count                 : 0             - The number of times a counting combo has been pressed. Reset on release.
+    is_unordered          : false         - Unless this is set to true, the keys can be pressed down in any order.
+    is_counting           : false         - Makes this a counting combo (see documentation).
+    is_exclusive          : false         - This combo will replace other exclusive combos when true.
+    is_solitary           : false         - This combo will only fire if ONLY it's keys are pressed down.
+    is_sequence           : false         - Rather than a key combo, this is an ordered key sequence.
+    prevent_default       : false         - Prevent default behavior for all component key keypresses.
+    prevent_repeat        : false         - Prevent the combo from repeating when keydown is held.
+    normalize_caps_lock   : false         - Do not allow turning caps lock on to prevent combos from being activated.
+    on_keydown            : null          - A function that is called when the combo is pressed.
+    on_keyup              : null          - A function that is called when the combo is released.
+    on_release            : null          - A function that is called when all keys in the combo are released.
+    this                  : undefined     - Defines the scope for your callback functions.
  */
 
 (function() {
@@ -50,7 +51,8 @@ Combo options available and their defaults:
     is_exclusive: false,
     is_solitary: false,
     prevent_default: false,
-    prevent_repeat: false
+    prevent_repeat: false,
+    normalize_caps_lock: false
   };
 
   _modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"];
@@ -439,11 +441,15 @@ Combo options available and their defaults:
     };
 
     Listener.prototype._match_combo_arrays = function(potential_match, match_handler) {
-      var source_combo, _i, _len, _ref;
+      var combo_potential_match, source_combo, _i, _len, _ref;
       _ref = this._registered_combos;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         source_combo = _ref[_i];
-        if ((!source_combo.is_unordered && _compare_arrays_sorted(potential_match, source_combo.keys)) || (source_combo.is_unordered && _compare_arrays(potential_match, source_combo.keys))) {
+        combo_potential_match = potential_match.slice(0);
+        if (source_combo.normalize_caps_lock && __indexOf.call(combo_potential_match, "caps") >= 0) {
+          combo_potential_match.splice(combo_potential_match.indexOf("caps"), 1);
+        }
+        if ((!source_combo.is_unordered && _compare_arrays_sorted(combo_potential_match, source_combo.keys)) || (source_combo.is_unordered && _compare_arrays(combo_potential_match, source_combo.keys))) {
           match_handler(source_combo);
         }
       }

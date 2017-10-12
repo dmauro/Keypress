@@ -585,6 +585,9 @@ class keypress.Listener
         else
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
+                for i in [0...keys_or_combo.length]
+                    if keys_or_combo[i] == "meta"
+                        keys_or_combo[i] = _metakey
             for combo in @_registered_combos
                 continue unless combo?
                 if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))

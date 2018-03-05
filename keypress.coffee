@@ -16,24 +16,25 @@ limitations under the License.
 Keypress is a robust keyboard input capturing Javascript utility
 focused on input for games.
 
-version 2.1.3
+version 2.1.5
 ###
 
 ###
 Combo options available and their defaults:
-    keys            : []            - An array of the keys pressed together to activate combo.
-    count           : 0             - The number of times a counting combo has been pressed. Reset on release.
-    is_unordered    : false         - Unless this is set to true, the keys can be pressed down in any order.
-    is_counting     : false         - Makes this a counting combo (see documentation).
-    is_exclusive    : false         - This combo will replace other exclusive combos when true.
-    is_solitary     : false         - This combo will only fire if ONLY it's keys are pressed down.
-    is_sequence     : false         - Rather than a key combo, this is an ordered key sequence.
-    prevent_default : false         - Prevent default behavior for all component key keypresses.
-    prevent_repeat  : false         - Prevent the combo from repeating when keydown is held.
-    on_keydown      : null          - A function that is called when the combo is pressed.
-    on_keyup        : null          - A function that is called when the combo is released.
-    on_release      : null          - A function that is called when all keys in the combo are released.
-    this            : undefined     - Defines the scope for your callback functions.
+    keys                  : []            - An array of the keys pressed together to activate combo.
+    count                 : 0             - The number of times a counting combo has been pressed. Reset on release.
+    is_unordered          : false         - Unless this is set to true, the keys can be pressed down in any order.
+    is_counting           : false         - Makes this a counting combo (see documentation).
+    is_exclusive          : false         - This combo will replace other exclusive combos when true.
+    is_solitary           : false         - This combo will only fire if ONLY it's keys are pressed down.
+    is_sequence           : false         - Rather than a key combo, this is an ordered key sequence.
+    prevent_default       : false         - Prevent default behavior for all component key keypresses.
+    prevent_repeat        : false         - Prevent the combo from repeating when keydown is held.
+    normalize_caps_lock   : false         - Do not allow turning caps lock on to prevent combos from being activated.
+    on_keydown            : null          - A function that is called when the combo is pressed.
+    on_keyup              : null          - A function that is called when the combo is released.
+    on_release            : null          - A function that is called when all keys in the combo are released.
+    this                  : undefined     - Defines the scope for your callback functions.
 ###
 
 ###########
@@ -41,12 +42,13 @@ Combo options available and their defaults:
 ###########
 
 _factory_defaults =
-    is_unordered    : false
-    is_counting     : false
-    is_exclusive    : false
-    is_solitary     : false
-    prevent_default : false
-    prevent_repeat  : false
+    is_unordered        : false
+    is_counting         : false
+    is_exclusive        : false
+    is_solitary         : false
+    prevent_default     : false
+    prevent_repeat      : false
+    normalize_caps_lock : false
 
 _modifier_keys = ["meta", "alt", "option", "ctrl", "shift", "cmd"]
 
@@ -291,7 +293,7 @@ class keypress.Listener
             # If we're working towards one, give them more time to keep going
             clearTimeout(@_sequence_timer) if @_sequence_timer
             if @sequence_delay > -1
-                @_sequence_timer = setTimeout ->
+                @_sequence_timer = setTimeout =>
                     @_sequence = []
                 , @sequence_delay
         else
@@ -359,7 +361,10 @@ class keypress.Listener
     _match_combo_arrays: (potential_match, match_handler) ->
         # This will return all combos that match
         for source_combo in @_registered_combos
-            if (not source_combo.is_unordered and _compare_arrays_sorted(potential_match, source_combo.keys)) or (source_combo.is_unordered and _compare_arrays(potential_match, source_combo.keys))
+            combo_potential_match = potential_match.slice(0);
+            if (source_combo.normalize_caps_lock and "caps" in combo_potential_match)
+                combo_potential_match.splice(combo_potential_match.indexOf("caps"), 1)
+            if (not source_combo.is_unordered and _compare_arrays_sorted(combo_potential_match, source_combo.keys)) or (source_combo.is_unordered and _compare_arrays(combo_potential_match, source_combo.keys))
                 match_handler source_combo
         return
 
@@ -580,6 +585,9 @@ class keypress.Listener
         else
             if typeof keys_or_combo is "string"
                 keys_or_combo = keys_or_combo.split " "
+                for i in [0...keys_or_combo.length]
+                    if keys_or_combo[i] == "meta"
+                        keys_or_combo[i] = _metakey
             for combo in @_registered_combos
                 continue unless combo?
                 if (combo.is_unordered and _compare_arrays(keys_or_combo, combo.keys)) or (not combo.is_unordered and _compare_arrays_sorted(keys_or_combo, combo.keys))

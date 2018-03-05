@@ -916,3 +916,13 @@ describe "APIs behave as expected:", ->
             listener.unregister_combo(combo)
             count = listener.get_registered_combos().length
             expect(count).toEqual(0)
+
+        it "unregisters a meta combo from a string", ->
+            listener.register_combo(
+                keys: "meta c"
+            )
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(1)
+            listener.unregister_combo("meta c")
+            count = listener.get_registered_combos().length
+            expect(count).toEqual(0)

@@ -3,10 +3,10 @@ framework on GitHub.
 
 # Usage
 
-Note that for Meteor, you must access Keypress via the `Keypress` global, rather than via
+Note that for Meteor, you must access Keypress via the `keypress` global, rather than via
 `window.keypress` as advised in [the documentation](http://dmauro.github.io/Keypress/). Do this:
 
-    var listener = new Keypress.Listener();
+    var listener = new keypress.Listener();
 
 Everything else is the same.
 
